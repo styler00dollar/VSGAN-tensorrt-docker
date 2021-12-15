@@ -44,7 +44,7 @@ docker run --rm -i -t \
     -v ~/.config/pulse/cookie:/run/pulse/cookie \
     -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
     -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
-    realsr_tensorrt:latest
+    VSGAN_tensorrt:latest
     
 # run mpv
 vspipe --y4m inference.py - | mpv -
