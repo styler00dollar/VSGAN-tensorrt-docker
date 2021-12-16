@@ -434,8 +434,8 @@ class VSGAN:
         self.rrdb_net_model = RRDBNet(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
         self.rrdb_net_model.load_state_dict(state_dict, strict=False)
         self.rrdb_net_model.eval()
-        self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
-        """
+        #self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
+
         import torch_tensorrt
         example_data = torch.rand(1,3,64,64)
         self.rrdb_net_model = torch.jit.trace(self.rrdb_net_model, [example_data])
@@ -446,7 +446,7 @@ class VSGAN:
                         dtype=torch.float32)], \
                         enabled_precisions={torch.float}, truncate_long_and_double=True)
         del example_data
-        """
+
 
         return self
 
