@@ -1,7 +1,5 @@
 """
 15-Dez-21
-https://github.com/rlaphoenix/VSGAN/blob/master/vsgan/RRDBNet.py
-https://github.com/rlaphoenix/VSGAN/blob/master/vsgan/RRDBNet_Blocks.py
 https://github.com/rlaphoenix/VSGAN/blob/master/vsgan/__init__.py
 https://github.com/rlaphoenix/VSGAN/blob/master/vsgan/constants.py
 """
@@ -20,6 +18,9 @@ import torch
 import torch.nn as nn
 import torchvision
 import vapoursynth as vs
+import torch_tensorrt
+import sys
+sys.path.append('/workspace/tensorrt/')
 
 MAX_DTYPE_VALUES = {
     np.dtype("int8"): 127,
@@ -33,339 +34,6 @@ MAX_DTYPE_VALUES = {
     np.dtype("float32"): 1.0,
     np.dtype("float64"): 1.0,
 }
-
-
-####################
-# Basic blocks
-####################
-
-
-def act(act_type, inplace=True, neg_slope=0.2, n_prelu=1):
-    # helper selecting activation
-    # neg_slope: for leakyrelu and init of prelu
-    # n_prelu: for p_relu num_parameters
-    act_type = act_type.lower()
-    if act_type == 'relu':
-        layer = nn.ReLU(inplace)
-    elif act_type == 'leakyrelu':
-        layer = nn.LeakyReLU(neg_slope, inplace)
-    elif act_type == 'prelu':
-        layer = nn.PReLU(num_parameters=n_prelu, init=neg_slope)
-    else:
-        raise NotImplementedError('activation layer [%s] is not found' % act_type)
-    return layer
-
-
-def norm(norm_type, nc):
-    # helper selecting normalization layer
-    norm_type = norm_type.lower()
-    if norm_type == 'batch':
-        layer = nn.BatchNorm2d(nc, affine=True)
-    elif norm_type == 'instance':
-        layer = nn.InstanceNorm2d(nc, affine=False)
-    else:
-        raise NotImplementedError('normalization layer [%s] is not found' % norm_type)
-    return layer
-
-
-def pad(pad_type, padding):
-    # helper selecting padding layer
-    # if padding is 'zero', do by conv layers
-    pad_type = pad_type.lower()
-    if padding == 0:
-        return None
-    if pad_type == 'reflect':
-        layer = nn.ReflectionPad2d(padding)
-    elif pad_type == 'replicate':
-        layer = nn.ReplicationPad2d(padding)
-    else:
-        raise NotImplementedError('padding layer [%s] is not implemented' % pad_type)
-    return layer
-
-
-def get_valid_padding(kernel_size, dilation):
-    kernel_size = kernel_size + (kernel_size - 1) * (dilation - 1)
-    padding = (kernel_size - 1) // 2
-    return padding
-
-
-class ConcatBlock(nn.Module):
-    # Concat the output of a submodule to its input
-    def __init__(self, submodule):
-        super(ConcatBlock, self).__init__()
-        self.sub = submodule
-
-    def forward(self, x):
-        output = torch.cat((x, self.sub(x)), dim=1)
-        return output
-
-    def __repr__(self):
-        tmpstr = 'Identity .. \n|'
-        modstr = self.sub.__repr__().replace('\n', '\n|')
-        tmpstr = tmpstr + modstr
-        return tmpstr
-
-
-class ShortcutBlock(nn.Module):
-    # Elementwise sum the output of a submodule to its input
-    def __init__(self, submodule):
-        super(ShortcutBlock, self).__init__()
-        self.sub = submodule
-
-    def forward(self, x):
-        output = x + self.sub(x)
-        return output
-
-    def __repr__(self):
-        tmpstr = 'Identity + \n|'
-        modstr = self.sub.__repr__().replace('\n', '\n|')
-        tmpstr = tmpstr + modstr
-        return tmpstr
-
-
-def sequential(*args):
-    # Flatten Sequential. It unwraps nn.Sequential.
-    if len(args) == 1:
-        if isinstance(args[0], OrderedDict):
-            raise NotImplementedError('sequential does not support OrderedDict input.')
-        return args[0]  # No sequential is needed.
-    modules = []
-    for module in args:
-        if isinstance(module, nn.Sequential):
-            for submodule in module.children():
-                modules.append(submodule)
-        elif isinstance(module, nn.Module):
-            modules.append(module)
-    return nn.Sequential(*modules)
-
-
-def conv_block(in_nc, out_nc, kernel_size, stride=1, dilation=1, groups=1, bias=True,
-               pad_type='zero', norm_type=None, act_type: Optional[str] = 'relu', mode='CNA'):
-    """
-    Conv layer with padding, normalization, activation
-    mode: CNA --> Conv -> Norm -> Act
-        NAC --> Norm -> Act --> Conv (Identity Mappings in Deep Residual Networks, ECCV16)
-    """
-    if mode not in ['CNA', 'NAC', 'CNAC']:
-        raise AssertionError('Wong conv mode [%s]' % mode)
-    padding = get_valid_padding(kernel_size, dilation)
-    p = pad(pad_type, padding) if pad_type and pad_type != 'zero' else None
-    padding = padding if pad_type == 'zero' else 0
-
-    c = nn.Conv2d(in_nc, out_nc, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation, bias=bias,
-                  groups=groups)
-    a = act(act_type) if act_type else None
-    if 'CNA' in mode:
-        n = norm(norm_type, out_nc) if norm_type else None
-        return sequential(p, c, n, a)
-    if mode == 'NAC':
-        if norm_type is None and act_type is not None:
-            a = act(act_type, inplace=False)
-            # Important!
-            # input----ReLU(inplace)----Conv--+----output
-            #        |________________________|
-            # inplace ReLU will modify the input, therefore wrong output
-        n = norm(norm_type, in_nc) if norm_type else None
-        return sequential(n, a, p, c)
-
-
-####################
-# Useful blocks
-####################
-
-
-class ResNetBlock(nn.Module):
-    """
-    ResNet Block, 3-3 style
-    with extra residual scaling used in EDSR
-    (Enhanced Deep Residual Networks for Single Image Super-Resolution, CVPRW 17)
-    """
-
-    def __init__(self, in_nc, mid_nc, out_nc, kernel_size=3, stride=1, dilation=1, groups=1, bias=True, pad_type='zero',
-                 norm_type=None, act_type='relu', mode='CNA', res_scale=1):
-        super(ResNetBlock, self).__init__()
-        conv0 = conv_block(in_nc, mid_nc, kernel_size, stride, dilation, groups, bias, pad_type, norm_type, act_type,
-                           mode)
-        if mode == 'CNA':
-            act_type = None
-        if mode == 'CNAC':  # Residual path: |-CNAC-|
-            act_type = None
-            norm_type = None
-        conv1 = conv_block(mid_nc, out_nc, kernel_size, stride, dilation, groups, bias, pad_type, norm_type, act_type,
-                           mode)
-        # if in_nc != out_nc:
-        #     self.project = conv_block(in_nc, out_nc, 1, stride, dilation, 1, bias, pad_type, \
-        #         None, None)
-        #     print('Need a projecter in ResNetBlock.')
-        # else:
-        #     self.project = lambda x:x
-        self.res = sequential(conv0, conv1)
-        self.res_scale = res_scale
-
-    def forward(self, x):
-        res = self.res(x).mul(self.res_scale)
-        return x + res
-
-
-class ResidualDenseBlock5C(nn.Module):
-    """
-    Residual Dense Block
-    style: 5 convs
-    The core module of paper: (Residual Dense Network for Image Super-Resolution, CVPR 18)
-    """
-
-    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero', norm_type=None,
-                 act_type='leakyrelu', mode='CNA'):
-        super(ResidualDenseBlock5C, self).__init__()
-        # gc: growth channel, i.e. intermediate channels
-        self.conv1 = conv_block(nc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
-                                act_type=act_type, mode=mode)
-        self.conv2 = conv_block(nc + gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
-                                act_type=act_type, mode=mode)
-        self.conv3 = conv_block(nc + 2 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
-                                act_type=act_type, mode=mode)
-        self.conv4 = conv_block(nc + 3 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
-                                act_type=act_type, mode=mode)
-        if mode == 'CNA':
-            last_act = None
-        else:
-            last_act = act_type
-        self.conv5 = conv_block(nc + 4 * gc, nc, 3, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
-                                act_type=last_act, mode=mode)
-
-    def forward(self, x):
-        x1 = self.conv1(x)
-        x2 = self.conv2(torch.cat((x, x1), 1))
-        x3 = self.conv3(torch.cat((x, x1, x2), 1))
-        x4 = self.conv4(torch.cat((x, x1, x2, x3), 1))
-        x5 = self.conv5(torch.cat((x, x1, x2, x3, x4), 1))
-        return x5.mul(0.2) + x
-
-
-class RRDB(nn.Module):
-    """
-    Residual in Residual Dense Block
-    """
-
-    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero', norm_type=None,
-                 act_type='leakyrelu', mode='CNA'):
-        super(RRDB, self).__init__()
-        self.RDB1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
-        self.RDB2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
-        self.RDB3 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
-
-    def forward(self, x):
-        out = self.RDB1(x)
-        out = self.RDB2(out)
-        out = self.RDB3(out)
-        return out.mul(0.2) + x
-
-
-####################
-# Upsampler
-####################
-
-
-def pixelshuffle_block(in_nc, out_nc, upscale_factor=2, kernel_size=3, stride=1, bias=True,
-                       pad_type='zero', norm_type=None, act_type='relu'):
-    """
-    Pixel shuffle layer
-    (Real-Time Single Image and Video Super-Resolution Using an Efficient Sub-Pixel Convolutional
-    Neural Network, CVPR17)
-    """
-    conv = conv_block(
-        in_nc,
-        out_nc * (upscale_factor ** 2),
-        kernel_size,
-        stride,
-        bias=bias,
-        pad_type=pad_type,
-        norm_type=None,
-        act_type=None
-    )
-    pixel_shuffle = nn.PixelShuffle(upscale_factor)
-
-    n = norm(norm_type, out_nc) if norm_type else None
-    a = act(act_type) if act_type else None
-    return sequential(conv, pixel_shuffle, n, a)
-
-
-def upconv_block(in_nc, out_nc, upscale_factor=2, kernel_size=3, stride=1, bias=True,
-                 pad_type='zero', norm_type=None, act_type='relu', mode='nearest'):
-    # Up conv
-    # described in https://distill.pub/2016/deconv-checkerboard/
-    upsample = nn.Upsample(scale_factor=upscale_factor, mode=mode)
-    conv = conv_block(in_nc, out_nc, kernel_size, stride, bias=bias,
-                      pad_type=pad_type, norm_type=norm_type, act_type=act_type)
-    return sequential(upsample, conv)
-
-
-class RRDBNet(nn.Module):
-    def __init__(self, in_nc: int, out_nc: int, nf: int, nb: int, upscale: int = 4, norm_type=None,
-                 act_type: str = 'leakyrelu', mode: str = 'CNA', upsample_mode='upconv'):
-        """
-        Residual in Residual Dense Block Network.
-
-        This is specifically v0.1 (aka old-arch) and is not the newest revision code
-        that's available at github:/xinntao/ESRGAN. This is on purpose, the newest
-        code has hardcoded and severely limited the potential use of the Network.
-        Specifically it has hardcoded the scale value to be `4` no matter what.
-
-        :param in_nc: Input number of channels
-        :param out_nc: Output number of channels
-        :param nf: Number of filters
-        :param nb: Number of blocks
-        :param upscale: Scale relative to input
-        :param norm_type: Normalization type
-        :param act_type: Activation type
-        :param mode: Convolution mode
-        :param upsample_mode: Upsample block type. upconv, pixel_shuffle
-        """
-        super(RRDBNet, self).__init__()
-
-        n_upscale = int(math.log(upscale, 2))
-        if upscale == 3:
-            n_upscale = 1
-
-        fea_conv = conv_block(in_nc=in_nc, out_nc=nf, kernel_size=3, norm_type=None, act_type=None)
-        rb_blocks = [RRDB(
-            nc=nf,
-            kernel_size=3,
-            gc=32,
-            stride=1,
-            bias=True,
-            pad_type='zero',
-            norm_type=norm_type,
-            act_type=act_type,
-            mode='CNA'
-        ) for _ in range(nb)]
-        lr_conv = conv_block(in_nc=nf, out_nc=nf, kernel_size=3, norm_type=norm_type, act_type=None, mode=mode)
-
-        if upsample_mode == 'upconv':
-            upsample_block = upconv_block
-        elif upsample_mode == 'pixel_shuffle':
-            upsample_block = pixelshuffle_block
-        else:
-            raise NotImplementedError('upsample mode [%s] is not found' % upsample_mode)
-        if upscale == 3:
-            upsampler = upsample_block(in_nc=nf, out_nc=nf, upscale_factor=3, act_type=act_type)
-        else:
-            upsampler = [upsample_block(in_nc=nf, out_nc=nf, act_type=act_type) for _ in range(n_upscale)]
-
-        hr_conv0 = conv_block(in_nc=nf, out_nc=nf, kernel_size=3, norm_type=None, act_type=act_type)
-        hr_conv1 = conv_block(in_nc=nf, out_nc=out_nc, kernel_size=3, norm_type=None, act_type=None)
-
-        self.model = sequential(
-            fea_conv,
-            ShortcutBlock(sequential(*rb_blocks, lr_conv)),
-            *upsampler,
-            hr_conv0,
-            hr_conv1
-        )
-
-    def forward(self, x):
-        return self.model(x)
-
 
 
 class VSGAN:
@@ -396,7 +64,7 @@ class VSGAN:
         self.model_scale = None
         self.rrdb_net_model = None
 
-    def load_model(self, model: str) -> VSGAN:
+    def load_model_ESRGAN(self, model: str) -> VSGAN:
         """
         Load an ESRGAN model file into the VSGAN object instance.
         The model can be changed by calling load_model at any point.
@@ -431,12 +99,14 @@ class VSGAN:
         if out_nc is None:
             print("VSGAN Warning: Could not find out_nc, assuming it's the same as in_nc...")
 
+        # normal ersrgan models
+        from src.esrgan import RRDBNet
         self.rrdb_net_model = RRDBNet(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
         self.rrdb_net_model.load_state_dict(state_dict, strict=False)
         self.rrdb_net_model.eval()
         #self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
 
-        import torch_tensorrt
+        #import torch_tensorrt
         example_data = torch.rand(1,3,64,64)
         self.rrdb_net_model = torch.jit.trace(self.rrdb_net_model, [example_data])
         self.rrdb_net_model = torch_tensorrt.compile(self.rrdb_net_model, inputs=[torch_tensorrt.Input( \
@@ -446,7 +116,33 @@ class VSGAN:
                         dtype=torch.float32)], \
                         enabled_precisions={torch.float}, truncate_long_and_double=True)
         del example_data
+        return self
 
+    def load_model_RealESRGAN(self, model: str) -> VSGAN:
+        """
+        Load an ESRGAN model file into the VSGAN object instance.
+        The model can be changed by calling load_model at any point.
+        :param model: ESRGAN .pth model file.
+        """
+        # realesrgan
+        from src.realesrgan import RRDBNet
+        # adjust this like the original does https://github.com/xinntao/Real-ESRGAN/blob/3e65d218176d824251791702bf36c24a081cc116/inference_realesrgan.py#L47
+        self.model_scale = 4
+        self.rrdb_net_model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=6, num_grow_ch=32, scale=self.model_scale)
+        state_dict = torch.load(model, map_location="cpu")['params_ema']
+        self.rrdb_net_model.load_state_dict(state_dict)
+        self.rrdb_net_model.eval()
+        #self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
+
+        example_data = torch.rand(1,3,64,64)
+        self.rrdb_net_model = torch.jit.trace(self.rrdb_net_model, [example_data])
+        self.rrdb_net_model = torch_tensorrt.compile(self.rrdb_net_model, inputs=[torch_tensorrt.Input( \
+                        min_shape=(1, 3, 64, 64), \
+                        opt_shape=(1, 3, 256, 256), \
+                        max_shape=(1, 3, 512, 512), \
+                        dtype=torch.float32)], \
+                        enabled_precisions={torch.float}, truncate_long_and_double=True)
+        del example_data
 
         return self
 
@@ -478,8 +174,8 @@ class VSGAN:
             )
         )
 
-        #return self
-        return self.clip
+        return self
+        #return self.clip
 
     def execute(self, n: int, clip: vs.VideoNode, overlap: int = 0) -> vs.VideoNode:
         """
@@ -661,6 +357,7 @@ clip = core.ffms2.Source(source='input.webm')
 # convert colorspace + resizing
 clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matrix_in_s='709')
 # currently only taking normal esrgan models
-clip = VSGAN(clip, device="cuda").load_model("model.pth").run(overlap=16)
+#clip = VSGAN(clip, device="cuda").load_model_ESRGAN("4x_fatal_Anime_500000_G.pth").run(overlap=16).clip
+clip = VSGAN(clip, device="cuda").load_model_RealESRGAN("RealESRGAN_x4plus_anime_6B.pth").run(overlap=16).clip
 clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
 clip.set_output()
