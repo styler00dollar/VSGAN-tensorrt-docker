@@ -2,6 +2,9 @@
 
 Using image super resolution models with vapoursynth and speeding them up with TensorRT. Using [NVIDIA/Torch-TensorRT](https://github.com/NVIDIA/Torch-TensorRT) combined with [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN). This repo makes the usage of tiling and ESRGAN models very easy. Models can be found on the [wiki page](https://upscale.wiki/wiki/Model_Database). Further model architectures are planned to be added later on.
 
+Currently working:
+- ESRGAN
+- RealESRGAN (adjust model load manually in `inference.py`, settings wont be adjusted automatically currently)
 
 Usage:
 ```
@@ -20,6 +23,11 @@ If docker does not want to start, try this before you use docker:
 # fixing docker errors
 systemctl start docker
 sudo chmod 666 /var/run/docker.sock
+```
+Windows is mostly similar, but the path needs to be changed slightly:
+```
+Example for C://path
+docker run --privileged --gpus all -it --rm -v //c/path:/workspace/tensorrt realsr_tensorrt:latest
 ```
 
 If you don't want to use docker, vapoursynth install commands are [here](https://github.com/styler00dollar/vs-vfi) and a TensorRT example is [here](https://github.com/styler00dollar/Colab-torch2trt/blob/main/Colab-torch2trt.ipynb).
@@ -49,6 +57,3 @@ docker run --rm -i -t \
 # run mpv
 vspipe --y4m inference.py - | mpv -
 ```
-
-TODO:
-- RealESRGAN
