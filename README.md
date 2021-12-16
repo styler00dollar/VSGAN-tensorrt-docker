@@ -8,9 +8,9 @@ Usage:
 # install docker, command for arch
 yay -S docker nvidia-docker nvidia-container-toolkit
 # Put the dockerfile in a directory and run that inside that directory
-docker build -t VSGAN_tensorrt:latest .
+docker build -t vsgan_tensorrt:latest .
 # run with a mounted folder
-docker run --privileged --gpus all -it --rm -v /home/Desktop/tensorrt:/workspace/tensorrt VSGAN_tensorrt:latest
+docker run --privileged --gpus all -it --rm -v /home/Desktop/tensorrt:/workspace/tensorrt vsgan_tensorrt:latest
 # you can use it in various ways, ffmpeg example
 vspipe --y4m inference.py - | ffmpeg -i pipe: example.mkv
 ```
@@ -44,7 +44,7 @@ docker run --rm -i -t \
     -v ~/.config/pulse/cookie:/run/pulse/cookie \
     -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
     -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
-    VSGAN_tensorrt:latest
+    vsgan_tensorrt:latest
     
 # run mpv
 vspipe --y4m inference.py - | mpv -
