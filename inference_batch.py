@@ -3,12 +3,15 @@ sys.path.append('/workspace/tensorrt/')
 from src.vsgan import VSGAN
 import vapoursynth as vs
 
+tmp_dir = "tmp/"
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 core = vs.core
 core.num_threads = 16
 core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
-clip = core.ffms2.Source(source='input.mkv')
+with open(os.path.join(tmp_dir, "tmp.txt")) as f:
+    txt = f.readlines()
+clip = core.ffms2.Source(source=txt)
 # convert colorspace
 #clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # convert colorspace + resizing
