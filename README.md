@@ -3,8 +3,11 @@
 Using image super resolution models with vapoursynth and speeding them up with TensorRT. Using [NVIDIA/Torch-TensorRT](https://github.com/NVIDIA/Torch-TensorRT) combined with [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN). This repo makes the usage of tiling and ESRGAN models very easy. Models can be found on the [wiki page](https://upscale.wiki/wiki/Model_Database). Further model architectures are planned to be added later on.
 
 Currently working:
-- ESRGAN
-- RealESRGAN (adjust model load manually in `inference.py`, settings wont be adjusted automatically currently)
+- [ESRGAN with rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN)
+- RealESRGAN / RealESERGANVideo with [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) and [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN)
+- [Rife4 with HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/)
+- [SwinIR with HolyWu/vs-swinir](https://github.com/HolyWu/vs-swinir)
+- [Sepconv (enhanced) with sniklaus/revisiting-sepconv](https://github.com/sniklaus/revisiting-sepconv/)
 
 Usage:
 ```

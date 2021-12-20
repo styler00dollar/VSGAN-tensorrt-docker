@@ -4,6 +4,7 @@ import vapoursynth as vs
 from src.vsgan import VSGAN # esrgan and realesrgan
 from src.SRVGGNetCompact import SRVGGNetCompactRealESRGAN # realesrgan anime video
 from src.vfi_model import video_model # any vfi model, in this case rvp1 as demonstration
+from src.sepconv_enhanced import sepconv_model # uses cupy, no tensorrt
 from vsrife import RIFE # https://github.com/HolyWu/vs-rife/ # tensorrt not possible
 from vsswinir import SwinIR # https://github.com/HolyWu/vs-swinir # currently not tensorrt, didn't try
 
@@ -21,6 +22,8 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # these demos work out of the box because docker also downloads the needed models, if you want other models, just add them
 # you can combine everything however you want
 
+# sepconv
+#clip = sepconv_model(clip)
 # RIFE4
 clip = RIFE(clip)
 # VFI example for jit models
