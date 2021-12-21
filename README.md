@@ -36,6 +36,19 @@ There is also batch processing, just edit and use `main.py` (which calls `infere
 ```
 python main.py
 ```
+**Warning**: Using variable refresh rate video input will result in desync errors. To check if a video is do
+```
+ffmpeg -i video_Name.mp4 -vf vfrdet -f null -
+```
+and look at the final line. If it is not zero, then it means it is variable refresh rate. Example:
+```
+[Parsed_vfrdet_0 @ 0x56518fa3f380] VFR:0.400005 (15185/22777) min: 1801 max: 3604)
+```
+To go around this issue, simply convert everything to constant framerate with ffmpeg.
+```
+ffmpeg -i video_input.mkv -vsync cfr -crf 10 -c:a copy video_out.mkv
+```
+or use my `vfr_to_cfr.py` to process a folder.
 
 If you don't want to use docker, vapoursynth install commands are [here](https://github.com/styler00dollar/vs-vfi) and a TensorRT example is [here](https://github.com/styler00dollar/Colab-torch2trt/blob/main/Colab-torch2trt.ipynb).
 
