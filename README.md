@@ -8,7 +8,7 @@ Currently working:
 - [Rife4 with HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/)
 - [SwinIR with HolyWu/vs-swinir](https://github.com/HolyWu/vs-swinir)
 - [Sepconv (enhanced) with sniklaus/revisiting-sepconv](https://github.com/sniklaus/revisiting-sepconv/)
-- [EGVSR with Thmen/EGVSR](https://github.com/Thmen/EGVSR)
+- EGVSR with [Thmen/EGVSR](https://github.com/Thmen/EGVSR) and [HolyWu/vs-basicvsrpp](https://github.com/HolyWu/vs-basicvsrpp)
 
 Usage:
 ```
