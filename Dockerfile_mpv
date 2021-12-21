@@ -44,6 +44,8 @@ RUN wget https://edef3.pcloud.com/cBZrUMewVZdL75fJZZZAopWi7Z2ZZ6D0ZkZoTMp0ZHXZfk
 # sepconv
 RUN pip install cupy-cuda115
 RUN wget http://content.sniklaus.com/resepconv/network-paper.pytorch -O sepconv.pth
+# EGVSR
+RUN wget https://github.com/Thmen/EGVSR/raw/master/pretrained_models/EGVSR_iter420000.pth
 
 # optional, rvp uses it to convert colorspace
 RUN pip install kornia

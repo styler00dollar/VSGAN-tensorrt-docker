@@ -18,14 +18,22 @@ core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
 with open(os.path.join(tmp_dir, "tmp.txt")) as f:
     txt = f.readlines()
 clip = core.ffms2.Source(source=txt)
+###############################################
+# COLORSPACE
+###############################################
 # convert colorspace
 clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # convert colorspace + resizing
 #clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matrix_in_s='709')
 
+###############################################
+
 # these demos work out of the box because docker also downloads the needed models, if you want other models, just add them
 # you can combine everything however you want
 
+###############################################
+# MODELS
+###############################################
 # sepconv
 #clip = sepconv_model(clip)
 # RIFE4
@@ -40,6 +48,11 @@ clip = RIFE(clip)
 #clip = VSGAN(clip, device="cuda").load_model_RealESRGAN("/workspace/RealESRGAN_x4plus_anime_6B.pth").run(overlap=16).clip
 # RealESRGAN Anime Video example
 clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True)
+# EGVSR
+#clip = egsvr_model(clip)
 
+###############################################
+# OUTPUT
+###############################################
 clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
 clip.set_output()
