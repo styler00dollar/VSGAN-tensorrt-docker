@@ -31,6 +31,7 @@ sudo chmod 666 /var/run/docker.sock
 Windows is mostly similar, but the path needs to be changed slightly:
 ```
 Example for C://path
+docker run --privileged --gpus all -it --rm -v /mnt/c/path:/workspace/tensorrt vsgan_tensorrt:latest
 docker run --privileged --gpus all -it --rm -v //c/path:/workspace/tensorrt vsgan_tensorrt:latest
 ```
 There is also batch processing, just edit and use `main.py` (which calls `inference_batch.py`, edit the file if needed) instead.
