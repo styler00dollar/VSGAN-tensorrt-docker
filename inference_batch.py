@@ -37,17 +37,17 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # sepconv
 #clip = sepconv_model(clip)
 # RIFE4
-clip = RIFE(clip)
+#clip = RIFE(clip)
 # VFI example for jit models
 #clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 # SwinIR
 #clip = SwinIR(clip, task="lightweight_sr", scale=2)
 # ESRGAN example (also has tiling)
-#clip = VSGAN(clip, device="cuda").load_model_ESRGAN("/workspace/4x_fatal_Anime_500000_G.pth").run(overlap=16).clip
+clip = VSGAN(clip, device="cuda", fp16=False).load_model_ESRGAN("/workspace/4x_fatal_Anime_500000_G.pth").run(overlap=16).clip
 # RealESRGAN example (also has tiling)
-#clip = VSGAN(clip, device="cuda").load_model_RealESRGAN("/workspace/RealESRGAN_x4plus_anime_6B.pth").run(overlap=16).clip
+#clip = VSGAN(clip, device="cuda", fp16=False).load_model_RealESRGAN("/workspace/RealESRGAN_x4plus_anime_6B.pth").run(overlap=16).clip
 # RealESRGAN Anime Video example
-clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True)
+#clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True)
 # EGVSR
 #clip = egsvr_model(clip)
 

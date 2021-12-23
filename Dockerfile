@@ -33,7 +33,7 @@ RUN wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.2.4/RealE
 # fatal anime
 RUN wget https://de-next.owncube.com/index.php/s/x99pKzS7TNaErrC/download -O 4x_fatal_Anime_500000_G.pth
 # rvp1
-RUN wget https://edef3.pcloud.com/cBZrUMewVZdL75fJZZZAopWi7Z2ZZ6D0ZkZoTMp0ZHXZfkZZ7XZrZ8kZjkZk7Zq7Zi7ZMZI7ZFkZe7Zhh05ZHm0MuQO81XFiw0dPNC9s4H2iuPhV/rvpV1_105661_G.pt
+RUN pip install gdown && gdown --id 1IJe6WLvT43iwl-3J6ectgnjas5mjnQ51
 # sepconv
 RUN pip install cupy-cuda115
 RUN wget http://content.sniklaus.com/resepconv/network-paper.pytorch -O sepconv.pth

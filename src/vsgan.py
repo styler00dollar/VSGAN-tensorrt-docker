@@ -36,7 +36,7 @@ MAX_DTYPE_VALUES = {
 
 
 class VSGAN:
-    def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda"):
+    def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda", fp16: bool = False):
         """
         Create a PyTorch Device instance, to use VSGAN with.
         It validates the supplied pytorch device identifier, and makes sure CUDA environment is available and ready.
@@ -62,6 +62,7 @@ class VSGAN:
         self.model = None
         self.model_scale = None
         self.rrdb_net_model = None
+        self.fp16 = fp16
 
     def load_model_ESRGAN(self, model: str) -> VSGAN:
         """
@@ -102,18 +103,30 @@ class VSGAN:
         from src.esrgan import RRDBNet
         self.rrdb_net_model = RRDBNet(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
         self.rrdb_net_model.load_state_dict(state_dict, strict=False)
-        self.rrdb_net_model.eval()
-        #self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
 
-        #import torch_tensorrt
-        example_data = torch.rand(1,3,64,64)
-        self.rrdb_net_model = torch.jit.trace(self.rrdb_net_model, [example_data])
-        self.rrdb_net_model = torch_tensorrt.compile(self.rrdb_net_model, inputs=[torch_tensorrt.Input( \
-                        min_shape=(1, 3, 64, 64), \
-                        opt_shape=(1, 3, 256, 256), \
-                        max_shape=(1, 3, 512, 512), \
-                        dtype=torch.float32)], \
-                        enabled_precisions={torch.float}, truncate_long_and_double=True)
+        if self.fp16 == False:
+            self.rrdb_net_model.eval()
+            example_data = torch.rand(1,3,64,64)
+            self.rrdb_net_model = torch.jit.trace(self.rrdb_net_model, [example_data])
+            self.rrdb_net_model = torch_tensorrt.compile(self.rrdb_net_model, inputs=[torch_tensorrt.Input( \
+                            min_shape=(1, 3, 64, 64), \
+                            opt_shape=(1, 3, 256, 256), \
+                            max_shape=(1, 3, 512, 512), \
+                            dtype=torch.float32)], \
+                            enabled_precisions={torch.float}, truncate_long_and_double=True)
+        elif self.fp16 == True:
+            # for fp16, the data needs to be on cuda
+            self.rrdb_net_model.eval().half().cuda()
+            example_data = torch.rand(1,3,64,64).half().cuda()
+            self.rrdb_net_model = torch.jit.trace(self.rrdb_net_model, [example_data])
+            self.rrdb_net_model = torch_tensorrt.compile(self.rrdb_net_model, inputs=[torch_tensorrt.Input( \
+                            min_shape=(1, 3, 64, 64), \
+                            opt_shape=(1, 3, 256, 256), \
+                            max_shape=(1, 3, 512, 512), \
+                            dtype=torch.half)], \
+                            enabled_precisions={torch.half}, truncate_long_and_double=True)
+            self.rrdb_net_model.half()
+
         del example_data
         return self
 
@@ -130,19 +143,31 @@ class VSGAN:
         self.rrdb_net_model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=6, num_grow_ch=32, scale=self.model_scale)
         state_dict = torch.load(model, map_location="cpu")['params_ema']
         self.rrdb_net_model.load_state_dict(state_dict)
-        self.rrdb_net_model.eval()
-        #self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
 
-        example_data = torch.rand(1,3,64,64)
-        self.rrdb_net_model = torch.jit.trace(self.rrdb_net_model, [example_data])
-        self.rrdb_net_model = torch_tensorrt.compile(self.rrdb_net_model, inputs=[torch_tensorrt.Input( \
-                        min_shape=(1, 3, 64, 64), \
-                        opt_shape=(1, 3, 256, 256), \
-                        max_shape=(1, 3, 512, 512), \
-                        dtype=torch.float32)], \
-                        enabled_precisions={torch.float}, truncate_long_and_double=True)
+        if self.fp16 == False:
+            self.rrdb_net_model.eval()
+            example_data = torch.rand(1,3,64,64)
+            self.rrdb_net_model = torch.jit.trace(self.rrdb_net_model, [example_data])
+            self.rrdb_net_model = torch_tensorrt.compile(self.rrdb_net_model, inputs=[torch_tensorrt.Input( \
+                            min_shape=(1, 3, 64, 64), \
+                            opt_shape=(1, 3, 256, 256), \
+                            max_shape=(1, 3, 976, 976), \
+                            dtype=torch.float32)], \
+                            enabled_precisions={torch.float}, truncate_long_and_double=True)
+        elif self.fp16 == True:
+            # for fp16, the data needs to be on cuda
+            self.rrdb_net_model.eval().half().cuda()
+            example_data = torch.rand(1,3,64,64).half().cuda()
+            self.rrdb_net_model = torch.jit.trace(self.rrdb_net_model, [example_data])
+            self.rrdb_net_model = torch_tensorrt.compile(self.rrdb_net_model, inputs=[torch_tensorrt.Input( \
+                            min_shape=(1, 3, 64, 64), \
+                            opt_shape=(1, 3, 256, 256), \
+                            max_shape=(1, 3, 512, 512), \
+                            dtype=torch.half)], \
+                            enabled_precisions={torch.half}, truncate_long_and_double=True)
+            self.rrdb_net_model.half()
+
         del example_data
-
         return self
 
     def run(self, overlap: int = 0) -> VSGAN:
@@ -191,7 +216,10 @@ class VSGAN:
             try:
                 quadrant = quadrant.to(self.torch_device)
                 with torch.no_grad():
-                    return self.rrdb_net_model(quadrant).data
+                    if self.fp16 == True:
+                        return self.rrdb_net_model(quadrant.half()).data
+                    elif self.fp16 == False:
+                        return self.rrdb_net_model(quadrant).data
             except RuntimeError as e:
                 if "allocate" in str(e) or "CUDA out of memory" in str(e):
                     torch.cuda.empty_cache()

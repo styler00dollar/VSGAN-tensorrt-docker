@@ -22,7 +22,7 @@ for f in files:
     # paths
     txt_path = os.path.join(tmp_dir, "tmp.txt")
     subs_path = os.path.join(tmp_dir, "subs.srt") # srt, ass
-    audio_path = os.path.join(tmp_dir, "audio.flac") # ogg, aac, flac
+    audio_path = os.path.join(tmp_dir, "audio.flac") # ogg, aac, flac, ac3
     out_path = os.path.join(output_dir, os.path.splitext(os.path.basename(f))[0] + "_mux.mkv")
 
     # writing filepath into temp txt
