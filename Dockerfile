@@ -1,6 +1,8 @@
 # https://ngc.nvidia.com/catalog/containers/nvidia:tensorrt
 FROM nvcr.io/nvidia/tensorrt:21.11-py3
 ARG DEBIAN_FRONTEND=noninteractive
+# if you have 404 problems when you build the docker, try to run the upgrade
+#RUN apt-get dist-upgrade -y
 RUN apt-get -y update
 # torch
 RUN pip3 install torch==1.10.0+cu113 torchvision==0.11.1+cu113 torchaudio==0.10.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
