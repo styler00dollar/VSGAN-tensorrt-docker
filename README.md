@@ -80,4 +80,6 @@ docker run --rm -i -t \
     
 # run mpv
 vspipe --y4m inference.py - | mpv -
+# with custom audio and subtitles
+vspipe --y4m inference.py - | mpv - --audio-file=file.aac --sub-files=file.ass
 ```
