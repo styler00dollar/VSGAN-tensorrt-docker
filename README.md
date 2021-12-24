@@ -16,8 +16,10 @@ Usage:
 yay -S docker nvidia-docker nvidia-container-toolkit
 # Put the dockerfile in a directory and run that inside that directory
 docker build -t vsgan_tensorrt:latest .
-# run with a mounted folder
-docker run --privileged --gpus all -it --rm -v /home/Desktop/tensorrt:/workspace/tensorrt vsgan_tensorrt:latest
+# run the docker
+# the folderpath before ":" will be mounted in the path which follows afterwards
+# contents of the vsgan folder should appear inside /workspace/tensorrt
+docker run --privileged --gpus all -it --rm -v /home/vsgan_path/:/workspace/tensorrt vsgan_tensorrt:latest
 # you can use it in various ways, ffmpeg example
 vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv
 ```
