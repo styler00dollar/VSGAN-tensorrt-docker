@@ -82,4 +82,6 @@ docker run --rm -i -t \
 vspipe --y4m inference.py - | mpv -
 # with custom audio and subtitles
 vspipe --y4m inference.py - | mpv - --audio-file=file.aac --sub-files=file.ass
+# to increase the buffer cache, you can use
+--demuxer-max-bytes=250MiB
 ```
