@@ -1,15 +1,41 @@
+# https://github.com/rlaphoenix/VSGAN/blob/master/vsgan/constants.py
+
+from typing import OrderedDict
+
+import numpy as np
+from torch import Tensor
+
+MAX_DTYPE_VALUES = {
+    np.dtype("int8"): 127,
+    np.dtype("uint8"): 255,
+    np.dtype("int16"): 32767,
+    np.dtype("uint16"): 65535,
+    np.dtype("int32"): 2147483647,
+    np.dtype("uint32"): 4294967295,
+    np.dtype("int64"): 9223372036854775807,
+    np.dtype("uint64"): 18446744073709551615,
+    np.dtype("float32"): 1.0,
+    np.dtype("float64"): 1.0,
+}
+STATE_T = OrderedDict[str, Tensor]
+
+
+# https://github.com/rlaphoenix/VSGAN/blob/master/vsgan/archs/blocks.py
 """
-15-Dez-21
-https://github.com/rlaphoenix/VSGAN/blob/master/vsgan/RRDBNet.py
-https://github.com/rlaphoenix/VSGAN/blob/master/vsgan/RRDBNet_Blocks.py
+Common Blocks between Architectures.
 """
+
+from collections import OrderedDict
+from typing import Optional
+
 import torch
-from torch import nn as nn
-from torch.nn import functional as F
-import math
+import torch.nn as nn
+
+
 ####################
 # Basic blocks
 ####################
+
 
 def act(act_type, inplace=True, neg_slope=0.2, n_prelu=1):
     # helper selecting activation
@@ -111,7 +137,7 @@ def sequential(*args):
 
 
 def conv_block(in_nc, out_nc, kernel_size, stride=1, dilation=1, groups=1, bias=True,
-               pad_type='zero', norm_type=None, act_type = 'relu', mode='CNA'):
+               pad_type='zero', norm_type=None, act_type: Optional[str] = 'relu', mode='CNA'):
     """
     Conv layer with padding, normalization, activation
     mode: CNA --> Conv -> Norm -> Act
@@ -138,98 +164,6 @@ def conv_block(in_nc, out_nc, kernel_size, stride=1, dilation=1, groups=1, bias=
             # inplace ReLU will modify the input, therefore wrong output
         n = norm(norm_type, in_nc) if norm_type else None
         return sequential(n, a, p, c)
-
-
-####################
-# Useful blocks
-####################
-
-
-class ResNetBlock(nn.Module):
-    """
-    ResNet Block, 3-3 style
-    with extra residual scaling used in EDSR
-    (Enhanced Deep Residual Networks for Single Image Super-Resolution, CVPRW 17)
-    """
-
-    def __init__(self, in_nc, mid_nc, out_nc, kernel_size=3, stride=1, dilation=1, groups=1, bias=True, pad_type='zero',
-                 norm_type=None, act_type='relu', mode='CNA', res_scale=1):
-        super(ResNetBlock, self).__init__()
-        conv0 = conv_block(in_nc, mid_nc, kernel_size, stride, dilation, groups, bias, pad_type, norm_type, act_type,
-                           mode)
-        if mode == 'CNA':
-            act_type = None
-        if mode == 'CNAC':  # Residual path: |-CNAC-|
-            act_type = None
-            norm_type = None
-        conv1 = conv_block(mid_nc, out_nc, kernel_size, stride, dilation, groups, bias, pad_type, norm_type, act_type,
-                           mode)
-        # if in_nc != out_nc:
-        #     self.project = conv_block(in_nc, out_nc, 1, stride, dilation, 1, bias, pad_type, \
-        #         None, None)
-        #     print('Need a projecter in ResNetBlock.')
-        # else:
-        #     self.project = lambda x:x
-        self.res = sequential(conv0, conv1)
-        self.res_scale = res_scale
-
-    def forward(self, x):
-        res = self.res(x).mul(self.res_scale)
-        return x + res
-
-
-class ResidualDenseBlock5C(nn.Module):
-    """
-    Residual Dense Block
-    style: 5 convs
-    The core module of paper: (Residual Dense Network for Image Super-Resolution, CVPR 18)
-    """
-
-    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero', norm_type=None,
-                 act_type='leakyrelu', mode='CNA'):
-        super(ResidualDenseBlock5C, self).__init__()
-        # gc: growth channel, i.e. intermediate channels
-        self.conv1 = conv_block(nc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
-                                act_type=act_type, mode=mode)
-        self.conv2 = conv_block(nc + gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
-                                act_type=act_type, mode=mode)
-        self.conv3 = conv_block(nc + 2 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
-                                act_type=act_type, mode=mode)
-        self.conv4 = conv_block(nc + 3 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
-                                act_type=act_type, mode=mode)
-        if mode == 'CNA':
-            last_act = None
-        else:
-            last_act = act_type
-        self.conv5 = conv_block(nc + 4 * gc, nc, 3, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
-                                act_type=last_act, mode=mode)
-
-    def forward(self, x):
-        x1 = self.conv1(x)
-        x2 = self.conv2(torch.cat((x, x1), 1))
-        x3 = self.conv3(torch.cat((x, x1, x2), 1))
-        x4 = self.conv4(torch.cat((x, x1, x2, x3), 1))
-        x5 = self.conv5(torch.cat((x, x1, x2, x3, x4), 1))
-        return x5.mul(0.2) + x
-
-
-class RRDB(nn.Module):
-    """
-    Residual in Residual Dense Block
-    """
-
-    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero', norm_type=None,
-                 act_type='leakyrelu', mode='CNA'):
-        super(RRDB, self).__init__()
-        self.RDB1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
-        self.RDB2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
-        self.RDB3 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
-
-    def forward(self, x):
-        out = self.RDB1(x)
-        out = self.RDB2(out)
-        out = self.RDB3(out)
-        return out.mul(0.2) + x
 
 
 ####################
@@ -271,68 +205,503 @@ def upconv_block(in_nc, out_nc, upscale_factor=2, kernel_size=3, stride=1, bias=
     return sequential(upsample, conv)
 
 
-class RRDBNet(nn.Module):
-    def __init__(self, in_nc: int, out_nc: int, nf: int, nb: int, upscale: int = 4, norm_type=None,
-                 act_type: str = 'leakyrelu', mode: str = 'CNA', upsample_mode='upconv'):
+
+# https://github.com/rlaphoenix/VSGAN/blob/master/vsgan/archs/ESRGAN.py
+import math
+import re
+from collections import OrderedDict
+from typing import Optional
+
+import torch
+import torch.nn as nn
+from torch import pixel_unshuffle
+
+#from vsgan.archs import blocks as block
+#from vsgan.constants import STATE_T
+
+
+class ESRGAN(nn.Module):
+    def __init__(self, model: str, norm=None, act: str = "leakyrelu", upsampler: str = "upconv",
+                 mode: str = "CNA") -> None:
         """
-        Residual in Residual Dense Block Network.
+        ESRGAN - Enhanced Super-Resolution Generative Adversarial Networks.
+        By Xintao Wang, Ke Yu, Shixiang Wu, Jinjin Gu, Yihao Liu, Chao Dong, Yu Qiao,
+        and Chen Change Loy.
 
-        This is specifically v0.1 (aka old-arch) and is not the newest revision code
-        that's available at github:/xinntao/ESRGAN. This is on purpose, the newest
-        code has hardcoded and severely limited the potential use of the Network.
-        Specifically it has hardcoded the scale value to be `4` no matter what.
+        This is old-arch Residual in Residual Dense Block Network and is not
+        the newest revision that's available at github.com/xinntao/ESRGAN.
+        This is on purpose, the newest Network has severely limited the
+        potential use of the Network with no benefits.
 
-        :param in_nc: Input number of channels
-        :param out_nc: Output number of channels
-        :param nf: Number of filters
-        :param nb: Number of blocks
-        :param upscale: Scale relative to input
-        :param norm_type: Normalization type
-        :param act_type: Activation type
-        :param mode: Convolution mode
-        :param upsample_mode: Upsample block type. upconv, pixel_shuffle
+        This network supports model files from both new and old-arch.
+
+        Args:
+            norm: Normalization layer
+            act: Activation layer
+            upsampler: Upsample layer. upconv, pixel_shuffle
+            mode: Convolution mode
         """
-        super(RRDBNet, self).__init__()
+        super(ESRGAN, self).__init__()
 
-        n_upscale = int(math.log(upscale, 2))
-        if upscale == 3:
-            n_upscale = 1
+        self.model = model
+        self.norm = norm
+        self.act = act
+        self.upsampler = upsampler
+        self.mode = mode
 
-        fea_conv = conv_block(in_nc=in_nc, out_nc=nf, kernel_size=3, norm_type=None, act_type=None)
-        rb_blocks = [RRDB(
-            nc=nf,
-            kernel_size=3,
-            gc=32,
-            stride=1,
-            bias=True,
-            pad_type='zero',
-            norm_type=norm_type,
-            act_type=act_type,
-            mode='CNA'
-        ) for _ in range(nb)]
-        lr_conv = conv_block(in_nc=nf, out_nc=nf, kernel_size=3, norm_type=norm_type, act_type=None, mode=mode)
+        self.state_map = {
+            # wanted, possible key names
+            # currently supports old, new, and newer RRDBNet arch models
+            "model.0.weight": ("conv_first.weight",),
+            "model.0.bias": ("conv_first.bias",),
+            "model.1.sub./NB/.weight": ("trunk_conv.weight", "conv_body.weight"),
+            "model.1.sub./NB/.bias": ("trunk_conv.bias", "conv_body.bias"),
+            "model.3.weight": ("upconv1.weight", "conv_up1.weight"),
+            "model.3.bias": ("upconv1.bias", "conv_up1.bias"),
+            "model.6.weight": ("upconv2.weight", "conv_up2.weight"),
+            "model.6.bias": ("upconv2.bias", "conv_up2.bias"),
+            "model.8.weight": ("HRconv.weight", "conv_hr.weight"),
+            "model.8.bias": ("HRconv.bias", "conv_hr.bias"),
+            "model.10.weight": ("conv_last.weight",),
+            "model.10.bias": ("conv_last.bias",),
+            r"model.1.sub.\1.RDB\2.conv\3.0.\4": (
+                r"RRDB_trunk\.(\d+)\.RDB(\d)\.conv(\d+)\.(weight|bias)",
+                r"body\.(\d+)\.rdb(\d)\.conv(\d+)\.(weight|bias)"
+            )
+        }
+        self.state = torch.load(self.model)
+        if "params_ema" in self.state:
+            self.state = self.state["params_ema"]
+        self.num_blocks = self.get_num_blocks()
+        self.plus = any("conv1x1" in k for k in self.state.keys())
 
-        if upsample_mode == 'upconv':
-            upsample_block = upconv_block
-        elif upsample_mode == 'pixel_shuffle':
-            upsample_block = pixelshuffle_block
+        self.state: STATE_T = self.new_to_old_arch(self.state)
+        self.in_nc = self.state["model.0.weight"].shape[1]
+        self.out_nc = self.get_out_nc() or self.in_nc  # assume same as in nc if not found
+        self.scale = self.get_scale()
+        self.num_filters = self.state["model.0.weight"].shape[0]
+
+        if self.in_nc in (self.out_nc * 4, self.out_nc * 16) and \
+                self.out_nc in (self.in_nc / 4, self.in_nc / 16):
+            self.shuffle_factor = int(math.sqrt(self.in_nc / self.out_nc))
         else:
-            raise NotImplementedError('upsample mode [%s] is not found' % upsample_mode)
-        if upscale == 3:
-            upsampler = upsample_block(in_nc=nf, out_nc=nf, upscale_factor=3, act_type=act_type)
-        else:
-            upsampler = [upsample_block(in_nc=nf, out_nc=nf, act_type=act_type) for _ in range(n_upscale)]
+            self.shuffle_factor = None
 
-        hr_conv0 = conv_block(in_nc=nf, out_nc=nf, kernel_size=3, norm_type=None, act_type=act_type)
-        hr_conv1 = conv_block(in_nc=nf, out_nc=out_nc, kernel_size=3, norm_type=None, act_type=None)
+        upsample_block = {
+            "upconv": upconv_block,
+            "pixel_shuffle": pixelshuffle_block
+        }.get(self.upsampler)
+        if upsample_block is None:
+            raise NotImplementedError("Upsample mode [%s] is not found" % self.upsampler)
+
+        if self.scale == 3:
+            upsample_blocks = upsample_block(
+                in_nc=self.num_filters,
+                out_nc=self.num_filters,
+                upscale_factor=3,
+                act_type=self.act
+            )
+        else:
+            upsample_blocks = [upsample_block(
+                in_nc=self.num_filters,
+                out_nc=self.num_filters,
+                act_type=self.act
+            ) for _ in range(int(math.log(self.scale, 2)))]
 
         self.model = sequential(
-            fea_conv,
-            ShortcutBlock(sequential(*rb_blocks, lr_conv)),
-            *upsampler,
-            hr_conv0,
-            hr_conv1
+            # fea conv
+            conv_block(
+                in_nc=self.in_nc,
+                out_nc=self.num_filters,
+                kernel_size=3,
+                norm_type=None,
+                act_type=None
+            ),
+            ShortcutBlock(sequential(
+                # rrdb blocks
+                *[RRDB(
+                    nc=self.num_filters,
+                    kernel_size=3,
+                    gc=32,
+                    stride=1,
+                    bias=True,
+                    pad_type="zero",
+                    norm_type=self.norm,
+                    act_type=self.act,
+                    mode="CNA",
+                    plus=self.plus
+                ) for _ in range(self.num_blocks)],
+                # lr conv
+                conv_block(
+                    in_nc=self.num_filters,
+                    out_nc=self.num_filters,
+                    kernel_size=3,
+                    norm_type=self.norm,
+                    act_type=None,
+                    mode=self.mode
+                )
+            )),
+            *upsample_blocks,
+            # hr_conv0
+            conv_block(
+                in_nc=self.num_filters,
+                out_nc=self.num_filters,
+                kernel_size=3,
+                norm_type=None,
+                act_type=self.act
+            ),
+            # hr_conv1
+            conv_block(
+                in_nc=self.num_filters,
+                out_nc=self.out_nc,
+                kernel_size=3,
+                norm_type=None,
+                act_type=None
+            )
         )
 
+        # vapoursynth calls expect the real scale even if shuffled
+        if self.shuffle_factor:
+            self.scale = self.scale // self.shuffle_factor
+
+        self.load_state_dict(self.state, strict=False)
+
+    def new_to_old_arch(self, state: STATE_T) -> STATE_T:
+        """Convert a new-arch model state dictionary to an old-arch dictionary."""
+        if "params_ema" in state:
+            state = state["params_ema"]
+
+        if "conv_first.weight" not in state:
+            # model is already old arch, this is a loose check, but should be sufficient
+            return state
+
+        # add nb to state keys
+        for kind in ("weight", "bias"):
+            self.state_map[f"model.1.sub.{self.num_blocks}.{kind}"] = self.state_map[f"model.1.sub./NB/.{kind}"]
+            del self.state_map[f"model.1.sub./NB/.{kind}"]
+
+        old_state = OrderedDict()
+        for old_key, new_keys in self.state_map.items():
+            for new_key in new_keys:
+                if r"\1" in old_key:
+                    for k, v in state.items():
+                        sub = re.sub(new_key, old_key, k)
+                        if sub != k:
+                            old_state[sub] = v
+                else:
+                    if new_key in state:
+                        old_state[old_key] = state[new_key]
+
+        return old_state
+
+    def get_out_nc(self) -> Optional[int]:
+        max_part = 0
+        out_nc = None
+        for part in list(self.state):
+            parts = part.split(".")[1:]
+            if len(parts) == 2:
+                part_num = int(parts[0])
+                if part_num > max_part:
+                    max_part = part_num
+                    out_nc = self.state[part].shape[0]
+        return out_nc
+
+    def get_scale(self, min_part: int = 6) -> int:
+        n = 0
+        for part in list(self.state):
+            parts = part.split(".")[1:]
+            if len(parts) == 2:
+                part_num = int(parts[0])
+                if part_num > min_part and parts[1] == "weight":
+                    n += 1
+        return 2 ** n
+
+    def get_num_blocks(self) -> int:
+        nbs = []
+        state_keys = self.state_map[r"model.1.sub.\1.RDB\2.conv\3.0.\4"] + (
+            r"model\.\d+\.sub\.(\d+)\.RDB(\d+)\.conv(\d+)\.0\.(weight|bias)",
+        )
+        for state_key in state_keys:
+            for k in self.state:
+                m = re.search(state_key, k)
+                if m:
+                    nbs.append(int(m.group(1)))
+            if nbs:
+                break
+        return max(*nbs) + 1
+
     def forward(self, x):
+        if self.shuffle_factor:
+            x = pixel_unshuffle(x, downscale_factor=self.shuffle_factor)
         return self.model(x)
+
+
+class ResidualDenseBlock5C(nn.Module):
+    """
+    5 Convolution Residual Dense 
+    Residual Dense Network for Image Super-Resolution, CVPR 18.
+    gc: growth channel, i.e. intermediate channels
+    """
+
+    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type="zero", norm_type=None,
+                 act_type="leakyrelu", mode="CNA", plus=False):
+        super(ResidualDenseBlock5C, self).__init__()
+        last_act = None if mode == "CNA" else act_type
+
+        self.conv1x1 = conv1x1(nc, gc) if plus else None
+        self.conv1 = conv_block(nc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
+                                      norm_type=norm_type, act_type=act_type, mode=mode)
+        self.conv2 = conv_block(nc + gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
+                                      norm_type=norm_type, act_type=act_type, mode=mode)
+        self.conv3 = conv_block(nc + 2 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
+                                      norm_type=norm_type, act_type=act_type, mode=mode)
+        self.conv4 = conv_block(nc + 3 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
+                                      norm_type=norm_type, act_type=act_type, mode=mode)
+        self.conv5 = conv_block(nc + 4 * gc, nc, 3, stride, bias=bias, pad_type=pad_type,
+                                      norm_type=norm_type, act_type=last_act, mode=mode)
+
+    def forward(self, x):
+        x1 = self.conv1(x)
+        x2 = self.conv2(torch.cat((x, x1), 1))
+        if self.conv1x1:
+            x2 = x2 + self.conv1x1(x)
+        x3 = self.conv3(torch.cat((x, x1, x2), 1))
+        x4 = self.conv4(torch.cat((x, x1, x2, x3), 1))
+        if self.conv1x1:
+            x4 = x4 + x2
+        x5 = self.conv5(torch.cat((x, x1, x2, x3, x4), 1))
+        return x5.mul(0.2) + x
+
+
+class RRDB(nn.Module):
+    """Residual in Residual Dense """
+
+    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type="zero", norm_type=None,
+                 act_type="leakyrelu", mode="CNA", plus=False):
+        super(RRDB, self).__init__()
+        self.RDB1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
+        self.RDB2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
+        self.RDB3 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
+
+    def forward(self, x):
+        out = self.RDB1(x)
+        out = self.RDB2(out)
+        out = self.RDB3(out)
+        # Empirically, we use 0.2 to scale the residual for better performance
+        return out.mul(0.2) + x
+
+
+def conv1x1(in_planes: int, out_planes: int, stride=1) -> nn.Conv2d:
+    return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+
+# https://github.com/HolyWu/vs-realesrgan/blob/5a1bef43acb18c346457df717238ac3cebc8c656/vsrealesrgan/utils.py#L34
+import math
+import torch
+#from .rrdbnet_arch import RRDBNet
+from torch.nn import functional as F
+
+
+class RealESRGANer():
+
+    def __init__(self, device, scale, model_path, model=None, tile_x=0, tile_y=0, tile_pad=10, pre_pad=10):
+        self.device = device
+        self.scale = scale
+        self.tile_x = tile_x
+        self.tile_y = tile_y
+        self.tile_pad = tile_pad
+        self.pre_pad = pre_pad
+        self.mod_scale = None
+        self.model = model
+
+    def pre_process(self, img):
+        self.img = img.to(self.device)
+        """
+        if self.half:
+            self.img = self.img.half()
+        """
+
+        # pre_pad
+        if self.pre_pad != 0:
+            self.img = F.pad(self.img, (0, self.pre_pad, 0, self.pre_pad), 'reflect')
+        # mod pad
+        if self.scale == 2:
+            self.mod_scale = 2
+        elif self.scale == 1:
+            self.mod_scale = 4
+        if self.mod_scale is not None:
+            self.mod_pad_h, self.mod_pad_w = 0, 0
+            _, _, h, w = self.img.size()
+            if (h % self.mod_scale != 0):
+                self.mod_pad_h = (self.mod_scale - h % self.mod_scale)
+            if (w % self.mod_scale != 0):
+                self.mod_pad_w = (self.mod_scale - w % self.mod_scale)
+            self.img = F.pad(self.img, (0, self.mod_pad_w, 0, self.mod_pad_h), 'reflect')
+
+    def process(self):
+        self.output = self.model(self.img)
+
+    def tile_process(self):
+        """Modified from: https://github.com/ata4/esrgan-launcher
+        """
+        batch, channel, height, width = self.img.shape
+        output_height = height * self.scale
+        output_width = width * self.scale
+        output_shape = (batch, channel, output_height, output_width)
+
+        # start with black image
+        self.output = self.img.new_zeros(output_shape)
+        tiles_x = math.ceil(width / self.tile_x)
+        tiles_y = math.ceil(height / self.tile_y)
+
+        # loop over all tiles
+        for y in range(tiles_y):
+            for x in range(tiles_x):
+                # extract tile from input image
+                ofs_x = x * self.tile_x
+                ofs_y = y * self.tile_y
+
+                # input tile area on total image
+                input_start_x = ofs_x
+                input_end_x = min(ofs_x + self.tile_x, width)
+                input_start_y = ofs_y
+                input_end_y = min(ofs_y + self.tile_y, height)
+
+                # input tile area on total image with padding
+                input_start_x_pad = max(input_start_x - self.tile_pad, 0)
+                input_end_x_pad = min(input_end_x + self.tile_pad, width)
+                input_start_y_pad = max(input_start_y - self.tile_pad, 0)
+                input_end_y_pad = min(input_end_y + self.tile_pad, height)
+
+                # input tile dimensions
+                input_tile_width = input_end_x - input_start_x
+                input_tile_height = input_end_y - input_start_y
+
+                input_tile = self.img[:, :, input_start_y_pad:input_end_y_pad, input_start_x_pad:input_end_x_pad]
+
+                # upscale tile
+                """
+                try:
+                    with torch.no_grad():
+                        output_tile = self.model(input_tile)
+                except Exception as error:
+                    print('Error', error)
+                """
+                output_tile = self.model(input_tile)
+
+                # output tile area on total image
+                output_start_x = input_start_x * self.scale
+                output_end_x = input_end_x * self.scale
+                output_start_y = input_start_y * self.scale
+                output_end_y = input_end_y * self.scale
+
+                # output tile area without padding
+                output_start_x_tile = (input_start_x - input_start_x_pad) * self.scale
+                output_end_x_tile = output_start_x_tile + input_tile_width * self.scale
+                output_start_y_tile = (input_start_y - input_start_y_pad) * self.scale
+                output_end_y_tile = output_start_y_tile + input_tile_height * self.scale
+
+                # put tile into output image
+                self.output[:, :, output_start_y:output_end_y,
+                            output_start_x:output_end_x] = output_tile[:, :, output_start_y_tile:output_end_y_tile,
+                                                                       output_start_x_tile:output_end_x_tile]
+
+    def post_process(self):
+        # remove extra pad
+        if self.mod_scale is not None:
+            _, _, h, w = self.output.size()
+            self.output = self.output[:, :, 0:h - self.mod_pad_h * self.scale, 0:w - self.mod_pad_w * self.scale]
+        # remove prepad
+        if self.pre_pad != 0:
+            _, _, h, w = self.output.size()
+            self.output = self.output[:, :, 0:h - self.pre_pad * self.scale, 0:w - self.pre_pad * self.scale]
+        return self.output
+
+    def enhance(self, img):
+        self.pre_process(img)
+        if self.tile_x > 0 and self.tile_y > 0:
+            self.tile_process()
+        else:
+            self.process()
+        return self.post_process()
+
+
+# https://github.com/HolyWu/vs-realesrgan/blob/master/vsrealesrgan/__init__.py
+import os
+
+import numpy as np
+import torch
+import vapoursynth as vs
+
+vs_api_below4 = vs.__api_version__.api_major < 4
+
+
+def ESRGAN_inference(clip: vs.VideoNode, model_path: str = "/workspace/4x_fatal_Anime_500000_G.pth", tile_x: int = 0, tile_y: int = 0, tile_pad: int = 10, pre_pad: int = 0,
+               device_type: str = 'cuda', device_index: int = 0, fp16: bool = False) -> vs.VideoNode:
+
+    if not isinstance(clip, vs.VideoNode):
+        raise vs.Error('RealESRGAN: this is not a clip')
+
+    if clip.format.id != vs.RGBS:
+        raise vs.Error('RealESRGAN: only RGBS format is supported')
+
+    if device_type not in ['cuda', 'cpu']:
+        raise vs.Error("RealESRGAN: device_type must be 'cuda' or 'cpu'")
+
+    device = torch.device(device_type, device_index)
+    if device_type == 'cuda':
+        torch.backends.cudnn.enabled = True
+        torch.backends.cudnn.benchmark = True
+
+    model = ESRGAN(model_path)
+    model.eval()
+    scale = model.scale
+
+    import torch_tensorrt
+    if fp16 == False:
+        model.eval()
+        example_data = torch.rand(1,3,64,64)
+        model = torch.jit.trace(model, [example_data])
+        model = torch_tensorrt.compile(model, inputs=[torch_tensorrt.Input( \
+                        min_shape=(1, 3, 24, 24), \
+                        opt_shape=(1, 3, 256, 256), \
+                        max_shape=(1, 3, 512, 512), \
+                        dtype=torch.float32)], \
+                        enabled_precisions={torch.float}, truncate_long_and_double=True)
+    elif fp16 == True:
+        # for fp16, the data needs to be on cuda
+        model.eval().half().cuda()
+        example_data = torch.rand(1,3,64,64).half().cuda()
+        model = torch.jit.trace(model, [example_data])
+        model = torch_tensorrt.compile(model, inputs=[torch_tensorrt.Input( \
+                        min_shape=(1, 3, 24, 24), \
+                        opt_shape=(1, 3, 256, 256), \
+                        max_shape=(1, 3, 512, 512), \
+                        dtype=torch.half)], \
+                        enabled_precisions={torch.half}, truncate_long_and_double=True)
+        model.half()
+    del example_data
+
+    upsampler = RealESRGANer(device, scale, model_path, model, tile_x, tile_y, tile_pad, pre_pad)
+
+    @torch.inference_mode()
+    def realesrgan(n: int, f: vs.VideoFrame) -> vs.VideoFrame:
+        img = frame_to_tensor(f[0])
+        if fp16 == True:
+            img = img.half()
+        output = upsampler.enhance(img)
+        return tensor_to_frame(output, f[1].copy())
+
+    new_clip = clip.std.BlankClip(width=clip.width * scale, height=clip.height * scale)
+    return new_clip.std.ModifyFrame(clips=[clip, new_clip], selector=realesrgan)
+
+
+def frame_to_tensor(f: vs.VideoFrame) -> torch.Tensor:
+    arr = np.stack([np.asarray(f.get_read_array(plane) if vs_api_below4 else f[plane]) for plane in range(f.format.num_planes)])
+    return torch.from_numpy(arr).unsqueeze(0)
+
+
+def tensor_to_frame(t: torch.Tensor, f: vs.VideoFrame) -> vs.VideoFrame:
+    arr = t.squeeze(0).detach().cpu().numpy()
+    for plane in range(f.format.num_planes):
+        np.copyto(np.asarray(f.get_write_array(plane) if vs_api_below4 else f[plane]), arr[plane, :, :])
+    return f

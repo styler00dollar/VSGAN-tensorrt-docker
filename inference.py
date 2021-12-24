@@ -1,7 +1,7 @@
 import sys
 sys.path.append('/workspace/tensorrt/')
 import vapoursynth as vs
-from src.vsgan import VSGAN # esrgan and realesrgan
+from src.esrgan import ESRGAN_inference # esrgan and realesrgan
 from src.SRVGGNetCompact import SRVGGNetCompactRealESRGAN # realesrgan anime video
 from src.vfi_model import video_model # any vfi model, in this case rvp1 as demonstration
 from src.sepconv_enhanced import sepconv_model # uses cupy, no tensorrt
@@ -14,14 +14,14 @@ vs_api_below4 = vs.__api_version__.api_major < 4
 core = vs.core
 core.num_threads = 16
 core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
-clip = core.ffms2.Source(source='input.webm')
+clip = core.ffms2.Source(source='input.mkv')
 ###############################################
 # COLORSPACE
 ###############################################
 # convert colorspace
-#clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
+clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # convert colorspace + resizing
-clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matrix_in_s='709')
+#clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matrix_in_s='709')
 
 ###############################################
 
@@ -39,10 +39,9 @@ clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matri
 #clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 # SwinIR
 #clip = SwinIR(clip, task="lightweight_sr", scale=2)
-# ESRGAN example (also has tiling)
-clip = VSGAN(clip, device="cuda", fp16=False).load_model_ESRGAN("/workspace/4x_fatal_Anime_500000_G.pth").run(overlap=16).clip
-# RealESRGAN example (also has tiling)
-#clip = VSGAN(clip, device="cuda", fp16=False).load_model_RealESRGAN("/workspace/RealESRGAN_x4plus_anime_6B.pth").run(overlap=16).clip
+# ESRGAN / RealESRGAN
+#clip = ESRGAN_inference(clip=clip, model_path="/workspace/4x_fatal_Anime_500000_G.pth", tile_x=400, tile_y=400, tile_pad=10, fp16=False)
+clip = ESRGAN_inference(clip=clip, model_path="/workspace/RealESRGAN_x4plus_anime_6B.pth", tile_x=480, tile_y=480, tile_pad=16, fp16=False)
 # RealESRGAN Anime Video example
 #clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True)
 # EGVSR

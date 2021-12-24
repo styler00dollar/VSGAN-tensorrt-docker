@@ -2,7 +2,7 @@ import sys
 sys.path.append('/workspace/tensorrt/')
 import os
 import vapoursynth as vs
-from src.vsgan import VSGAN # esrgan and realesrgan
+from src.esrgan import ESRGAN_inference # esrgan and realesrgan
 from src.SRVGGNetCompact import SRVGGNetCompactRealESRGAN # realesrgan anime video
 from src.vfi_model import video_model # any vfi model, in this case rvp1 as demonstration
 from src.sepconv_enhanced import sepconv_model # uses cupy, no tensorrt
@@ -37,17 +37,16 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # sepconv
 #clip = sepconv_model(clip)
 # RIFE4
-#clip = RIFE(clip)
+clip = RIFE(clip)
 # VFI example for jit models
 #clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 # SwinIR
 #clip = SwinIR(clip, task="lightweight_sr", scale=2)
-# ESRGAN example (also has tiling)
-clip = VSGAN(clip, device="cuda", fp16=False).load_model_ESRGAN("/workspace/4x_fatal_Anime_500000_G.pth").run(overlap=16).clip
-# RealESRGAN example (also has tiling)
-#clip = VSGAN(clip, device="cuda", fp16=False).load_model_RealESRGAN("/workspace/RealESRGAN_x4plus_anime_6B.pth").run(overlap=16).clip
+# ESRGAN / RealESRGAN
+clip = ESRGAN_inference(clip=clip, model_path="/workspace/4x_fatal_Anime_500000_G.pth", tile_x=400, tile_y=400, tile_pad=10, fp16=False)
+#clip = ESRGAN_inference(clip=clip, model_path="/workspace/RealESRGAN_x4plus_anime_6B.pth", tile_x=400, tile_y=400, tile_pad=10, fp16=False)
 # RealESRGAN Anime Video example
-#clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True)
+clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True)
 # EGVSR
 #clip = egsvr_model(clip)
 
