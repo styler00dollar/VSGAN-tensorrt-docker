@@ -6,7 +6,7 @@ from src.esrgan import ESRGAN_inference # esrgan and realesrgan
 from src.SRVGGNetCompact import SRVGGNetCompactRealESRGAN # realesrgan anime video
 from src.vfi_model import video_model # any vfi model, in this case rvp1 as demonstration
 from src.sepconv_enhanced import sepconv_model # uses cupy, no tensorrt
-from vsrife import RIFE # https://github.com/HolyWu/vs-rife/ # tensorrt not possible
+from src.rife import RIFE # tensorrt not possible
 from vsswinir import SwinIR # https://github.com/HolyWu/vs-swinir # currently not tensorrt, didn't try
 
 tmp_dir = "tmp/"
@@ -17,7 +17,7 @@ core.num_threads = 16
 core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
 with open(os.path.join(tmp_dir, "tmp.txt")) as f:
     txt = f.readlines()
-clip = core.ffms2.Source(source=txt)
+clip = core.ffms2.Source(source=txt, fpsnum = 24000, fpsden = 1001)
 ###############################################
 # COLORSPACE
 ###############################################
@@ -37,7 +37,7 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # sepconv
 #clip = sepconv_model(clip)
 # RIFE4
-clip = RIFE(clip)
+#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True)
 # VFI example for jit models
 #clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 # SwinIR

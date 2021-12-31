@@ -48,12 +48,12 @@ RUN pip install cupy-cuda115
 RUN wget http://content.sniklaus.com/resepconv/network-paper.pytorch -O sepconv.pth
 # EGVSR
 RUN wget https://github.com/Thmen/EGVSR/raw/master/pretrained_models/EGVSR_iter420000.pth
+# rife4 (fixed rife4.0 model)
+RUN gdown --id 1UzCbpjxWJsfiDjoc7wuzq3K0RCf5Oxr3
 
 # optional, rvp uses it to convert colorspace
 RUN pip install kornia
 
 # vs plugings from others
-# https://github.com/HolyWu/vs-rife
-RUN pip install --upgrade vsrife
 # https://github.com/HolyWu/vs-swinir
 RUN pip install --upgrade vsswinir && python -m vsswinir
