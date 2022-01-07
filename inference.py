@@ -14,7 +14,11 @@ vs_api_below4 = vs.__api_version__.api_major < 4
 core = vs.core
 core.num_threads = 16
 core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
-clip = core.ffms2.Source(source='input.mkv', fpsnum = 24000, fpsden = 1001)
+
+# cfr video
+clip = core.ffms2.Source(source='input.mkv')
+# vfr video (untested)
+#clip = core.ffms2.Source(source='input.mkv', fpsnum = 24000, fpsden = 1001)
 ###############################################
 # COLORSPACE
 ###############################################

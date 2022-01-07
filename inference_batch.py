@@ -17,7 +17,11 @@ core.num_threads = 16
 core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
 with open(os.path.join(tmp_dir, "tmp.txt")) as f:
     txt = f.readlines()
-clip = core.ffms2.Source(source=txt, fpsnum = 24000, fpsden = 1001)
+
+# cfr video
+clip = core.ffms2.Source(source=txt)
+# vfr video (untested)
+#clip = core.ffms2.Source(source=txt, fpsnum = 24000, fpsden = 1001)
 ###############################################
 # COLORSPACE
 ###############################################
