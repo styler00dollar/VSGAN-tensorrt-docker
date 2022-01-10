@@ -68,7 +68,7 @@ yay -S pulseaudio
 docker run --rm -i -t \
     --network host \
     -e DISPLAY \
-    -v /home/Schreibtisch/test/:/home/mpv/media \
+    -v /home/vsgan_path/:/workspace/tensorrt \
     --ipc=host \
     --privileged \
     --gpus all \
