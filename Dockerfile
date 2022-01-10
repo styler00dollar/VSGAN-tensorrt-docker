@@ -46,6 +46,8 @@ RUN gdown --id 1UzCbpjxWJsfiDjoc7wuzq3K0RCf5Oxr3
 
 # optional, rvp uses it to convert colorspace
 RUN pip install kornia
+# image read/write for image inference
+RUN pip install opencv-python
 
 # vs plugings from others
 # https://github.com/HolyWu/vs-swinir
