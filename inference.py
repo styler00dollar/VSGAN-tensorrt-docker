@@ -56,9 +56,13 @@ clip = ESRGAN_inference(clip=clip, model_path="/workspace/RealESRGAN_x4plus_anim
 # [NOT IN DOCKER] MODELS (NCNN)
 # Only recommended for AMD GPUS, further instructions in README
 ###############################################
+from src.SRVGGNetCompact_ncnn import SRVGGNetCompactRealESRGAN_ncnn
+
 # Rife ncnn
 # 0 = rife-v3.1, 1 = rife-v3.0, 2 = rife-v2.4, 3 = rife-v2, 4 = rife-anime
 #clip = core.rife.RIFE(clip, model=0, gpu_id=0, gpu_thread=2, tta=False, uhd=False, sc=False, list_gpu=False)
+# RealESRGAN example
+#clip = SRVGGNetCompactRealESRGAN_ncnn(clip, gpuid=0, model="models-DF2K", tta_mode=False, scale: float = 2, tilesize=0, param_path = None, bin_path = None)
 
 ###############################################
 # OUTPUT

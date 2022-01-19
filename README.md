@@ -5,13 +5,20 @@ Using image super resolution models with vapoursynth and speeding them up with T
 Currently working:
 - ESRGAN with [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN) and [HolyWu/vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
 - RealESRGAN / RealESERGANVideo with [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) and [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN)
+- RealESRGAN ncnn with [styler00dollar/realsr-ncnn-vulkan-python](https://github.com/styler00dollar/realsr-ncnn-vulkan-python)
 - [Rife4 with HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/)
 - Rife ncnn with [DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan](https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan)
 - [SwinIR with HolyWu/vs-swinir](https://github.com/HolyWu/vs-swinir)
 - [Sepconv (enhanced) with sniklaus/revisiting-sepconv](https://github.com/sniklaus/revisiting-sepconv/)
 - EGVSR with [Thmen/EGVSR](https://github.com/Thmen/EGVSR) and [HolyWu/vs-basicvsrpp](https://github.com/HolyWu/vs-basicvsrpp)
 
-Usage:
+Model | ESRGAN | SRVGGNetCompact | Rife | SwinIR | Sepconv | EGVSR | 
+---  | ------- | --------------- | ---- | ------ | ------- | -----
+CUDA | - | - | yes (rife4) | yes | yes | yes 
+TensoRT | yes (torch_tensorrt) | yes (onnx_tensorrt) | - | - | - | - 
+ncnn | yes | yes | yes (rife3.1, 3.0, 2.4, 2, anime) | - | - | - 
+
+## Usage
 ```
 # install docker, command for arch
 yay -S docker nvidia-docker nvidia-container-toolkit
@@ -41,10 +48,13 @@ There is also batch processing, just edit and use `main.py` (which calls `infere
 ```
 python main.py
 ```
-If you want to use ncnn, then you need to set up your own os for this and install dependencies manually. I tried to create a docker, but it isn't working properly.
+## ncnn
+If you want to use ncnn, then you need to set up your own os for this and install dependencies manually. I tried to create a docker, but it isn't working properly. **WARNING: It seems like some videos result in a broken output. It will render, but the output will look bad. One certain webm video always failed for me, despite it working with other (non-ncnn) models. Re-rendering it into mkv made it work again. If your output looks broken, consider re-rendering your video with ffmpeg.**
+
 Instructions for Manjaro:
 ```
 yay -S vapoursynth-git ffms2 ncnn
+
 # nvidia
 yay -S nvidia-utils
 # amd
@@ -57,6 +67,37 @@ Rife ncnn:
 git clone https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan
 cd VapourSynth-RIFE-ncnn-Vulkan && git submodule update --init --recursive --depth 1 && meson build && ninja -C build install
 ```
+RealSR / ESRGAN ncnn:
+```
+# dont use conda, CXX errors in manjaro otherwise
+conda deactivate
+git clone https://github.com/styler00dollar/realsr-ncnn-vulkan-python
+cd realsr-ncnn-vulkan-python/realsr_ncnn_vulkan_python/realsr-ncnn-vulkan/
+git submodule update --init --recursive
+cd src
+
+# There are 2 CMakeLists.txt
+# Make sure that prelu is set to ON, otherwise the compact model wont work
+# option(WITH_LAYER_prelu "" ON)
+
+# comment this line in the realsr.cpp file
+# fprintf(stderr, "%.2f%%\n", (float)(yi * xtiles + xi) / (ytiles * xtiles) * 100);
+
+# if you dont want the 2 default pth files in your whl / install,
+# comment the lines with say "models" in CMakeLists.txt
+
+cmake -B build .
+cd build
+make -j16
+sudo su
+make install
+exit
+cd .. && cd .. && cd .. && cd ..
+python setup.py install --user
+```
+Any ESRGAN model will work with this, when you have the fitting param file. Make sure the input is called "data" and output is "output".
+
+## VFR
 **Warning**: Using variable refresh rate video input will result in desync errors. To check if a video is do
 ```
 ffmpeg -i video_Name.mp4 -vf vfrdet -f null -
@@ -70,11 +111,11 @@ To go around this issue, simply convert everything to constant framerate with ff
 ffmpeg -i video_input.mkv -vsync cfr -crf 10 -c:a copy video_out.mkv
 ```
 or use my `vfr_to_cfr.py` to process a folder.
-
+## Manual instructions
 If you don't want to use docker, vapoursynth install commands are [here](https://github.com/styler00dollar/vs-vfi) and a TensorRT example is [here](https://github.com/styler00dollar/Colab-torch2trt/blob/main/Colab-torch2trt.ipynb).
 
 Set the input video path in `inference.py` and access videos with the mounted folder.
-
+## mpv
 It is also possible to directly pipe the video into mpv, but you most likely wont be able to archive realtime speed. Change the mounted folder path to your own videofolder and use the mpv dockerfile instead. If you use a very efficient model, it may be possible on a very good GPU. Only tested in Manjaro. 
 ```
 yay -S pulseaudio
