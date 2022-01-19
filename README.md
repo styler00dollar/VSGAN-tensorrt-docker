@@ -19,7 +19,7 @@ TensoRT | yes (torch_tensorrt) | yes (onnx_tensorrt) | - | - | - | -
 ncnn | yes | yes | yes (rife3.1, 3.0, 2.4, 2, anime) | - | - | - 
 
 ## Usage
-```
+```bash
 # install docker, command for arch
 yay -S docker nvidia-docker nvidia-container-toolkit
 # Put the dockerfile in a directory and run that inside that directory
@@ -33,7 +33,7 @@ vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv
 ```
 
 If docker does not want to start, try this before you use docker:
-```
+```bash
 # fixing docker errors
 systemctl start docker
 sudo chmod 666 /var/run/docker.sock
@@ -45,14 +45,14 @@ docker run --privileged --gpus all -it --rm -v /mnt/c/path:/workspace/tensorrt v
 docker run --privileged --gpus all -it --rm -v //c/path:/workspace/tensorrt vsgan_tensorrt:latest
 ```
 There is also batch processing, just edit and use `main.py` (which calls `inference_batch.py`, edit the file if needed) instead.
-```
+```bash
 python main.py
 ```
 ## ncnn
 If you want to use ncnn, then you need to set up your own os for this and install dependencies manually. I tried to create a docker, but it isn't working properly. **WARNING: It seems like some videos result in a broken output. It will render, but the output will look bad. One certain webm video always failed for me, despite it working with other (non-ncnn) models. Re-rendering it into mkv made it work again. If your output looks broken, consider re-rendering your video with ffmpeg.**
 
 Instructions for Manjaro:
-```
+```bash
 yay -S vapoursynth-git ffms2 ncnn
 
 # nvidia
@@ -63,12 +63,12 @@ or
 yay -S vulkan-amdgpu-pro
 ```
 Rife ncnn:
-```
+```bash
 git clone https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan
 cd VapourSynth-RIFE-ncnn-Vulkan && git submodule update --init --recursive --depth 1 && meson build && ninja -C build install
 ```
 RealSR / ESRGAN ncnn:
-```
+```bash
 # dont use conda, CXX errors in manjaro otherwise
 conda deactivate
 git clone https://github.com/styler00dollar/realsr-ncnn-vulkan-python
@@ -99,15 +99,15 @@ Any ESRGAN model will work with this, when you have the fitting param file. Make
 
 ## VFR
 **Warning**: Using variable refresh rate video input will result in desync errors. To check if a video is do
-```
+```bash
 ffmpeg -i video_Name.mp4 -vf vfrdet -f null -
 ```
 and look at the final line. If it is not zero, then it means it is variable refresh rate. Example:
-```
+```bash
 [Parsed_vfrdet_0 @ 0x56518fa3f380] VFR:0.400005 (15185/22777) min: 1801 max: 3604)
 ```
 To go around this issue, simply convert everything to constant framerate with ffmpeg.
-```
+```bash
 ffmpeg -i video_input.mkv -vsync cfr -crf 10 -c:a copy video_out.mkv
 ```
 or use my `vfr_to_cfr.py` to process a folder.
@@ -117,7 +117,7 @@ If you don't want to use docker, vapoursynth install commands are [here](https:/
 Set the input video path in `inference.py` and access videos with the mounted folder.
 ## mpv
 It is also possible to directly pipe the video into mpv, but you most likely wont be able to archive realtime speed. Change the mounted folder path to your own videofolder and use the mpv dockerfile instead. If you use a very efficient model, it may be possible on a very good GPU. Only tested in Manjaro. 
-```
+```bash
 yay -S pulseaudio
 
 # i am not sure if it is needed, but go into pulseaudio settings and check "make pulseaudio network audio devices discoverable in the local network" and reboot
