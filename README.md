@@ -69,6 +69,8 @@ cd VapourSynth-RIFE-ncnn-Vulkan && git submodule update --init --recursive --dep
 ```
 RealSR / ESRGAN ncnn:
 ```bash
+sudo pacman -S base-devel cmake vulkan-headers vulkan-icd-loader swig python
+
 # dont use conda, CXX errors in manjaro otherwise
 conda deactivate
 git clone https://github.com/styler00dollar/realsr-ncnn-vulkan-python
