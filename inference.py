@@ -13,6 +13,7 @@ core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 core = vs.core
 core.num_threads = 16
+# only needed if you are inside docker
 core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
 
 # cfr video
@@ -33,7 +34,7 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # you can combine everything however you want
 
 ###############################################
-# MODELS
+# MODELS (CUDA)
 ###############################################
 # sepconv
 #clip = sepconv_model(clip)
@@ -50,6 +51,14 @@ clip = ESRGAN_inference(clip=clip, model_path="/workspace/RealESRGAN_x4plus_anim
 #clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True)
 # EGVSR
 #clip = egsvr_model(clip)
+
+###############################################
+# [NOT IN DOCKER] MODELS (NCNN)
+# Only recommended for AMD GPUS, further instructions in README
+###############################################
+# Rife ncnn
+# 0 = rife-v3.1, 1 = rife-v3.0, 2 = rife-v2.4, 3 = rife-v2, 4 = rife-anime
+#clip = core.rife.RIFE(clip, model=0, gpu_id=0, gpu_thread=2, tta=False, uhd=False, sc=False, list_gpu=False)
 
 ###############################################
 # OUTPUT

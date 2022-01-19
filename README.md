@@ -6,6 +6,7 @@ Currently working:
 - ESRGAN with [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN) and [HolyWu/vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
 - RealESRGAN / RealESERGANVideo with [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) and [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN)
 - [Rife4 with HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/)
+- Rife ncnn with [DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan](https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan)
 - [SwinIR with HolyWu/vs-swinir](https://github.com/HolyWu/vs-swinir)
 - [Sepconv (enhanced) with sniklaus/revisiting-sepconv](https://github.com/sniklaus/revisiting-sepconv/)
 - EGVSR with [Thmen/EGVSR](https://github.com/Thmen/EGVSR) and [HolyWu/vs-basicvsrpp](https://github.com/HolyWu/vs-basicvsrpp)
@@ -39,6 +40,22 @@ docker run --privileged --gpus all -it --rm -v //c/path:/workspace/tensorrt vsga
 There is also batch processing, just edit and use `main.py` (which calls `inference_batch.py`, edit the file if needed) instead.
 ```
 python main.py
+```
+If you want to use ncnn, then you need to set up your own os for this and install dependencies manually. I tried to create a docker, but it isn't working properly.
+Instructions for Manjaro:
+```
+yay -S vapoursynth-git ffms2 ncnn
+# nvidia
+yay -S nvidia-utils
+# amd
+yay -S vulkan-radeon
+or
+yay -S vulkan-amdgpu-pro
+```
+Rife ncnn:
+```
+git clone https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan
+cd VapourSynth-RIFE-ncnn-Vulkan && git submodule update --init --recursive --depth 1 && meson build && ninja -C build install
 ```
 **Warning**: Using variable refresh rate video input will result in desync errors. To check if a video is do
 ```
