@@ -49,7 +49,9 @@ There is also batch processing, just edit and use `main.py` (which calls `infere
 python main.py
 ```
 ## ncnn
-If you want to use ncnn, then you need to set up your own os for this and install dependencies manually. I tried to create a docker, but it isn't working properly. **WARNING: It seems like some videos result in a broken output. It will render, but the output will look bad. One certain webm video always failed for me, despite it working with other (non-ncnn) models. Re-rendering it into mkv made it work again. If your output looks broken, consider re-rendering your video with ffmpeg.**
+If you want to use ncnn, then you need to set up your own os for this and install dependencies manually. I tried to create a docker, but it isn't working properly. 
+
+**WARNING: It seems like some videos result in a broken output. For some reason a certain `webm` video produced very weird results, despite it working with other (non-ncnn) models. If you encounter this, just mux to a mkv with `ffmpeg -i input.webm -c copy output.mkv` and it should work properly again.**
 
 Instructions for Manjaro:
 ```bash
