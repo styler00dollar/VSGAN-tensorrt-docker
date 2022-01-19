@@ -64,6 +64,9 @@ yay -S vulkan-amdgpu-pro
 ```
 Rife ncnn:
 ```bash
+sudo pacman -S base-devel cmake vulkan-headers vulkan-icd-loader python
+pip install meson ninja
+
 git clone https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan
 cd VapourSynth-RIFE-ncnn-Vulkan && git submodule update --init --recursive --depth 1 && meson build && ninja -C build install
 ```
