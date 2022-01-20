@@ -44,7 +44,7 @@ for f in files:
     ###############################################
     # extract subtitles, -map 0:s:1 means second subtitle track
     os.system(f"ffmpeg -i {f} -map 0:s:0 {subs_path}")
-    os.system(f"vspipe -c y4m inference_batch.py - | ffmpeg -i {subs_path} -c:s mov_text -i pipe: {out_path} -i {audio_path} -c copy ")
+    os.system(f"vspipe -c y4m inference_batch.py - | ffmpeg -i {subs_path} -c:s mov_text -i pipe: -preset slow {out_path}  -i {audio_path} -c copy")
 
     # deleting temp files
     os.remove(txt_path)
