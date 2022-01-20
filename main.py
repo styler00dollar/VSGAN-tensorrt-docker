@@ -12,6 +12,7 @@ output_dir = "/workspace/tensorrt/data/output/"
 files = glob.glob(input_dir + '/**/*.mkv', recursive=True)
 files.sort()
 
+
 for f in files:
     # creating folders if they dont exist
     if os.path.exists(tmp_dir) == False:
@@ -21,8 +22,8 @@ for f in files:
 
     # paths
     txt_path = os.path.join(tmp_dir, "tmp.txt")
-    subs_path = os.path.join(tmp_dir, "subs.srt") # srt, ass
-    audio_path = os.path.join(tmp_dir, "audio.flac") # ogg, aac, flac, ac3
+    subs_path = os.path.join(tmp_dir, "subs.ass") # srt, ass
+    audio_path = os.path.join(tmp_dir, "audio.ogg") # ogg, aac, flac, ac3
     out_path = os.path.join(output_dir, os.path.splitext(os.path.basename(f))[0] + "_mux.mkv")
 
     # writing filepath into temp txt
@@ -37,9 +38,9 @@ for f in files:
     # -map 0:2 means second audio track
 
     # copy audio without reencoding
-    #os.system(f"ffmpeg -i {f} -vn -acodec copy {audio_path}")
+    os.system(f"ffmpeg -i {f} -vn -acodec copy {audio_path}")
     # reencode if extract fails
-    os.system(f"ffmpeg -i {f} -vn {audio_path}")
+    #os.system(f"ffmpeg -i {f} -vn {audio_path}")
     ###############################################
     # extract subtitles, -map 0:s:1 means second subtitle track
     os.system(f"ffmpeg -i {f} -map 0:s:0 {subs_path}")
