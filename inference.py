@@ -12,7 +12,7 @@ from src.egsvr import egsvr_model # currently not tensorrt
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 core = vs.core
-core.num_threads = 16
+core.num_threads = 16 # can influence ram usage
 # only needed if you are inside docker
 core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
 
