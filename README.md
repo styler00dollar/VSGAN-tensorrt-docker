@@ -66,7 +66,7 @@ yay -S vulkan-radeon
 or
 yay -S vulkan-amdgpu-pro
 ```
-Rife ncnn:
+#### Rife ncnn:
 ```bash
 sudo pacman -S base-devel cmake vulkan-headers vulkan-icd-loader python
 pip install meson ninja
@@ -74,7 +74,7 @@ pip install meson ninja
 git clone https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan
 cd VapourSynth-RIFE-ncnn-Vulkan && git submodule update --init --recursive --depth 1 && meson build && ninja -C build install
 ```
-RealSR / ESRGAN ncnn:
+#### RealSR / ESRGAN ncnn:
 ```bash
 sudo pacman -S base-devel cmake vulkan-headers vulkan-icd-loader swig python
 
@@ -108,7 +108,7 @@ Any ESRGAN model will work with this, when you have the fitting param file. Make
 
 If you want to convert a normal pth to ncnn, you need to do `pth->onnx->ncnn(bin/param)`. For the first step you can use `torch.onnx` and for the second one you can use [this website](https://convertmodel.com/).
 
-Waifu2x ncnn
+#### Waifu2x ncnn:
 ```python
 sudo pacman -S vapoursynth glslang vulkan-icd-loader vulkan-headers
 
