@@ -59,3 +59,5 @@ RUN pip install opencv-python
 # vs plugings from others
 # https://github.com/HolyWu/vs-swinir
 RUN pip install --upgrade vsswinir && python -m vsswinir
+# https://github.com/HolyWu/vs-basicvsrpp
+RUN pip install --upgrade vsbasicvsrpp && python -m vsbasicvsrpp

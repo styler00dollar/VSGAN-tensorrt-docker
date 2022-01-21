@@ -8,6 +8,7 @@ from src.sepconv_enhanced import sepconv_model # uses cupy, no tensorrt
 from src.rife import RIFE # tensorrt not possible
 from vsswinir import SwinIR # https://github.com/HolyWu/vs-swinir # currently not tensorrt, didn't try
 from src.egsvr import egsvr_model # currently not tensorrt
+from vsbasicvsrpp import BasicVSRPP
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -51,6 +52,9 @@ clip = ESRGAN_inference(clip=clip, model_path="/workspace/RealESRGAN_x4plus_anim
 #clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True)
 # EGVSR
 #clip = egsvr_model(clip)
+# BasicVSR++
+# 0 = REDS, 1 = Vimeo-90K (BI), 2 = Vimeo-90K (BD), 3 = NTIRE 2021 - Track 1, 4 = NTIRE 2021 - Track 2, 5 = NTIRE 2021 - Track 3
+#clip = BasicVSRPP(clip, model = 1, interval = 30, tile_x = 0, tile_y = 0, tile_pad = 16, device_type = 'cuda', device_index = 0, fp16 = False, cpu_cache = False)
 
 ###############################################
 # [NOT IN DOCKER] MODELS (NCNN)
