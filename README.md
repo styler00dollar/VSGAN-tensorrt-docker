@@ -14,9 +14,9 @@ Currently working:
 
 Model | ESRGAN | SRVGGNetCompact | Rife | SwinIR | Sepconv | EGVSR | 
 ---  | ------- | --------------- | ---- | ------ | ------- | -----
-CUDA | - | - | yes (rife4) | yes | yes | yes 
+CUDA | - | - | yes ([rife4](https://drive.google.com/file/d/1mUK9iON6Es14oK46-cCflRoPTeGiI_A9/view)) | [yes](https://github.com/HolyWu/vs-swinir/tree/master/vsswinir) | [yes](http://content.sniklaus.com/resepconv/network-paper.pytorch) | [yes](https://github.com/Thmen/EGVSR/raw/master/pretrained_models/EGVSR_iter420000.pth)
 TensoRT | yes (torch_tensorrt) | yes (onnx_tensorrt) | - | - | - | - 
-ncnn | yes | yes | yes (rife3.1, 3.0, 2.4, 2, anime) | - | - | - 
+ncnn | yes ([realsr ncnn models](https://github.com/nihui/realsr-ncnn-vulkan/tree/master/models)) | yes ([2x](https://files.catbox.moe/u62vpw.tar)) | yes ([rife3.1, 3.0, 2.4, 2, anime](https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan/tree/master/models)) | - | - | - 
 
 ## Usage
 ```bash
@@ -103,6 +103,8 @@ cd .. && cd .. && cd .. && cd ..
 python setup.py install --user
 ```
 Any ESRGAN model will work with this, when you have the fitting param file. Make sure the input is called "data" and output is "output".
+
+If you want to convert a normal pth to ncnn, you need to do `pth->onnx->ncnn(bin/param)`. For the first step you can use `torch.onnx` and for the second one you can use [this website](https://convertmodel.com/).
 
 ## VFR
 **Warning**: Using variable refresh rate video input will result in desync errors. To check if a video is do
