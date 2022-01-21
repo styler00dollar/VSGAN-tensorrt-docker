@@ -238,7 +238,7 @@ class Unet(nn.Module):
         return torch.sigmoid(x)
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
-def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = True) -> vs.VideoNode:
+def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = True, fastmode: bool = False, ensemble:bool = True) -> vs.VideoNode:
     '''
     RIFE: Real-Time Intermediate Flow Estimation for Video Frame Interpolation
 
@@ -299,7 +299,7 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
             I0 = I0.half()
             I1 = I1.half()
 
-        output = model(I0, I1, (n % multi) / multi, scale_list)
+        output = model(I0, I1, (n % multi) / multi, scale_list, fastmode=fastmode, ensemble=ensemble)
         return tensor_to_frame(output, f[0].copy())
 
     clip0 = vs.core.std.Interleave([clip] * multi)
