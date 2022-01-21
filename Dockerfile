@@ -1,5 +1,5 @@
 # https://ngc.nvidia.com/catalog/containers/nvidia:tensorrt
-FROM nvcr.io/nvidia/tensorrt:21.11-py3
+FROM nvcr.io/nvidia/tensorrt:21.12-py3
 ARG DEBIAN_FRONTEND=noninteractive
 # if you have 404 problems when you build the docker, try to run the upgrade
 #RUN apt-get dist-upgrade -y
