@@ -12,12 +12,13 @@ Currently working:
 - [Sepconv (enhanced) with sniklaus/revisiting-sepconv](https://github.com/sniklaus/revisiting-sepconv/)
 - EGVSR with [Thmen/EGVSR](https://github.com/Thmen/EGVSR) and [HolyWu/vs-basicvsrpp](https://github.com/HolyWu/vs-basicvsrpp)
 - BasicVSR++ with [HolyWu/vs-basicvsrpp](https://github.com/HolyWu/vs-basicvsrpp)
+- Waifu2x with [Nlzy/vapoursynth-waifu2x-ncnn-vulkan](https://github.com/Nlzy/vapoursynth-waifu2x-ncnn-vulkan)
 
-Model | ESRGAN | SRVGGNetCompact | Rife | SwinIR | Sepconv | EGVSR | BasicVSR++
----  | ------- | --------------- | ---- | ------ | ------- | ----- | ----------
-CUDA | - | - | yes ([rife4](https://drive.google.com/file/d/1mUK9iON6Es14oK46-cCflRoPTeGiI_A9/view)) | [yes](https://github.com/HolyWu/vs-swinir/tree/master/vsswinir) | [yes](http://content.sniklaus.com/resepconv/network-paper.pytorch) | [yes](https://github.com/Thmen/EGVSR/raw/master/pretrained_models/EGVSR_iter420000.pth) | [yes](https://github.com/HolyWu/vs-basicvsrpp/releases/tag/model)
-TensoRT | yes (torch_tensorrt) | yes (onnx_tensorrt) | - | - | - | - | - 
-ncnn | yes ([realsr ncnn models](https://github.com/nihui/realsr-ncnn-vulkan/tree/master/models)) | yes ([2x](https://files.catbox.moe/u62vpw.tar)) | yes ([rife3.1, 3.0, 2.4, 2, anime](https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan/tree/master/models)) | - | - | - | - 
+Model | ESRGAN | SRVGGNetCompact | Rife | SwinIR | Sepconv | EGVSR | BasicVSR++ | Waifu2x
+---  | ------- | --------------- | ---- | ------ | ------- | ----- | ---------- | -------
+CUDA | - | - | yes ([rife4](https://drive.google.com/file/d/1mUK9iON6Es14oK46-cCflRoPTeGiI_A9/view)) | [yes](https://github.com/HolyWu/vs-swinir/tree/master/vsswinir) | [yes](http://content.sniklaus.com/resepconv/network-paper.pytorch) | [yes](https://github.com/Thmen/EGVSR/raw/master/pretrained_models/EGVSR_iter420000.pth) | [yes](https://github.com/HolyWu/vs-basicvsrpp/releases/tag/model) | -
+TensoRT | yes (torch_tensorrt) | yes (onnx_tensorrt) | - | - | - | - | - | -
+ncnn | yes ([realsr ncnn models](https://github.com/nihui/realsr-ncnn-vulkan/tree/master/models)) | yes ([2x](https://files.catbox.moe/u62vpw.tar)) | yes ([rife3.1, 3.0, 2.4, 2, anime](https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan/tree/master/models)) | - | - | - | - | [yes](https://github.com/Nlzy/vapoursynth-waifu2x-ncnn-vulkan/releases/download/r0.1/models.7z)
 
 ## Usage
 ```bash
@@ -106,6 +107,22 @@ python setup.py install --user
 Any ESRGAN model will work with this, when you have the fitting param file. Make sure the input is called "data" and output is "output".
 
 If you want to convert a normal pth to ncnn, you need to do `pth->onnx->ncnn(bin/param)`. For the first step you can use `torch.onnx` and for the second one you can use [this website](https://convertmodel.com/).
+
+Waifu2x ncnn
+```python
+sudo pacman -S vapoursynth glslang vulkan-icd-loader vulkan-headers
+
+git clone https://github.com/Nlzy/vapoursynth-waifu2x-ncnn-vulkan.git
+cd vapoursynth-waifu2x-ncnn-vulkan
+git submodule update --init --recursive
+mkdir build
+cd build
+cmake ..
+cmake --build . -j16
+sudo su
+make install
+exit
+```
 
 ## VFR
 **Warning**: Using variable refresh rate video input will result in desync errors. To check if a video is do
