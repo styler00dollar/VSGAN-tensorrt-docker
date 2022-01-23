@@ -514,11 +514,7 @@ class RealESRGANer():
         self.model = model
 
     def pre_process(self, img):
-        self.img = img.to(self.device)
-        """
-        if self.half:
-            self.img = self.img.half()
-        """
+        self.img = img
 
         # pre_pad
         if self.pre_pad != 0:
@@ -627,11 +623,11 @@ class RealESRGANer():
 
 # https://github.com/HolyWu/vs-realesrgan/blob/master/vsrealesrgan/__init__.py
 import os
-
+import functools
 import numpy as np
 import torch
 import vapoursynth as vs
-
+core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
 
@@ -684,24 +680,50 @@ def ESRGAN_inference(clip: vs.VideoNode, model_path: str = "/workspace/4x_fatal_
     upsampler = RealESRGANer(device, scale, model_path, model, tile_x, tile_y, tile_pad, pre_pad)
 
     @torch.inference_mode()
-    def realesrgan(n: int, f: vs.VideoFrame) -> vs.VideoFrame:
-        img = frame_to_tensor(f[0])
+    def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
+        img = frame_to_tensor(clip.get_frame(n))
+        img = torch.Tensor(img).unsqueeze(0).to(device, non_blocking=True)
+
         if fp16 == True:
             img = img.half()
+        
         output = upsampler.enhance(img)
-        return tensor_to_frame(output, f[1].copy())
+        output = output.detach().squeeze().cpu().numpy()
 
-    new_clip = clip.std.BlankClip(width=clip.width * scale, height=clip.height * scale)
-    return new_clip.std.ModifyFrame(clips=[clip, new_clip], selector=realesrgan)
+        return tensor_to_clip(clip=clip, image=output)
 
+    return core.std.FrameEval(
+            core.std.BlankClip(
+                clip=clip,
+                width=clip.width * scale,
+                height=clip.height * scale
+            ),
+            functools.partial(
+                execute,
+                clip=clip
+            )
+    )
 
-def frame_to_tensor(f: vs.VideoFrame) -> torch.Tensor:
-    arr = np.stack([np.asarray(f.get_read_array(plane) if vs_api_below4 else f[plane]) for plane in range(f.format.num_planes)])
-    return torch.from_numpy(arr).unsqueeze(0)
+def frame_to_tensor(frame: vs.VideoFrame) -> torch.Tensor:
+    return np.stack([
+        np.asarray(frame[plane])
+        for plane in range(frame.format.num_planes)
+    ])
 
-
-def tensor_to_frame(t: torch.Tensor, f: vs.VideoFrame) -> vs.VideoFrame:
-    arr = t.squeeze(0).detach().cpu().numpy()
+def tensor_to_frame(f: vs.VideoFrame, array) -> vs.VideoFrame:
     for plane in range(f.format.num_planes):
-        np.copyto(np.asarray(f.get_write_array(plane) if vs_api_below4 else f[plane]), arr[plane, :, :])
+        d = np.asarray(f[plane])
+        np.copyto(d, array[plane, :, :])
     return f
+
+def tensor_to_clip(clip: vs.VideoNode, image) -> vs.VideoNode:
+    clip = core.std.BlankClip(
+        clip=clip,
+        width=image.shape[-1],
+        height=image.shape[-2]
+    )
+    return core.std.ModifyFrame(
+        clip=clip,
+        clips=clip,
+        selector=lambda n, f: tensor_to_frame(f.copy(), image)
+    )
