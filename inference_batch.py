@@ -8,6 +8,7 @@ from src.vfi_model import video_model # any vfi model, in this case rvp1 as demo
 from src.sepconv_enhanced import sepconv_model # uses cupy, no tensorrt
 from src.rife import RIFE # tensorrt not possible
 from vsswinir import SwinIR # https://github.com/HolyWu/vs-swinir # currently not tensorrt, didn't try
+from src.egvsr import egvsr_model # currently not tensorrt
 
 tmp_dir = "tmp/"
 core = vs.core
@@ -52,7 +53,7 @@ clip = ESRGAN_inference(clip=clip, model_path="/workspace/4x_fatal_Anime_500000_
 # RealESRGAN Anime Video example
 clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True)
 # EGVSR
-#clip = egsvr_model(clip)
+#clip = egvsr_model(clip)
 
 ###############################################
 # OUTPUT
