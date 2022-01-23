@@ -1,5 +1,14 @@
 from torch import nn as nn
 from torch.nn import functional as F
+import functools
+import numpy as np
+import vapoursynth as vs
+import onnx as ox
+import onnx_tensorrt.backend as backend
+import os
+import numpy as np
+import torch
+
 # https://github.com/xinntao/Real-ESRGAN/blob/master/realesrgan/archs/srvgg_arch.py
 class SRVGGNetCompact(nn.Module):
     def __init__(self, num_in_ch=3, num_out_ch=3, num_feat=64, num_conv=16, upscale=4, act_type='prelu'):
@@ -53,13 +62,6 @@ class SRVGGNetCompact(nn.Module):
 
 
 # Code mainly from https://github.com/HolyWu/vs-realesrgan
-import vapoursynth as vs
-import onnx as ox
-import onnx_tensorrt.backend as backend
-import os
-import numpy as np
-import torch
-from src.SRVGGNetCompact import SRVGGNetCompact
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
@@ -83,24 +85,45 @@ def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = F
     model = ox.load("/workspace/test.onnx")
     model = backend.prepare(model, device='CUDA:0', fp16_mode=fp16)
 
-    def realesrgan(n, f):
-        img = frame_to_tensor(f[0])
+    def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
+        img = frame_to_tensor(clip.get_frame(n))
+        img = np.expand_dims(img, 0)
         output = model.run(img)[0]
-        return tensor_to_frame(output, f[1].copy())
+        output = np.squeeze(output, 0)
+        return tensor_to_clip(clip=clip, image=output)
 
-    new_clip = clip.std.BlankClip(width=clip.width * scale, height=clip.height * scale)
-    return new_clip.std.ModifyFrame(clips=[clip, new_clip], selector=realesrgan)
+    return core.std.FrameEval(
+            core.std.BlankClip(
+                clip=clip,
+                width=clip.width * scale,
+                height=clip.height * scale
+            ),
+            functools.partial(
+                execute,
+                clip=clip
+            )
+    )
 
+def frame_to_tensor(frame: vs.VideoFrame) -> torch.Tensor:
+    return np.stack([
+        np.asarray(frame[plane])
+        for plane in range(frame.format.num_planes)
+    ])
 
-def frame_to_tensor(f):
-    arr = np.stack([np.asarray(f.get_read_array(plane) if vs_api_below4 else f[plane]) for plane in range(f.format.num_planes)])
-    arr = np.expand_dims(arr, 0)
-    return arr
-
-
-def tensor_to_frame(t, f):
-    arr = np.squeeze(t, 0)
-    arr = np.clip(arr, 0, 1)
+def tensor_to_frame(f: vs.VideoFrame, array) -> vs.VideoFrame:
     for plane in range(f.format.num_planes):
-        np.copyto(np.asarray(f.get_write_array(plane) if vs_api_below4 else f[plane]), arr[plane, :, :])
+        d = np.asarray(f[plane])
+        np.copyto(d, array[plane, :, :])
     return f
+
+def tensor_to_clip(clip: vs.VideoNode, image) -> vs.VideoNode:
+    clip = core.std.BlankClip(
+        clip=clip,
+        width=image.shape[-1],
+        height=image.shape[-2]
+    )
+    return core.std.ModifyFrame(
+        clip=clip,
+        clips=clip,
+        selector=lambda n, f: tensor_to_frame(f.copy(), image)
+    )
