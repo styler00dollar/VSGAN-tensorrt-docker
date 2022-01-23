@@ -466,12 +466,11 @@ import os
 import numpy as np
 import torch
 import vapoursynth as vs
-
+core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
 
-def egsvr_model(clip: vs.VideoNode, model: int = 1, interval: int = 15, tile_x: int = 0, tile_y: int = 0, tile_pad: int = 16,
-               device_type: str = 'cuda', device_index: int = 0, fp16: bool = False, cpu_cache: bool = False) -> vs.VideoNode:
+def egsvr_model(clip: vs.VideoNode, model: int = 1, interval: int = 15, fp16: bool = False) -> vs.VideoNode:
 
     scale = 4
 
@@ -484,23 +483,15 @@ def egsvr_model(clip: vs.VideoNode, model: int = 1, interval: int = 15, tile_x: 
     if interval < 1:
         raise vs.Error('EGVSR: interval must be at least 1')
 
-    device_type = device_type.lower()
-
-    if device_type not in ['cuda', 'cpu']:
-        raise vs.Error("EGVSR: device_type must be 'cuda' or 'cpu'")
-
-    if device_type == 'cuda' and not torch.cuda.is_available():
+    if not torch.cuda.is_available():
         raise vs.Error('EGVSR: CUDA is not available')
 
-    device = torch.device(device_type, device_index)
-    if device_type == 'cuda':
-        torch.backends.cudnn.enabled = True
-        torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.enabled = True
+    torch.backends.cudnn.benchmark = True
 
     model = FRNet(in_nc= 3, out_nc = 3, nf = 64, nb = 10)
     model.load_state_dict(torch.load("/workspace/EGVSR_iter420000.pth"), strict=False)
-    model.to(device)
-    model.eval()
+    model.cuda().eval()
 
     if fp16:
         model.half()
@@ -508,22 +499,22 @@ def egsvr_model(clip: vs.VideoNode, model: int = 1, interval: int = 15, tile_x: 
     cache = {}
  
     @torch.inference_mode()
-    def basicvsrpp(n: int, f: vs.VideoFrame) -> vs.VideoFrame:
+    def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
         if str(n) not in cache:
             cache.clear()
 
-            imgs = [frame_to_tensor(f[0])]
+            imgs = [torch.Tensor(frame_to_tensor(clip.get_frame(n)))]
             for i in range(1, interval):
                 if (n + i) >= clip.num_frames:
                     break
-                imgs.append(frame_to_tensor(clip.get_frame(n + i)))
+                imgs.append(torch.Tensor(frame_to_tensor(clip.get_frame(n + i))))
 
             imgs = torch.stack(imgs)
             imgs = imgs.unsqueeze(0)
             if fp16:
                 imgs = imgs.half()
 
-            output, _, _, _, _ = model.forward_sequence(imgs.to(device))
+            output, _, _, _, _ = model.forward_sequence(imgs.to("cuda", non_blocking=True))
             output = output.squeeze(0).detach().cpu().numpy()
 
             for i in range(output.shape[0]):
@@ -531,19 +522,41 @@ def egsvr_model(clip: vs.VideoNode, model: int = 1, interval: int = 15, tile_x: 
 
             del imgs
             torch.cuda.empty_cache()
+            
+        return tensor_to_clip(clip=clip, image=cache[str(n)])
 
-        return ndarray_to_frame(cache[str(n)], f[1].copy())
+    return core.std.FrameEval(
+            core.std.BlankClip(
+                clip=clip,
+                width=clip.width * scale,
+                height=clip.height * scale
+            ),
+            functools.partial(
+                execute,
+                clip=clip
+            )
+    )
 
-    new_clip = clip.std.BlankClip(width=clip.width * scale, height=clip.height * scale)
-    return new_clip.std.ModifyFrame(clips=[clip, new_clip], selector=basicvsrpp)
+def frame_to_tensor(frame: vs.VideoFrame) -> torch.Tensor:
+    return np.stack([
+        np.asarray(frame[plane])
+        for plane in range(frame.format.num_planes)
+    ])
 
-
-def frame_to_tensor(f: vs.VideoFrame) -> torch.Tensor:
-    arr = np.stack([np.asarray(f.get_read_array(plane) if vs_api_below4 else f[plane]) for plane in range(f.format.num_planes)])
-    return torch.from_numpy(arr)
-
-
-def ndarray_to_frame(arr: np.ndarray, f: vs.VideoFrame) -> vs.VideoFrame:
+def tensor_to_frame(f: vs.VideoFrame, array) -> vs.VideoFrame:
     for plane in range(f.format.num_planes):
-        np.copyto(np.asarray(f.get_write_array(plane) if vs_api_below4 else f[plane]), arr[plane, :, :])
+        d = np.asarray(f[plane])
+        np.copyto(d, array[plane, :, :])
     return f
+
+def tensor_to_clip(clip: vs.VideoNode, image) -> vs.VideoNode:
+    clip = core.std.BlankClip(
+        clip=clip,
+        width=image.shape[-1],
+        height=image.shape[-2]
+    )
+    return core.std.ModifyFrame(
+        clip=clip,
+        clips=clip,
+        selector=lambda n, f: tensor_to_frame(f.copy(), image)
+    )
