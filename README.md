@@ -170,3 +170,55 @@ vspipe --y4m inference.py - | mpv - --audio-file=file.aac --sub-files=file.ass
 # to increase the buffer cache, you can use
 --demuxer-max-bytes=250MiB
 ```
+## Benchmarks
+
+Warning: The 3090 benches were done with a low powerlimit and throttled the GPU.
+
+Compact (2x) | 480p | 720p | 1080p
+------  | ---  | ---- | ------
+1070ti TensorRT docker 2x | 12 | 6.1 | 2.8
+3060ti TensorRT docker 2x | 19 | 7,1 | 3,2
+3060ti VSGAN 2x | 9,7 | 3,6 | 1,77
+3060ti ncnn (Windows binary) 2x | 9,43 | 3,52 | 1,53
+3060ti Joey 2x | 2,24 | 0,87 | 0,36
+3070 TensorRT docker 2x | 20 | 7.55 | 3.36
+3090 TensorRT docker 2x | ? | ? | 6.7
+
+Compact (4x) | 480p | 720p | 1080p
+------  | ---  | ---- | ------
+1070ti TensorRT docker 4x | 11 | 5,6 | X
+3060ti TensorRT docker 4x | 16 | 6,1 | 2,7
+3060ti VSGAN 4x | 7,2 | 3 | 1,3
+3060ti ncnn (Windows binary) 4x | 6,33 | 2,4 | 1,11
+3060ti Joey 4x | 0,65 | 0,25 | 0,11
+
+ESRGAN (64mb) | 480p | 720p | 1080p
+------------  | ---  | ---- | ------
+1070ti TensorRT docker 4x | 0.5 | 0.2 | >0.1
+3060ti TensorRT docker 4x | 2 | 0.7 | ?
+3060ti Cupscale (Pytorch) 4x | 0,41 | 0,13 | 0,044
+3060ti Cupscale (ncnn) 4x | 0,27 | 0,1 | 0,04
+3060ti Joey 4x | 0,41 | 0,095 | 0,043
+
+Rife4 (Cuda) (fastmode False, ensemble False) | 480p | 720p | 1080p 
+---  | -------  | ------- | ------- 
+1070ti (fastmode False, ensemble False) | 61 | 30 | 15
+3060ti (fastmode False, ensemble False) | 89 | 45 | 24 | 
+
+Rife4 (Cuda) (fastmode False, ensemble True) | 480p | 720p | 1080p 
+---  | -------  | ------- | ------- 
+1070ti (fastmode False, ensemble True) | 27 | 13 | 9.6
+3060ti (fastmode False, ensemble True) | ? | 36 | 20 |
+3090 (fastmode False, ensemble True) | ? | 69.6 | 35 | 
+
+Rife4 (Cuda) (fastmode True, ensemble False) | 480p | 720p | 1080p 
+---  | -------  | ------- | ------- 
+1070ti (fastmode True, ensemble False) | 62 | 31 | 14
+3060ti (fastmode True, ensemble False) | 135 | 66 | 33 |
+3090 (fastmode True, ensemble False) | ? | 119 | 58 | 
+
+Rife4 (Cuda) (fastmode True, ensemble True) | 480p | 720p | 1080p 
+---  | -------  | ------- | ------- 
+1070ti (fastmode True, ensemble True) | 41 | 20 | 9.8 
+3060ti (fastmode True, ensemble True) | 86 | 49 | 24 | 
+3090 (fastmode True, ensemble True) | ? | 90.3 | 45
