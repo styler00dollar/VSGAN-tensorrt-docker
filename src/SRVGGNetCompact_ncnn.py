@@ -7,7 +7,7 @@ from realsr_ncnn_vulkan_python import RealSR
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
-def SRVGGNetCompactRealESRGAN_ncnn(clip: vs.VideoNode, gpuid: int = 0. model: str = "models-DF2K", tta_mode: bool = False, scale: int = 2, tilesize: int = 0, param_path: str = None, bin_path: str = None) -> vs.VideoNode:
+def SRVGGNetCompactRealESRGAN_ncnn(clip: vs.VideoNode, gpuid: int = 0, model: str = "models-DF2K", tta_mode: bool = False, scale: int = 2, tilesize: int = 0, param_path: str = None, bin_path: str = None) -> vs.VideoNode:
     if not isinstance(clip, vs.VideoNode):
         raise vs.Error('RealESRGAN: this is not a clip')
 
