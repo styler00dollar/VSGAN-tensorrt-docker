@@ -205,25 +205,29 @@ ESRGAN (64mb) | 480p | 720p | 1080p
 3060ti Cupscale (ncnn) 4x | 0,27 | 0,1 | 0,04
 3060ti Joey 4x | 0,41 | 0,095 | 0,043
 
-Rife4 (Cuda) (fastmode False, ensemble False) | 480p | 720p | 1080p 
+Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti (fastmode False, ensemble False) | 61 | 30 | 15
-3060ti (fastmode False, ensemble False) | 89 | 45 | 24 | 
+1070ti | 61 | 30 | 15
+3060ti | 89 | 45 | 24 | 
 
-Rife4 (Cuda) (fastmode False, ensemble True) | 480p | 720p | 1080p 
+Rife4+vs (fastmode False, ensemble True) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti (fastmode False, ensemble True) | 27 | 13 | 9.6
-3060ti (fastmode False, ensemble True) | ? | 36 | 20 |
-3090 (fastmode False, ensemble True) | ? | 69.6 | 35 | 
+1070ti | 27 | 13 | 9.6
+3060ti | ? | 36 | 20 |
+3090 | ? | 69.6 | 35 | 
 
-Rife4 (Cuda) (fastmode True, ensemble False) | 480p | 720p | 1080p 
+Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti (fastmode True, ensemble False) | 62 | 31 | 14
-3060ti (fastmode True, ensemble False) | 135 | 66 | 33 |
-3090 (fastmode True, ensemble False) | ? | 119 | 58 | 
+1070ti | 62 | 31 | 14
+3060ti | 135 | 66 | 33 |
+3090 | ? | 119 | 58 | 
 
-Rife4 (Cuda) (fastmode True, ensemble True) | 480p | 720p | 1080p 
+Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti (fastmode True, ensemble True) | 41 | 20 | 9.8 
-3060ti (fastmode True, ensemble True) | 86 | 49 | 24 | 
-3090 (fastmode True, ensemble True) | ? | 90.3 | 45
+1070ti | 41 | 20 | 9.8 
+3060ti | 86 | 49 | 24 | 
+3090 | ? | 90.3 | 45
+
+Rife4+vs (fastmode False, ensemble True) + Compact 2x (TensorRT) | 480p | 720p | 1080p 
+---  | -------  | ------- | ------- 
+1070ti | 9.3 | 4.6 | 2.1
