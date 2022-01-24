@@ -180,7 +180,7 @@ Compact (2x) | 480p | 720p | 1080p
 rx470 vs+ncnn (PIL+no tile+tta off) 2x | 2.8 | 1.3 | 0.5
 rx470 vs+ncnn (np+no tile+tta off) 2x | 2.8 | 1.3 | 0.5
 rx470 vs+ncnn (np+auto tile+tta off) 2x | 2.5 | 1.1 | 0.4
-rx470 vs+ncnn (np+no tile+tta on) 2x | 0.4. | 0.2 | X
+rx470 vs+ncnn (np+no tile+tta on) 2x | 0.4 | 0.2 | X
 1070ti TensorRT docker 2x | 12 | 6.1 | 2.8
 3060ti TensorRT docker 2x | 19 | 7,1 | 3,2
 3060ti VSGAN 2x | 9,7 | 3,6 | 1,77
