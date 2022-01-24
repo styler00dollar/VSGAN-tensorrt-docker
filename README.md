@@ -200,7 +200,7 @@ Compact (4x) | 480p | 720p | 1080p
 ESRGAN (64mb) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
 1070ti TensorRT docker 4x | 0.5 | 0.2 | >0.1
-3060ti TensorRT docker 4x | 2 | 0.7 | ?
+3060ti TensorRT docker 4x | 2 | 0.7 | 0.29
 3060ti Cupscale (Pytorch) 4x | 0,41 | 0,13 | 0,044
 3060ti Cupscale (ncnn) 4x | 0,27 | 0,1 | 0,04
 3060ti Joey 4x | 0,41 | 0,095 | 0,043
