@@ -66,7 +66,7 @@ clip = egvsr_model(clip)
 # 0 = rife-v3.1, 1 = rife-v3.0, 2 = rife-v2.4, 3 = rife-v2, 4 = rife-anime
 #clip = core.rife.RIFE(clip, model=0, gpu_id=0, gpu_thread=2, tta=False, uhd=False, sc=False, list_gpu=False)
 # RealESRGAN example
-#clip = SRVGGNetCompactRealESRGAN_ncnn(clip, gpuid=0, model="models-DF2K", tta_mode=False, scale: float = 2, tilesize=0, param_path = None, bin_path = None)
+#clip = SRVGGNetCompactRealESRGAN_ncnn(clip, gpuid=0, model="models-DF2K", tta_mode=False, scale = 2, tilesize=0, param_path = None, bin_path = None)
 # Waifu2x
 # 0 = upconv_7_anime_style_art_rgb, 1 = upconv_7_photo, 2 = cunet (For 2D artwork. Slow, but better quality.)
 #clip = core.w2xnvk.Waifu2x(clip, noise=0, scale=2, model=0, tile_size=0, gpu_id=0, gpu_thread=0, precision=16)
