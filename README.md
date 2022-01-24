@@ -177,6 +177,7 @@ Warning: The 3090 benches were done with a low powerlimit and throttled the GPU.
 
 Compact (2x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
+rx470 vs+ncnn (PIL+no tile+tta off) 2x | 2.8 | 1.3 | 0.5
 1070ti TensorRT docker 2x | 12 | 6.1 | 2.8
 3060ti TensorRT docker 2x | 19 | 7,1 | 3,2
 3060ti VSGAN 2x | 9,7 | 3,6 | 1,77
