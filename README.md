@@ -77,7 +77,7 @@ cd VapourSynth-RIFE-ncnn-Vulkan && git submodule update --init --recursive --dep
 #### RealSR / ESRGAN ncnn:
 ```bash
 sudo pacman -S base-devel cmake vulkan-headers vulkan-icd-loader swig python
-pip install cmake-build-extension -U
+pip install cmake-build-extension numpy -U
 
 # dont use conda, CXX errors in manjaro otherwise
 conda deactivate
