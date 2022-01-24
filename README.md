@@ -187,7 +187,7 @@ rx470 vs+ncnn (np+no tile+tta on) 2x | 0.4 | 0.2 | X
 1070ti TensorRT docker 2x | 12 | 6.1 | 2.8
 3060ti TensorRT docker 2x | 19 | 7,1 | 3,2
 3060ti VSGAN 2x | 9,7 | 3,6 | 1,77
-3060ti ncnn (Windows binary) 2x | 9,43 | 3,52 | 1,53
+3060ti ncnn (Windows binary) 2x | 7 | 4,2 | 1,2
 3060ti Joey 2x | 2,24 | 0,87 | 0,36
 3070 TensorRT docker 2x | 20 | 7.55 | 3.36
 3090 TensorRT docker 2x | ? | ? | 6.7
@@ -197,7 +197,7 @@ Compact (4x) | 480p | 720p | 1080p
 1070ti TensorRT docker 4x | 11 | 5,6 | X
 3060ti TensorRT docker 4x | 16 | 6,1 | 2,7
 3060ti VSGAN 4x | 7,2 | 3 | 1,3
-3060ti ncnn (Windows binary) 4x | 6,33 | 2,4 | 1,11
+3060ti ncnn (Windows binary) 4x | 3,72 | 0,85 | 0,53
 3060ti Joey 4x | 0,65 | 0,25 | 0,11
 
 ESRGAN (64mb) | 480p | 720p | 1080p
