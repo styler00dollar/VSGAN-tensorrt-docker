@@ -470,7 +470,7 @@ core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
 
-def egvsr_model(clip: vs.VideoNode, interval: int = 15, fp16: bool = False) -> vs.VideoNode:
+def egvsr_model(clip: vs.VideoNode, interval: int = 15) -> vs.VideoNode:
 
     scale = 4
 
