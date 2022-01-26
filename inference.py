@@ -9,6 +9,7 @@ from src.rife import RIFE # tensorrt not possible
 from vsswinir import SwinIR # https://github.com/HolyWu/vs-swinir # currently not tensorrt, didn't try
 from src.egvsr import egvsr_model # currently not tensorrt
 from vsbasicvsrpp import BasicVSRPP
+from src.realbasicvsr import realbasicvsr_model
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -18,16 +19,16 @@ core.num_threads = 16 # can influence ram usage
 core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
 
 # cfr video
-clip = core.ffms2.Source(source='vivy.webm')
+clip = core.ffms2.Source(source='test.webm')
 # vfr video (untested)
 #clip = core.ffms2.Source(source='input.mkv', fpsnum = 24000, fpsden = 1001)
 ###############################################
 # COLORSPACE
 ###############################################
 # convert colorspace
-#clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
+clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # convert colorspace + resizing
-clip = vs.core.resize.Bicubic(clip, width=256, height=256, format=vs.RGBS, matrix_in_s='709')
+#clip = vs.core.resize.Bicubic(clip, width=256, height=256, format=vs.RGBS, matrix_in_s='709')
 
 ###############################################
 
@@ -51,10 +52,12 @@ clip = vs.core.resize.Bicubic(clip, width=256, height=256, format=vs.RGBS, matri
 # RealESRGAN Anime Video example
 #clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True)
 # EGVSR
-clip = egvsr_model(clip)
+#clip = egvsr_model(clip)
 # BasicVSR++
 # 0 = REDS, 1 = Vimeo-90K (BI), 2 = Vimeo-90K (BD), 3 = NTIRE 2021 - Track 1, 4 = NTIRE 2021 - Track 2, 5 = NTIRE 2021 - Track 3
 #clip = BasicVSRPP(clip, model = 1, interval = 30, tile_x = 0, tile_y = 0, tile_pad = 16, device_type = 'cuda', device_index = 0, fp16 = False, cpu_cache = False)
+# RealBasicVSR
+clip = realbasicvsr_model(clip)
 
 ###############################################
 # [NOT IN DOCKER] MODELS (NCNN)

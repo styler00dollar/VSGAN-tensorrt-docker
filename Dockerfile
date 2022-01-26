@@ -43,6 +43,8 @@ RUN wget http://content.sniklaus.com/resepconv/network-paper.pytorch -O sepconv.
 RUN wget https://github.com/Thmen/EGVSR/raw/master/pretrained_models/EGVSR_iter420000.pth
 # rife4 (fixed rife4.0 model)
 RUN gdown --id 1UzCbpjxWJsfiDjoc7wuzq3K0RCf5Oxr3
+# RealBasicVSR_x4
+RUN gdown --id 1OYR1J2GXE90Zu2gVU5xc0t0P_UmKH7ID
 
 # optional, rvp uses it to convert colorspace
 RUN pip install kornia
@@ -54,3 +56,9 @@ RUN pip install opencv-python
 RUN pip install --upgrade vsswinir && python -m vsswinir
 # https://github.com/HolyWu/vs-basicvsrpp
 RUN pip install --upgrade vsbasicvsrpp && python -m vsbasicvsrpp
+
+# dependencies for RealBasicVSR_x4
+# mmedit
+RUN git clone https://github.com/open-mmlab/mmediting.git && cd mmediting && pip install -v -e .
+# RealBasicVSR_x4 will download this
+RUN wget "https://download.pytorch.org/models/vgg19-dcbb9e9d.pth" -O /root/.cache/torch/hub/checkpoints/vgg19-dcbb9e9d.pth
