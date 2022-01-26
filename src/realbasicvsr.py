@@ -1,8 +1,14 @@
 # https://github.com/ckkelvinchan/RealBasicVSR/blob/master/realbasicvsr/models/builder.py
-import torch.nn as nn
 from mmcv import build_from_cfg
 from mmedit.models.registry import BACKBONES, COMPONENTS, LOSSES, MODELS
 import functools
+import math
+import mmcv
+import numpy as np
+import os
+import torch
+import torch.nn as nn
+import vapoursynth as vs
 
 def build(cfg, registry, default_args=None):
     """Build module function.
@@ -60,16 +66,11 @@ def build_model(cfg, train_cfg=None, test_cfg=None):
 
 
 # https://github.com/HolyWu/vs-basicvsrpp
-import math
-import os
-import numpy as np
-import torch
-import vapoursynth as vs
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
 
-def realbasicvsr_model(clip: vs.VideoNode, model: int = 1, interval: int = 15, fp16: bool = False) -> vs.VideoNode:
+def realbasicvsr_model(clip: vs.VideoNode, interval: int = 15, fp16: bool = False) -> vs.VideoNode:
 
     scale = 4
 
@@ -88,7 +89,6 @@ def realbasicvsr_model(clip: vs.VideoNode, model: int = 1, interval: int = 15, f
     torch.backends.cudnn.enabled = True
     torch.backends.cudnn.benchmark = True
 
-    import mmcv
     # https://github.com/ckkelvinchan/RealBasicVSR/blob/master/inference_realbasicvsr.py
     config = mmcv.Config.fromfile("/workspace/tensorrt/src/realbasicvsr_config.py")
     config.model.pretrained = None
@@ -96,6 +96,9 @@ def realbasicvsr_model(clip: vs.VideoNode, model: int = 1, interval: int = 15, f
     model = build_model(config.model, test_cfg=config.test_cfg)
     model.load_state_dict(torch.load("/workspace/RealBasicVSR_x4.pth")["state_dict"], strict=True)
     model.cuda().eval()
+
+    if fp16:
+        model.half()
 
     cache = {}
  
