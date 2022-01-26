@@ -233,4 +233,4 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 
 Rife4+vs (fastmode False, ensemble True) + Compact 2x (TensorRT) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti | 9.3 | 4.6 | 2.1
+1070ti | 9.3 | 4.6 | 2.2
