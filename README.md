@@ -236,6 +236,10 @@ Rife4+vs (fastmode False, ensemble True) + Compact 2x (TensorRT) | 480p | 720p |
 ---  | -------  | ------- | ------- 
 1070ti | 9.3 | 4.6 | 2.2
 
+EGVSR | 480p | 720p | 1080p 
+-----------  | ---- | ---- | ----
+1070ti | 3.1 | OOM | OOM
+
 RealBasicVSR | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
 1070ti | 0.3 | OOM | OOM
