@@ -10,6 +10,7 @@ from vsswinir import SwinIR # https://github.com/HolyWu/vs-swinir # currently no
 from src.egvsr import egvsr_model # currently not tensorrt
 from vsbasicvsrpp import BasicVSRPP
 from src.realbasicvsr import realbasicvsr_model
+import os
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -17,7 +18,7 @@ core = vs.core
 core.num_threads = 16 # can influence ram usage
 # only needed if you are inside docker
 core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
-
+tmp = "tmp/"
 with open(os.path.join(tmp_dir, "tmp.txt")) as f:
     txt = f.readlines()
 
