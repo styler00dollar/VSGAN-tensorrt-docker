@@ -193,6 +193,7 @@ rx470 vs+ncnn (np+no tile+tta on) 2x | 0.4 | 0.2 | X
 3070 TensorRT docker 2x | 20 | 7.55 | 3.36
 3090 TensorRT docker 2x | ? | ? | 6.7
 V100 (Colab) (CUDA) | 6.9 | 3.2 | 1.4
+A100 (Colab) (CUDA) | 40 | 19 | 8.5
 
 Compact (4x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
@@ -201,6 +202,7 @@ Compact (4x) | 480p | 720p | 1080p
 3060ti VSGAN 4x | 7.2 | 3 | 1.3
 3060ti ncnn (Windows binary) 4x | 3.72 | 0.85 | 0.53
 3060ti Joey 4x | 0.65 | 0.25 | 0.11
+A100 (Colab) (CUDA) | 12 | 5.6 | 2.9
 
 ESRGAN (64mb) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
@@ -210,6 +212,7 @@ ESRGAN (64mb) | 480p | 720p | 1080p
 3060ti Cupscale (ncnn) 4x | 0.27 | 0.1 | 0.04
 3060ti Joey 4x | 0.41 | 0.095 | 0.043
 V100 TensoRT (Colab) | 1.8 | 0.8 | ?
+A100 TensoRT (Colab) | 5.6 | 2.6 | 1.1
 
 Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
@@ -222,6 +225,7 @@ Rife4+vs (fastmode False, ensemble True) | 480p | 720p | 1080p
 3060ti | ? | 36 | 20 |
 3090 | ? | 69.6 | 35 | 
 V100 (Colab) | 30 | 16 | 7.3
+A100 (Colab) | 54 | 39 | 23
 
 Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
@@ -229,6 +233,7 @@ Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p
 3060ti | 135 | 66 | 33 |
 3090 | ? | 119 | 58 | 
 V100 (Colab) | 34 | 17 | 7.6
+A100 (Colab) | 92 | 56 | 29
 
 Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
@@ -236,19 +241,26 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 3060ti | 86 | 49 | 24 | 
 3090 | ? | 90.3 | 45
 
-Rife4+vs (fastmode False, ensemble True) + Compact 2x (TensorRT) | 480p | 720p | 1080p 
+Rife4+vs (fastmode False, ensemble True) + Compact 2x | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti | 9.3 | 4.6 | 2.2
+1070ti (TensorRT) | 9.3 | 4.6 | 2.2
+A100 (CUDA) (Colab) | 23 | 13 | 6.5
 
 EGVSR | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
 1070ti | 3.1 | OOM | OOM
 V100 (Colab) | 2 | ? | ?
+A100 (Colab) | 5.7 | 2.3 | 1.4
 
 RealBasicVSR | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
 1070ti | 0.3 | OOM | OOM
+A100 (Colab) | 1.2 | ? | ?
 
 Sepconv | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
 V100 (Colab) | 22 | 11 | 4.9
+
+CAIN (2 groups) | 480p | 720p | 1080p 
+-----------  | ---- | ---- | ----
+A100 (Colab) | 76 | 47 | 25
