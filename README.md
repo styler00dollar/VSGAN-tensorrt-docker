@@ -192,6 +192,7 @@ rx470 vs+ncnn (np+no tile+tta on) 2x | 0.4 | 0.2 | X
 3060ti Joey 2x | 2.24 | 0.87 | 0.36
 3070 TensorRT docker 2x | 20 | 7.55 | 3.36
 3090 TensorRT docker 2x | ? | ? | 6.7
+V100 (Colab) (CUDA) | 6.9 | 3.2 | 1.4
 
 Compact (4x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
