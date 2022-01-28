@@ -493,9 +493,6 @@ def egvsr_model(clip: vs.VideoNode, interval: int = 15) -> vs.VideoNode:
     model.load_state_dict(torch.load("/workspace/EGVSR_iter420000.pth"), strict=False)
     model.cuda().eval()
 
-    if fp16:
-        model.half()
-
     cache = {}
  
     @torch.inference_mode()
@@ -511,8 +508,6 @@ def egvsr_model(clip: vs.VideoNode, interval: int = 15) -> vs.VideoNode:
 
             imgs = torch.stack(imgs)
             imgs = imgs.unsqueeze(0)
-            if fp16:
-                imgs = imgs.half()
 
             output, _, _, _, _ = model.forward_sequence(imgs.to("cuda", non_blocking=True))
             output = output.squeeze(0).detach().cpu().numpy()
