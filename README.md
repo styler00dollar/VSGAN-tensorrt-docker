@@ -208,6 +208,7 @@ ESRGAN (64mb) | 480p | 720p | 1080p
 3060ti Cupscale (Pytorch) 4x | 0.41 | 0.13 | 0.044
 3060ti Cupscale (ncnn) 4x | 0.27 | 0.1 | 0.04
 3060ti Joey 4x | 0.41 | 0.095 | 0.043
+V100 TensoRT (Colab) | 1.8 | 0.8 | ?
 
 Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
