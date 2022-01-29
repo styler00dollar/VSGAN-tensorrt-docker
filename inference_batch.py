@@ -18,7 +18,7 @@ core = vs.core
 core.num_threads = 16 # can influence ram usage
 # only needed if you are inside docker
 core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
-tmp = "tmp/"
+tmp_dir = "tmp/"
 with open(os.path.join(tmp_dir, "tmp.txt")) as f:
     txt = f.readlines()
 
