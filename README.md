@@ -194,6 +194,8 @@ rx470 vs+ncnn (np+no tile+tta on) 2x | 0.4 | 0.2 | X
 3090 TensorRT docker 2x | ? | ? | 6.7
 V100 (Colab) (vs+CUDA) | 6.9 | 3.2 | 1.4
 A100 (Colab) (vs+CUDA) | 40 | 19 | 8.5
+A100 (Colab) (vs+onnx) | 26 | 12 | 4.9
+A100 (Colab) (vs+quantized onnx) | 26 | 12 | 5.7
 A100 (Colab) (jpg+CUDA) | 28.2 (9 Threads) | 28.2 (7 Threads) | 9.96 (4 Threads)
 
 Compact (4x) | 480p | 720p | 1080p
