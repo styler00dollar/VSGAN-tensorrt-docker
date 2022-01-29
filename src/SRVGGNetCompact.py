@@ -82,9 +82,23 @@ def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = F
       import onnx as ox
       import onnx_tensorrt.backend as backend
       # export to onnx and load with tensorrt (you cant use https://github.com/NVIDIA/Torch-TensorRT because the scripting step will fail)
-      torch.onnx.export(model, (torch.rand(1,3,clip.height,clip.width)), f"/workspace/test.onnx", verbose=False, opset_version=13)
+      torch.onnx.export(model, (torch.rand(1,3,clip.height,clip.width)), f"/workspace/test.onnx", verbose=False, opset_version=14)
       model = ox.load("/workspace/test.onnx")
       model = backend.prepare(model, device='CUDA:0', fp16_mode=fp16)
+    elif backend == "onnx":
+      import onnx as ox
+      import onnxruntime as ort
+      torch.onnx.export(model, (torch.rand(1,3,clip.height,clip.width)), f"/workspace/test.onnx", verbose=False, opset_version=14, input_names=['input'], output_names=['output'])
+      model = ox.load("/workspace/test.onnx")
+      sess = ort.InferenceSession(f"/workspace/test.onnx", providers=["CUDAExecutionProvider"])
+    elif backend == "quantized_onnx":
+      import onnxruntime as ort
+      import onnx as ox
+      from onnxruntime.quantization import quantize_dynamic, QuantType, quantize_qat, QuantType, quantize, QuantizationMode
+      torch.onnx.export(model.cuda(), (torch.rand(1,3,clip.height,clip.width)).cuda(), f"/workspace/test.onnx", verbose=False, opset_version=14, input_names=['input'], output_names=['output'])
+      quantized_model = quantize_dynamic("/workspace/test.onnx", "/workspace/test_quant.onnx", weight_type=QuantType.QUInt8)
+      model = ox.load("/workspace/test_quant.onnx")
+      sess = ort.InferenceSession(f"/workspace/test.onnx", providers=["CUDAExecutionProvider"])
     elif backend == "cuda":
       if fp16:
         model = model.half()
@@ -100,6 +114,8 @@ def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = F
             img = img.half()
           output = model(img)
           output = output.detach().cpu().numpy()
+        elif backend == "onnx" or "quantized_onnx":
+          output = sess.run(None, {'input': img})[0]
         else:
           output = model.run(img)[0]
         

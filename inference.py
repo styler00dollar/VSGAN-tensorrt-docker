@@ -50,9 +50,10 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 #clip = ESRGAN_inference(clip=clip, model_path="/workspace/4x_fatal_Anime_500000_G.pth", tile_x=400, tile_y=400, tile_pad=10, fp16=False)
 #clip = ESRGAN_inference(clip=clip, model_path="/workspace/RealESRGAN_x4plus_anime_6B.pth", tile_x=480, tile_y=480, tile_pad=16, fp16=False)
 # RealESRGAN Anime Video example
-#clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend="tensorrt")
+# backends: tenssorrt, cuda, onnx, quantized_onnx
+clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend = "tenssorrt")
 # EGVSR
-clip = egvsr_model(clip, interval=15)
+#clip = egvsr_model(clip, interval=15)
 # BasicVSR++
 # 0 = REDS, 1 = Vimeo-90K (BI), 2 = Vimeo-90K (BD), 3 = NTIRE 2021 - Track 1, 4 = NTIRE 2021 - Track 2, 5 = NTIRE 2021 - Track 3
 #clip = BasicVSRPP(clip, model = 1, interval = 30, tile_x = 0, tile_y = 0, tile_pad = 16, device_type = 'cuda', device_index = 0, fp16 = False, cpu_cache = False)
