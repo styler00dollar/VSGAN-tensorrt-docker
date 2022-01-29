@@ -249,7 +249,7 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 Rife4+vs (fastmode False, ensemble True) + Compact 2x | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
 1070ti (TensorRT) | 9.3 | 4.6 | 2.2
-A100 (Colab) (vs+CUDA) | 23 | 13 | 6.8
+A100 (Colab) (vs+CUDA) | 23 | 13 | 6.6
 A100 (Colab) (jpg+CUDA)  | ? | ? | 6.66 (theoretical)
 
 EGVSR | 480p | 720p | 1080p 
