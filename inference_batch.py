@@ -54,7 +54,7 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 #clip = ESRGAN_inference(clip=clip, model_path="/workspace/4x_fatal_Anime_500000_G.pth", tile_x=400, tile_y=400, tile_pad=10, fp16=False)
 #clip = ESRGAN_inference(clip=clip, model_path="/workspace/RealESRGAN_x4plus_anime_6B.pth", tile_x=480, tile_y=480, tile_pad=16, fp16=False)
 # RealESRGAN Anime Video example
-#clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True)
+#clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend="tensorrt")
 # EGVSR
 #clip = egvsr_model(clip, interval=15, fp16=False)
 # BasicVSR++
