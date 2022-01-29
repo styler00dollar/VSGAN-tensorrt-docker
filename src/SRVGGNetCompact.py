@@ -94,14 +94,14 @@ def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = F
         img = frame_to_tensor(clip.get_frame(n))
         img = np.expand_dims(img, 0)
         
-        if backend == "tensorrt":
-          output = model.run(img)[0]
-        elif backend == "cuda":
+        if backend == "cuda":
           img = torch.Tensor(img).to("cuda", non_blocking=True)
           if fp16:
             img = img.half()
           output = model(img)
           output = output.detach().cpu().numpy()
+        else:
+          output = model.run(img)[0]
         
         output = np.squeeze(output, 0)
         return tensor_to_clip(clip=clip, image=output)
