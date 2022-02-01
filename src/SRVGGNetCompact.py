@@ -63,7 +63,7 @@ class SRVGGNetCompact(nn.Module):
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
-def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = False, backend: str = "cuda") -> vs.VideoNode:
+def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = False, backend_inference: str = "cuda") -> vs.VideoNode:
     if not isinstance(clip, vs.VideoNode):
         raise vs.Error('RealESRGAN: this is not a clip')
 
@@ -78,20 +78,20 @@ def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = F
     model = SRVGGNetCompact(num_in_ch=3, num_out_ch=3, num_feat=64, num_conv=16, upscale=scale, act_type='prelu')
     model.load_state_dict(torch.load(model_path, map_location="cpu")['params'])
     model.eval()
-    if backend == "tensorrt":
+    if backend_inference == "tensorrt":
       import onnx as ox
       import onnx_tensorrt.backend as backend
       # export to onnx and load with tensorrt (you cant use https://github.com/NVIDIA/Torch-TensorRT because the scripting step will fail)
       torch.onnx.export(model, (torch.rand(1,3,clip.height,clip.width)), f"/workspace/test.onnx", verbose=False, opset_version=14)
       model = ox.load("/workspace/test.onnx")
       model = backend.prepare(model, device='CUDA:0', fp16_mode=fp16)
-    elif backend == "onnx":
+    elif backend_inference == "onnx":
       import onnx as ox
       import onnxruntime as ort
       torch.onnx.export(model, (torch.rand(1,3,clip.height,clip.width)), f"/workspace/test.onnx", verbose=False, opset_version=14, input_names=['input'], output_names=['output'])
       model = ox.load("/workspace/test.onnx")
       sess = ort.InferenceSession(f"/workspace/test.onnx", providers=["CUDAExecutionProvider"])
-    elif backend == "quantized_onnx":
+    elif backend_inference == "quantized_onnx":
       import onnxruntime as ort
       import onnx as ox
       from onnxruntime.quantization import quantize_dynamic, QuantType, quantize_qat, QuantType, quantize, QuantizationMode
@@ -99,26 +99,25 @@ def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = F
       quantized_model = quantize_dynamic("/workspace/test.onnx", "/workspace/test_quant.onnx", weight_type=QuantType.QUInt8)
       model = ox.load("/workspace/test_quant.onnx")
       sess = ort.InferenceSession(f"/workspace/test.onnx", providers=["CUDAExecutionProvider"])
-    elif backend == "cuda":
+    elif backend_inference == "cuda":
       if fp16:
         model = model.half()
       model.cuda()
-
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
         img = frame_to_tensor(clip.get_frame(n))
         img = np.expand_dims(img, 0)
-        
-        if backend == "cuda":
+
+        if backend_inference == "tensorrt":
+          output = model.run(img)[0]
+        elif backend_inference == "onnx" or backend_inference == "quantized_onnx":
+          output = sess.run(None, {'input': img})[0]
+        elif backend_inference == "cuda":
           img = torch.Tensor(img).to("cuda", non_blocking=True)
           if fp16:
             img = img.half()
           output = model(img)
           output = output.detach().cpu().numpy()
-        elif backend == "onnx" or "quantized_onnx":
-          output = sess.run(None, {'input': img})[0]
-        else:
-          output = model.run(img)[0]
-        
+
         output = np.squeeze(output, 0)
         return tensor_to_clip(clip=clip, image=output)
 
