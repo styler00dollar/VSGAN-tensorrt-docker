@@ -193,6 +193,7 @@ rx470 vs+ncnn (np+no tile+tta on) 2x | 0.4 | 0.2 | X
 3070 TensorRT docker 2x | 20 | 7.55 | 3.36
 3090 TensorRT docker 2x | ? | ? | 6.7
 V100 (Colab) (vs+CUDA) | 6.9 | 3.2 | 1.4
+V100 (Colab High RAM) (vs+CUDA) | 31 | 15 | 6.4
 A100 (Colab) (vs+CUDA) | 40 | 19 | 8.5
 A100 (Colab) (vs+onnx) | 26 | 12 | 4.9
 A100 (Colab) (vs+quantized onnx) | 26 | 12 | 5.7
@@ -249,6 +250,7 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 Rife4+vs (fastmode False, ensemble True) + Compact 2x | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
 1070ti (TensorRT) | 9.3 | 4.6 | 2.2
+V100 (Colab High RAM) (vs+CUDA) | 20 | 11 | 5.5
 A100 (Colab) (vs+CUDA) | 23 | 13 | 6.6
 A100 (Colab) (jpg+CUDA)  | ? | ? | 6.66 (theoretical)
 
