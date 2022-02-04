@@ -198,9 +198,11 @@ V100 (Colab High RAM) (vs+CUDA) | 29 | 13 | 6
 V100 (Colab High RAM) (vs+TensorRT7) | 21 | 12 | 5.5
 V100 (Colab High RAM) (vs+TensorRT8) | 21 | 12 | 5.5
 A100 (Colab) (vs+CUDA) | 40 | 19 | 8.5
+A100 (Colab) (vs+TensorRT8) | 44 | 21 | 9.5
 A100 (Colab) (vs+onnx) | 26 | 12 | 4.9
 A100 (Colab) (vs+quantized onnx) | 26 | 12 | 5.7
 A100 (Colab) (jpg+CUDA) | 28.2 (9 Threads) | 28.2 (7 Threads) | 9.96 (4 Threads)
+
 
 Compact (4x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
