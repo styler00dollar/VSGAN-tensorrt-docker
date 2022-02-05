@@ -1,6 +1,7 @@
 import sys
 sys.path.append('/workspace/tensorrt/')
 import vapoursynth as vs
+import os
 from src.esrgan import ESRGAN_inference # esrgan and realesrgan
 from src.SRVGGNetCompact import SRVGGNetCompactRealESRGAN # realesrgan anime video
 from src.vfi_model import video_model # any vfi model, in this case rvp1 as demonstration
@@ -8,9 +9,9 @@ from src.sepconv_enhanced import sepconv_model # uses cupy, no tensorrt
 from src.rife import RIFE # tensorrt not possible
 from vsswinir import SwinIR # https://github.com/HolyWu/vs-swinir # currently not tensorrt, didn't try
 from src.egvsr import egvsr_model # currently not tensorrt
+from src.cugan import cugan_inference
 from vsbasicvsrpp import BasicVSRPP
 from src.realbasicvsr import realbasicvsr_model
-import os
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -63,6 +64,9 @@ clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference = "
 #clip = BasicVSRPP(clip, model = 1, interval = 30, tile_x = 0, tile_y = 0, tile_pad = 16, device_type = 'cuda', device_index = 0, fp16 = False, cpu_cache = False)
 # RealBasicVSR
 #clip = realbasicvsr_model(clip, interval=15)
+# cugan
+# scales: 2 | 3 | 4, kind_model: no_denoise | denoise3x | conservative
+#clip = cugan_inference(clip, fp16 = True, scale = 2, kind_model = "no_denoise")
 
 ###############################################
 # [NOT IN DOCKER] MODELS (NCNN)

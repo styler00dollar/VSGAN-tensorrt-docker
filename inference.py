@@ -8,6 +8,7 @@ from src.sepconv_enhanced import sepconv_model # uses cupy, no tensorrt
 from src.rife import RIFE # tensorrt not possible
 from vsswinir import SwinIR # https://github.com/HolyWu/vs-swinir # currently not tensorrt, didn't try
 from src.egvsr import egvsr_model # currently not tensorrt
+from src.cugan import cugan_inference
 from vsbasicvsrpp import BasicVSRPP
 from src.realbasicvsr import realbasicvsr_model
 
@@ -59,6 +60,9 @@ clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference = "
 #clip = BasicVSRPP(clip, model = 1, interval = 30, tile_x = 0, tile_y = 0, tile_pad = 16, device_type = 'cuda', device_index = 0, fp16 = False, cpu_cache = False)
 # RealBasicVSR
 #clip = realbasicvsr_model(clip, interval=15, fp16=True)
+# cugan
+# scales: 2 | 3 | 4, kind_model: no_denoise | denoise3x | conservative
+#clip = cugan_inference(clip, fp16 = True, scale = 2, kind_model = "no_denoise")
 
 ###############################################
 # [NOT IN DOCKER] MODELS (NCNN)

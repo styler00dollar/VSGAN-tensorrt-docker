@@ -52,6 +52,18 @@ RUN wget https://github.com/Thmen/EGVSR/raw/master/pretrained_models/EGVSR_iter4
 RUN gdown --id 1UzCbpjxWJsfiDjoc7wuzq3K0RCf5Oxr3
 # RealBasicVSR_x4
 RUN gdown --id 1OYR1J2GXE90Zu2gVU5xc0t0P_UmKH7ID
+# cugan models
+RUN gdown --id 1Y7SGNuivVjPf1g6F3IMvTsqt64p_pTeH
+RUN gdown --id 1SBdf89kqcFg6LbPRO1npEcRfUgVzOyhu
+RUN gdown --id 1bkSBMPia1Wkf2mqK7ygWIdDndymHyYSk
+RUN gdown --id 1DfB-tMUKU_3NwQuM9Z0ZGYPhfLmzkDHb
+RUN gdown --id 1-cc-Hh8TPZUpkScU97P1KQzZAKS9wese
+RUN gdown --id 1lJvAtgZgRj27VXuDhSxD1mhD1bmn5g1J
+RUN gdown --id 1VtBY4ZEebEiYL-IZRGJ61LUDCSRvkdoC
+RUN gdown --id 1ZecBTGJogjXjZWdNnw0tlvpcbQVL1Wmg
+RUN gdown --id 1lf6fTG90YRNLzLYu_jVfChSnvByznaTV
+RUN gdown --id 1uMSkSaear_f3BhIVoyPAeEYecpTNSV6W
+RUN gdown --id 1CaQ15NiDQlFoOYGe4OJTsHbdxa8zQvME
 
 # optional, rvp uses it to convert colorspace
 RUN pip install kornia
