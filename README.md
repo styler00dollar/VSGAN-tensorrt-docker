@@ -278,3 +278,8 @@ V100 (Colab) | 22 | 11 | 4.9
 CAIN (2 groups) | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
 A100 (Colab) | 76 | 47 | 25
+
+cugan 2x | 480p | 720p | 1080p 
+-------- | ---- | ---- | ----
+V100 (Colab) (vs+CUDA) | 7 | 3.1 | OOM
+V100 (Colab High RAM) (vs+CUDA) | 21 | 9.7 | OOM
