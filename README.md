@@ -1,6 +1,6 @@
 # VSGAN-tensorrt-docker
 
-Using image super resolution models with vapoursynth and speeding them up with TensorRT. Using [NVIDIA/Torch-TensorRT](https://github.com/NVIDIA/Torch-TensorRT) combined with [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN). This repo makes the usage of tiling and ESRGAN models very easy. Models can be found on the [wiki page](https://upscale.wiki/wiki/Model_Database). Further model architectures are planned to be added later on.
+Using image super resolution models with vapoursynth and speeding them up with TensorRT if possible. This repo is the fastest inference code that you can find. Not all codes can use TensorRT due to various reasons, but I try to add that if it works. Using [NVIDIA/Torch-TensorRT](https://github.com/NVIDIA/Torch-TensorRT) combined with [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN). This repo makes the usage of tiling and ESRGAN models very easy. Models can be found on the [wiki page](https://upscale.wiki/wiki/Model_Database). Further model architectures are planned to be added later on.
 
 Currently working:
 - ESRGAN with [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN) and [HolyWu/vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
@@ -14,9 +14,9 @@ Currently working:
 - BasicVSR++ with [HolyWu/vs-basicvsrpp](https://github.com/HolyWu/vs-basicvsrpp)
 - Waifu2x with [Nlzy/vapoursynth-waifu2x-ncnn-vulkan](https://github.com/Nlzy/vapoursynth-waifu2x-ncnn-vulkan)
 - RealBasicVSR with [ckkelvinchan/RealBasicVSR](https://github.com/ckkelvinchan/RealBasicVSR)
-- cugan with [bilibili/ailab](https://github.com/bilibili/ailab/blob/main/Real-CUGAN/README_EN.md)
+- RealCUGAN with [bilibili/ailab](https://github.com/bilibili/ailab/blob/main/Real-CUGAN/README_EN.md)
 
-Model | ESRGAN | SRVGGNetCompact | Rife | SwinIR | Sepconv | EGVSR | BasicVSR++ | Waifu2x | RealBasicVSR | cugan
+Model | ESRGAN | SRVGGNetCompact | Rife | SwinIR | Sepconv | EGVSR | BasicVSR++ | Waifu2x | RealBasicVSR | RealCUGAN
 ---  | ------- | --------------- | ---- | ------ | ------- | ----- | ---------- | ------- | ------------ | -----
 CUDA | - | [yes](https://github.com/xinntao/Real-ESRGAN/releases/tag/v0.2.3.0) | yes ([rife4](https://drive.google.com/file/d/1mUK9iON6Es14oK46-cCflRoPTeGiI_A9/view)) | [yes](https://github.com/HolyWu/vs-swinir/tree/master/vsswinir) | [yes](http://content.sniklaus.com/resepconv/network-paper.pytorch) | [yes](https://github.com/Thmen/EGVSR/raw/master/pretrained_models/EGVSR_iter420000.pth) | [yes](https://github.com/HolyWu/vs-basicvsrpp/releases/tag/model) | - | [yes](https://drive.google.com/file/d/1OYR1J2GXE90Zu2gVU5xc0t0P_UmKH7ID/view) | [yes](https://drive.google.com/drive/folders/1jAJyBf2qKe2povySwsGXsVMnzVyQzqDD)
 TensoRT | yes (torch_tensorrt) | yes (onnx_tensorrt) | - | - | - | - | - | - | - | -
@@ -186,6 +186,7 @@ vspipe --y4m inference.py - | mpv - --audio-file=file.aac --sub-files=file.ass
 Warnings: 
 - The 3090 benches were done with a low powerlimit and throttled the GPU.
 - The default is ffmpeg.
+- ModifyFrame is depricated. Trying to use FrameEval everywhere and is used by default.
 
 Compact (2x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
@@ -235,41 +236,43 @@ A100 TensoRT8 (Colab) | 5.6 | 2.6 | 1.1
 
 Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti | 61 | 30 | 15
-3060ti | 89 | 45 | 24 | 
+1070ti (vs+ffmpeg+ModifyFrame) | 61 | 30 | 15
+3060ti (vs+ffmpeg+ModifyFrame) | 89 | 45 | 24 | 
 
 Rife4+vs (fastmode False, ensemble True) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti | 27 | 13 | 9.6
-3060ti | ? | 36 | 20 |
-3090 | ? | 69.6 | 35 | 
-V100 (Colab) (vs+ffmpeg) | 30 | 16 | 7.3
-V100 (Colab High RAM) (vs+x264) | 48.5 | 33 | 19.2
-A100 (Colab) (vs+CUDA) | 54 | 39 | 23
-A100 (Colab) (jpg+CUDA) | ? | ? | 19.92 (14 Threads)
+1070ti (vs+ffmpeg+ModifyFrame) | 27 | 13 | 9.6
+3060ti (vs+ffmpeg+ModifyFrame) | ? | 36 | 20 |
+3090 (vs+ffmpeg+ModifyFrame) | ? | 69.6 | 35 | 
+V100 (Colab) (vs+ffmpeg+ModifyFrame) | 30 | 16 | 7.3
+V100 (Colab High RAM) (vs+x264+ModifyFrame) | 48.5 | 33 | 19.2
+V100 (Colab High RAM) (vs+x264+FrameEval) | 48.2 | 35.5 | 20.6
+A100 (Colab) (vs+CUDA+ffmpeg+ModifyFrame) | 54 | 39 | 23
+A100 (Colab) (jpg+CUDA+ffmpeg+ModifyFrame) | ? | ? | 19.92 (14 Threads)
 
 Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti | 62 | 31 | 14
-3060ti | 135 | 66 | 33 |
-3090 | ? | 119 | 58 | 
-V100 (Colab) | 34 | 17 | 7.6
-A100 (Colab) | 92 | 56 | 29
+1070ti (TensorRT8+ffmpeg+ModifyFrame) | 62 | 31 | 14
+3060ti (TensorRT8+ffmpeg+ModifyFrame) | 135 | 66 | 33 |
+3090 (TensorRT8+ffmpeg+ModifyFrame) | ? | 119 | 58 | 
+V100 (Colab) (TensorRT8+ffmpeg+ModifyFrame) | 34 | 17 | 7.6
+A100 (Colab) (TensorRT8+ffmpeg+ModifyFrame) | 92 | 56 | 29
 
 Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti | 41 | 20 | 9.8 
-3060ti | 86 | 49 | 24 | 
-3090 | ? | 90.3 | 45
+1070ti (TensorRT8+ffmpeg+ModifyFrame) | 41 | 20 | 9.8 
+3060ti (TensorRT8+ffmpeg+ModifyFrame) | 86 | 49 | 24 | 
+3090 (TensorRT8+ffmpeg+ModifyFrame) | ? | 90.3 | 45
 
 Rife4+vs (fastmode False, ensemble True) + Compact 2x | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti (TensorRT8) | 9.3 | 4.6 | 2.2
-V100 (Colab High RAM) (vs+CUDA+ffmpeg) | ? | ? | 5.1
-V100 (Colab High RAM) (vs+CUDA+x264) | ? | ? | 5.2
-V100 (Colab High RAM) (vs+TensorRT8+x264) (rife fp16=False) | ? | ? | 4.2
-A100 (Colab) (vs+CUDA) | 23 | 13 | 6.6
-A100 (Colab) (vs+TensorRT8) (rife fp16=False) | 27 | 15 | 7.4
+1070ti (TensorRT8+ffmpeg+ModifyFrame) | 9.3 | 4.6 | 2.2
+V100 (Colab High RAM) (vs+CUDA+ffmpeg+ModifyFrame) | ? | ? | 5.1
+V100 (Colab High RAM) (vs+CUDA+x264+ModifyFrame) | ? | ? | 5.2
+V100 (Colab High RAM) (vs+CUDA+x264+FrameEval) | ? | ? | 5.1
+V100 (Colab High RAM) (vs+TensorRT8+x264+ModifyFrame) (rife fp16=False) | ? | ? | 4.2
+A100 (Colab) (vs+CUDA+ffmpeg+ModifyFrame) | 23 | 13 | 6.6
+A100 (Colab) (vs+TensorRT8+ffmpeg+ModifyFrame) (rife fp16=False) | 27 | 15 | 7.4
 
 EGVSR | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
@@ -294,3 +297,7 @@ cugan 2x | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
 V100 (Colab) (vs+CUDA) | 7 | 3.1 | OOM
 V100 (Colab High RAM) (vs+CUDA) | 21 | 9.7 | OOM
+
+## Benchmarks
+
+This code uses code from other repositories, but the code I wrote myself is under BSD3.
