@@ -22,6 +22,12 @@ CUDA | - | [yes](https://github.com/xinntao/Real-ESRGAN/releases/tag/v0.2.3.0) |
 TensoRT | yes (torch_tensorrt) | yes (onnx_tensorrt) | - | - | - | - | - | - | - | -
 ncnn | yes ([realsr ncnn models](https://github.com/nihui/realsr-ncnn-vulkan/tree/master/models)) | yes ([2x](https://files.catbox.moe/u62vpw.tar)) | yes ([rife3.1, 3.0, 2.4, 2, anime](https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan/tree/master/models)) | - | - | - | - | [yes](https://github.com/Nlzy/vapoursynth-waifu2x-ncnn-vulkan/releases/download/r0.1/models.7z) | - | -
 
+Some important things:
+- Do not use `webm` video, webm is often broken. It can work, but don't complain about broken output afterwards.
+- Processing variable framerate (vfr) video is dangerous, but you can try to use fpsnum and fpsden. I would recommend to just render the input video into constant framerate (crf).
+- `x264` can be faster than `ffmpeg`, use that instead.
+- `ncnn` does not work in docker. It detects a GPU as CPU for some reason and refuses to run on GPU. Set up your own os for that.
+
 ## Usage
 ```bash
 # install docker, command for arch
@@ -177,7 +183,9 @@ vspipe --y4m inference.py - | mpv - --audio-file=file.aac --sub-files=file.ass
 ```
 ## Benchmarks
 
-Warning: The 3090 benches were done with a low powerlimit and throttled the GPU.
+Warnings: 
+- The 3090 benches were done with a low powerlimit and throttled the GPU.
+- The default is ffmpeg.
 
 Compact (2x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
@@ -235,7 +243,8 @@ Rife4+vs (fastmode False, ensemble True) | 480p | 720p | 1080p
 1070ti | 27 | 13 | 9.6
 3060ti | ? | 36 | 20 |
 3090 | ? | 69.6 | 35 | 
-V100 (Colab) | 30 | 16 | 7.3
+V100 (Colab) (vs+ffmpeg) | 30 | 16 | 7.3
+V100 (Colab High RAM) (vs+x264) | 48.5 | 33 | 19.2
 A100 (Colab) (vs+CUDA) | 54 | 39 | 23
 A100 (Colab) (jpg+CUDA) | ? | ? | 19.92 (14 Threads)
 
@@ -256,7 +265,9 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 Rife4+vs (fastmode False, ensemble True) + Compact 2x | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
 1070ti (TensorRT8) | 9.3 | 4.6 | 2.2
-V100 (Colab High RAM) (vs+CUDA) | 20 | 11 | 5.5
+V100 (Colab High RAM) (vs+CUDA+ffmpeg) | ? | ? | 5.1
+V100 (Colab High RAM) (vs+CUDA+x264) | ? | ? | 5.2
+V100 (Colab High RAM) (vs+TensorRT8+x264) (rife fp16=False) | ? | ? | 4.2
 A100 (Colab) (vs+CUDA) | 23 | 13 | 6.6
 A100 (Colab) (vs+TensorRT8) (rife fp16=False) | 27 | 15 | 7.4
 
