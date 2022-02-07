@@ -1,5 +1,3 @@
-#@title cugan.py (ONNX)
-%%writefile /workspace/tensorrt/VSGAN-tensorrt-docker/src/cugan.py
 # https://github.com/bilibili/ailab/blob/main/Real-CUGAN/VapourSynth/upcunet_v3_vs.py
 import torch
 from torch import nn as nn
