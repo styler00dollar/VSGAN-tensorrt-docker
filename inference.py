@@ -61,8 +61,8 @@ clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference = "
 # RealBasicVSR
 #clip = realbasicvsr_model(clip, interval=15, fp16=True)
 # cugan
-# scales: 2 | 3 | 4, kind_model: no_denoise | denoise3x | conservative
-#clip = cugan_inference(clip, fp16 = True, scale = 2, kind_model = "no_denoise")
+# scales: 2 | 3 | 4, kind_model: no_denoise | denoise3x | conservative, backend_inference: cuda | onnx
+#clip = cugan_inference(clip, fp16 = True, scale = 2, kind_model = "no_denoise", backend_inference = "cuda")
 
 ###############################################
 # [NOT IN DOCKER] MODELS (NCNN)

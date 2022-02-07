@@ -1,3 +1,5 @@
+#@title cugan.py (ONNX)
+%%writefile /workspace/tensorrt/VSGAN-tensorrt-docker/src/cugan.py
 # https://github.com/bilibili/ailab/blob/main/Real-CUGAN/VapourSynth/upcunet_v3_vs.py
 import torch
 from torch import nn as nn
@@ -357,7 +359,7 @@ import functools
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
-def cugan_inference(clip: vs.VideoNode, fp16: bool = True, scale: int = 2, kind_model: str = "no_denoise") -> vs.VideoNode:
+def cugan_inference(clip: vs.VideoNode, fp16: bool = True, scale: int = 2, kind_model: str = "no_denoise", backend_inference: str = "cuda") -> vs.VideoNode:
     if not isinstance(clip, vs.VideoNode):
         raise vs.Error('cugan: This is not a clip')
 
@@ -390,18 +392,36 @@ def cugan_inference(clip: vs.VideoNode, fp16: bool = True, scale: int = 2, kind_
         model_path = "/workspace/up4x-latest-denoise3x.pth"
 
     model.load_state_dict(torch.load(model_path, map_location="cpu"))
-    model.eval().cuda()
 
-    if fp16:
-      model = model.half()
+    if backend_inference == "cuda":
+      model.eval().cuda()
+      if fp16:
+        model = model.half()
+    elif backend_inference == "onnx":
+        import onnx as ox
+        import onnxruntime as ort
+        if fp16:
+          torch.onnx.export(model.eval().half().cuda(), torch.rand(1,3,clip.height,clip.width).half().cuda(), "/workspace/cugan.onnx", verbose=False, input_names=["input"], output_names=["output"], opset_version=14)
+        else:
+          torch.onnx.export(model.eval().cuda(), torch.rand(1,3,clip.height,clip.width).cuda(), "/workspace/cugan.onnx", verbose=False, input_names=["input"], output_names=["output"], opset_version=14)
+        model = ox.load("/workspace/cugan.onnx")
+        sess = ort.InferenceSession(f"/workspace/cugan.onnx", providers=["CUDAExecutionProvider"])
 
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
         img = frame_to_tensor(clip.get_frame(n))
-        img = torch.Tensor(img).unsqueeze(0).to("cuda", non_blocking=True)
-        if fp16:
-          img = img.half()
-        output = model(img)
-        output = output.detach().squeeze(0).cpu().numpy()
+        
+        if backend_inference == "cuda":
+          img = torch.Tensor(img).unsqueeze(0).to("cuda", non_blocking=True)
+          if fp16:
+            img = img.half()
+          output = model(img)
+          output = output.detach().squeeze(0).cpu().numpy()
+        elif backend_inference == "onnx":
+          img = np.expand_dims(img, 0)
+          if fp16:
+            img = img.astype(np.float16)
+          output = sess.run(None, {'input': img})[0]
+          output = np.squeeze(output, 0)
 
         return tensor_to_clip(clip=clip, image=output)
 
