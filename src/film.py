@@ -52,11 +52,11 @@ def FILM_inference(clip: vs.VideoNode, model_choise: str = "vgg") -> vs.VideoNod
       os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
       import tensorflow as tf
       if model_choise == "style":
-        model = tf.compat.v2.saved_model.load("/workspace/film_style/")
+        model = tf.compat.v2.saved_model.load("/workspace/Style/")
       elif model_choise == "l1":
-        model = tf.compat.v2.saved_model.load("/workspace/film_l1/")
+        model = tf.compat.v2.saved_model.load("/workspace/L1/")
       elif model_choise == "vgg"
-        model = tf.compat.v2.saved_model.load("/workspace/film_vgg/")
+        model = tf.compat.v2.saved_model.load("/workspace/VGG/")
 
     batch_dt = np.full(shape=(1,), fill_value=0.5, dtype=np.float32)
     batch_dt = np.expand_dims(batch_dt, axis=0)
