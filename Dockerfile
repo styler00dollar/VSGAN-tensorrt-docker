@@ -57,6 +57,13 @@ RUN gdown --id 1ZecBTGJogjXjZWdNnw0tlvpcbQVL1Wmg
 RUN gdown --id 1lf6fTG90YRNLzLYu_jVfChSnvByznaTV
 RUN gdown --id 1uMSkSaear_f3BhIVoyPAeEYecpTNSV6W
 RUN gdown --id 1CaQ15NiDQlFoOYGe4OJTsHbdxa8zQvME
+# film style
+RUN mkdir /workspace/film_style
+RUN cd film_style && gdown --id 1nfi15im3LQvCx84ZRiNcfMuodDkRL_Ei && gdown --id 1dT85Z-HyYsiUgIQbOgYFjwWPOw8en1RC
+RUN mkdir /workspace/film_style/variables
+#RUN cd /workspace/film_style/variables && gdown --id 1ceC2kbJs3U1dMMrp4hNIpoHRFxO33SFC && gdown --id 1_oyM-LBAK9o7-bNWf1jG8VvBYeqpmSUr
+# relupload, since official download seems to be blocked sometimes due to traffic
+RUN cd /workspace/film_style/variables && gdown --id 1ceC2kbJs3U1dMMrp4hNIpoHRFxO33SFC && wget https://files.catbox.moe/v84ufq.data-00000-of-00001 mv v84ufq.data-00000-of-00001 variables.data-00000-of-00001
 
 # optional, rvp uses it to convert colorspace
 RUN pip install kornia
@@ -74,3 +81,6 @@ RUN pip install --upgrade vsbasicvsrpp && python -m vsbasicvsrpp
 RUN git clone https://github.com/open-mmlab/mmediting.git && cd mmediting && pip install -v -e .
 # RealBasicVSR_x4 will download this
 RUN wget "https://download.pytorch.org/models/vgg19-dcbb9e9d.pth" -P /root/.cache/torch/hub/checkpoints/
+
+# installing tensorflow because of FILM
+RUN pip install tensorflow tensorflow-gpu tensorflow_addons gin-config -U
