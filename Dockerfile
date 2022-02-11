@@ -59,11 +59,16 @@ RUN gdown --id 1uMSkSaear_f3BhIVoyPAeEYecpTNSV6W
 RUN gdown --id 1CaQ15NiDQlFoOYGe4OJTsHbdxa8zQvME
 # film style
 RUN mkdir /workspace/film_style
-RUN cd film_style && gdown --id 1nfi15im3LQvCx84ZRiNcfMuodDkRL_Ei && gdown --id 1dT85Z-HyYsiUgIQbOgYFjwWPOw8en1RC
-RUN mkdir /workspace/film_style/variables
-#RUN cd /workspace/film_style/variables && gdown --id 1ceC2kbJs3U1dMMrp4hNIpoHRFxO33SFC && gdown --id 1_oyM-LBAK9o7-bNWf1jG8VvBYeqpmSUr
-# relupload, since official download seems to be blocked sometimes due to traffic
-RUN cd /workspace/film_style/variables && gdown --id 1ceC2kbJs3U1dMMrp4hNIpoHRFxO33SFC && wget https://files.catbox.moe/v84ufq.data-00000-of-00001 mv v84ufq.data-00000-of-00001 variables.data-00000-of-00001
+RUN cd /workspace/film_style && gdown --id 1nfi15im3LQvCx84ZRiNcfMuodDkRL_Ei && gdown --id 1dT85Z-HyYsiUgIQbOgYFjwWPOw8en1RC
+RUN mkdir /workspace/film_style/variables && cd /workspace/film_style/variables && gdown --id 1ceC2kbJs3U1dMMrp4hNIpoHRFxO33SFC && wget https://files.catbox.moe/v84ufq.data-00000-of-00001 mv v84ufq.data-00000-of-00001 variables.data-00000-of-00001
+# film l1
+RUN mkdir /workspace/film_l1
+RUN cd /workspace/film_l1 && gdown --id 1WPHyhqRmIhpsCCAuWmlE2j_VHPe6c4eR && gdown --id 1HxAfoDIkJs9HUT6GmyHeiO4NDFtBhQKO
+RUN mkdir /workspace/film_l1/variables && cd /workspace/film_l1/variables && gdown --id 1jvMCG321Ws0WswWjZPSiYudrUWYvP10l && wget https://files.catbox.moe/renvnu.data-00000-of-00001 && mv renvnu.data-00000-of-00001 variables.data-00000-of-00001
+# film vgg
+RUN mkdir /workspace/film_vgg
+RUN cd /workspace/film_vgg && gdown --id 11nvcQvf5n9JMrryvIPfypYEbRYz_1egM && gdown --id 1-KW5CVihmeiiMki9fIqwUfsnrVJyLdyn
+RUN mkdir /workspace/film_vgg/variables && cd variables && gdown --id 1QsBtJFG9GLcjprjgnf6R-eQJq3k6mWnN && wget https://files.catbox.moe/qt4iya.data-00000-of-00001 && mv qt4iya.data-00000-of-00001 variables.data-00000-of-00001
 
 # optional, rvp uses it to convert colorspace
 RUN pip install kornia

@@ -65,7 +65,8 @@ clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference = "
 # scales: 2 | 3 | 4, kind_model: no_denoise | denoise3x | conservative, backend_inference: cuda | onnx
 #clip = cugan_inference(clip, fp16 = True, scale = 2, kind_model = "no_denoise", backend_inference = "cuda")
 # FILM
-#clip = FILM_inference(clip)
+# models: l1 | vgg | style
+clip = FILM_inference(clip, model_choise = "vgg")
 
 ###############################################
 # [NOT IN DOCKER] MODELS (NCNN)

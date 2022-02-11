@@ -32,7 +32,7 @@ def stdout_redirected(to=os.devnull):
                                             # buffering and flags such as
                                             # CLOEXEC may be different
 
-def FILM_inference(clip: vs.VideoNode, fp16: bool = False, model_path: str = "/workspace/rvpV1_105661_G.pt") -> vs.VideoNode:
+def FILM_inference(clip: vs.VideoNode, model_choise: str = "vgg") -> vs.VideoNode:
     if not isinstance(clip, vs.VideoNode):
         raise vs.Error('This is not a clip')
 
@@ -51,8 +51,13 @@ def FILM_inference(clip: vs.VideoNode, fp16: bool = False, model_path: str = "/w
         sys.argv.append("(C++)")
       os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
       import tensorflow as tf
-      model = tf.compat.v2.saved_model.load("/workspace/film_style/")
-    
+      if model_choise == "style":
+        model = tf.compat.v2.saved_model.load("/workspace/film_style/")
+      elif model_choise == "l1":
+        model = tf.compat.v2.saved_model.load("/workspace/film_l1/")
+      elif model_choise == "vgg"
+        model = tf.compat.v2.saved_model.load("/workspace/film_vgg/")
+
     batch_dt = np.full(shape=(1,), fill_value=0.5, dtype=np.float32)
     batch_dt = np.expand_dims(batch_dt, axis=0)
     batch_dt = tf.convert_to_tensor(batch_dt)
@@ -70,12 +75,15 @@ def FILM_inference(clip: vs.VideoNode, fp16: bool = False, model_path: str = "/w
 
       I0 = np.expand_dims(I0, 0)
       I1 = np.expand_dims(I1, 0)
+
       I0 = np.swapaxes(I0, 3, 1)
       I0 = np.swapaxes(I0, 1, 2)
       I1 = np.swapaxes(I1, 3, 1)
       I1 = np.swapaxes(I1, 1, 2)
+
       I0 = tf.convert_to_tensor(I0)
       I1 = tf.convert_to_tensor(I1)
+
       inputs = {'x0': I0, 'x1': I1, 'time': batch_dt}
       middle = model(inputs, training=False)['image'].numpy()
 
