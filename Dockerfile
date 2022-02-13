@@ -79,3 +79,7 @@ RUN wget "https://download.pytorch.org/models/vgg19-dcbb9e9d.pth" -P /root/.cach
 
 # installing tensorflow because of FILM
 RUN pip install tensorflow tensorflow-gpu tensorflow_addons gin-config -U
+
+# misc
+RUN pip install cupy-cuda115
+RUN sudo apt install x264 -y
