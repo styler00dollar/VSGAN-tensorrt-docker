@@ -300,6 +300,11 @@ cugan 2x | 480p | 720p | 1080p
 V100 (Colab) (vs+CUDA) | 7 | 3.1 | OOM
 V100 (Colab High RAM) (vs+CUDA) | 21 | 9.7 | OOM
 
+
+cugan 4x | 480p | 720p | 1080p 
+-------- | ---- | ---- | ----
+3090 | 26 | ? | ?
+
 FILM | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
 V100 (Colab High RAM) (vs+CUDA) | 9.8 | 4.7 | 2.1
