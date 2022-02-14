@@ -250,6 +250,7 @@ Rife4+vs (fastmode False, ensemble True) | 480p | 720p | 1080p
 V100 (Colab) (vs+ffmpeg+ModifyFrame) | 30 | 16 | 7.3
 V100 (Colab High RAM) (vs+x264+ModifyFrame) | 48.5 | 33 | 19.2
 V100 (Colab High RAM) (vs+x264+FrameEval) | 48.2 | 35.5 | 20.6
+V100 (Colab High RAM) (vs+x265+FrameEval) | 15.2 | 9.7 | 4.6
 A100 (Colab) (vs+CUDA+ffmpeg+ModifyFrame) | 54 | 39 | 23
 A100 (Colab) (jpg+CUDA+ffmpeg+ModifyFrame) | ? | ? | 19.92 (14 Threads)
 
