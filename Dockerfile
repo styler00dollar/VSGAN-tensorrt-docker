@@ -12,7 +12,10 @@ RUN pip install https://github.com/NVIDIA/Torch-TensorRT/releases/download/v1.0.
 RUN apt install ffmpeg autoconf libtool yasm python3.9 python3.9-venv python3.9-dev ffmsindex libffms2-4 libffms2-dev -y
 RUN git clone https://github.com/sekrit-twc/zimg.git && cd zimg && ./autogen.sh && ./configure && make -j4 && make install && cd .. && rm -rf zimg
 RUN pip install Cython
-RUN git clone https://github.com/vapoursynth/vapoursynth.git && cd vapoursynth && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig
+RUN apt-get install p7zip-full -y
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R57.zip && \
+    7z x R57.zip && cd vapoursynth-R57 && ./autogen.sh && ./configure && make && \
+    make install && cd .. && ldconfig
 RUN ln -s /usr/local/lib/python3.9/site-packages/vapoursynth.so /usr/lib/python3.9/lib-dynload/vapoursynth.so
 RUN pip install vapoursynth
 
@@ -90,3 +93,29 @@ RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install --yes pulseaudio-utils
 RUN apt-get install -y pulseaudio
 RUN apt-get install pulseaudio libpulse-dev osspd -y
+
+# vs-mlrt
+# upgrading cmake
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.23.0-rc1-linux-x86_64.sh
+RUN chmod +x cmake-3.23.0-rc1-linux-x86_64.sh
+RUN sh cmake-3.23.0-rc1-linux-x86_64.sh --skip-license
+RUN cp /workspace/bin/cmake /usr/bin/cmake
+RUN cp /workspace/bin/cmake /usr/lib/x86_64-linux-gnu/cmake
+RUN cp /workspace/bin/cmake /usr/local/bin/cmake
+RUN cp -r /workspace/share/cmake-3.23 /usr/local/share/
+# upgrading g++
+RUN apt install build-essential manpages-dev software-properties-common -y
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y
+RUN apt update -y && apt install gcc-11 g++-11 -y
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
+# compiling
+RUN git clone https://github.com/AmusementClub/vs-mlrt && cd vs-mlrt/vstrt && mkdir build && \
+    cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R57/include && make && \
+    make install
+
+# x265
+RUN git clone https://github.com/AmusementClub/x265 && cd x265/source/ && mkdir build && cd build && \
+    cmake .. -DNATIVE_BUILD=ON -DSTATIC_LINK_CRT=ON -DENABLE_AVISYNTH=OFF && make && make install
+RUN cp /workspace/x265/source/build/x265 /usr/bin/x265 
+RUN cp /workspace/x265/source/build/x265 /usr/local/bin/x265
