@@ -157,7 +157,7 @@ If you don't want to use docker, vapoursynth install commands are [here](https:/
 
 Set the input video path in `inference.py` and access videos with the mounted folder.
 ## mpv
-It is also possible to directly pipe the video into mpv, but you most likely wont be able to archive realtime speed. Change the mounted folder path to your own videofolder and use the mpv dockerfile instead. If you use a very efficient model, it may be possible on a very good GPU. Only tested in Manjaro. 
+It is also possible to directly pipe the video into mpv, but you most likely wont be able to archive realtime speed. If you use a very efficient model, it may be possible on a very good GPU. Only tested in Manjaro. 
 ```bash
 yay -S pulseaudio
 

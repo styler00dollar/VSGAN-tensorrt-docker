@@ -82,4 +82,11 @@ RUN pip install tensorflow tensorflow-gpu tensorflow_addons gin-config -U
 
 # misc
 RUN pip install cupy-cuda115
-RUN sudo apt install x264 -y
+RUN apt install x264 -y
+
+# mpv
+RUN apt install mpv -y
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install --yes pulseaudio-utils
+RUN apt-get install -y pulseaudio
+RUN apt-get install pulseaudio libpulse-dev osspd -y
