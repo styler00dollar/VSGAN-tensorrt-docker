@@ -66,7 +66,9 @@ clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference = "
 #clip = cugan_inference(clip, fp16 = True, scale = 2, kind_model = "no_denoise", backend_inference = "cuda")
 # FILM
 # models: l1 | vgg | style
-clip = FILM_inference(clip, model_choise = "vgg")
+#clip = FILM_inference(clip, model_choise = "vgg")
+# vs-mlrt (you need to create the engine yourself)
+#clip = core.trt.Model(clip, engine_path="/content/test.engine", tilesize=[1280, 720], num_streams=5)
 
 ###############################################
 # [NOT IN DOCKER] MODELS (NCNN)

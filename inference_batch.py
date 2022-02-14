@@ -71,6 +71,8 @@ clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference = "
 # FILM
 # models: l1 | vgg | style
 clip = FILM_inference(clip, model_choise = "l1")
+# vs-mlrt (you need to create the engine yourself)
+#clip = core.trt.Model(clip, engine_path="/content/test.engine", tilesize=[1280, 720], num_streams=5)
 
 ###############################################
 # [NOT IN DOCKER] MODELS (NCNN)
