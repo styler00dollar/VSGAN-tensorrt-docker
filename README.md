@@ -61,6 +61,13 @@ There is also batch processing, just edit and use `main.py` (which calls `infere
 ```bash
 python main.py
 ```
+## vs-mlrt (C++ TRT)
+You need to convert onnx models into engines. You need to do that on the same system where you want to do inference. Download onnx models from [here]( https://github.com/AmusementClub/vs-mlrt/releases/download/v7/models.v7.7z). You can technically just use any ONNX model if you want. Inside the docker, you do
+```
+trtexec --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT
+```
+and put that engine path into `inference.py`. Only do FP16 if your GPU does support it.
+
 ## ncnn
 If you want to use ncnn, then you need to set up your own os for this and install dependencies manually. I tried to create a docker, but it isn't working properly. 
 
