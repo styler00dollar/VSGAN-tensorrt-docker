@@ -12,6 +12,7 @@ from src.cugan import cugan_inference
 from vsbasicvsrpp import BasicVSRPP
 from src.realbasicvsr import realbasicvsr_model
 from src.film import FILM_inference
+from src.pan import PAN_inference
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -22,16 +23,16 @@ core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
 core.std.LoadPlugin(path='/usr/local/lib/libvstrt.so')
 
 # cfr video
-clip = core.ffms2.Source(source='test.mkv')
+clip = core.ffms2.Source(source='480.mkv')
 # vfr video (untested)
 #clip = core.ffms2.Source(source='input.mkv', fpsnum = 24000, fpsden = 1001)
 ###############################################
 # COLORSPACE
 ###############################################
 # convert colorspace
-clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
+#clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # convert colorspace + resizing
-#clip = vs.core.resize.Bicubic(clip, width=1280, height=720, format=vs.RGBS, matrix_in_s='709')
+clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matrix_in_s='709')
 
 ###############################################
 
@@ -69,7 +70,10 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # models: l1 | vgg | style
 #clip = FILM_inference(clip, model_choise = "vgg")
 # vs-mlrt (you need to create the engine yourself)
-clip = core.trt.Model(clip, engine_path="/workspace/tensorrt/real2x.engine", tilesize=[854, 480], num_streams=6)
+#clip = core.trt.Model(clip, engine_path="/workspace/tensorrt/real2x.engine", tilesize=[854, 480], num_streams=6)
+# PAN
+# scale = 2 | 3 | 4
+clip = PAN_inference(clip, scale=2, fp16=True)
 
 ###############################################
 # [NOT IN DOCKER] MODELS (NCNN)

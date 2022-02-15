@@ -13,6 +13,7 @@ from src.cugan import cugan_inference
 from vsbasicvsrpp import BasicVSRPP
 from src.realbasicvsr import realbasicvsr_model
 from src.film import FILM_inference
+from src.pan import PAN_inference
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -74,6 +75,9 @@ clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference = "
 clip = FILM_inference(clip, model_choise = "l1")
 # vs-mlrt (you need to create the engine yourself)
 #clip = core.trt.Model(clip, engine_path="/content/test.engine", tilesize=[1280, 720], num_streams=5)
+# PAN
+# scale = 2 | 3 | 4
+#clip = PAN_inference(clip, scale=2, fp16=True)
 
 ###############################################
 # [NOT IN DOCKER] MODELS (NCNN)
