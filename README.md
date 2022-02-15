@@ -205,7 +205,8 @@ rx470 vs+ncnn (np+no tile+tta off) 2x | 2.8 | 1.3 | 0.5
 rx470 vs+ncnn (np+auto tile+tta off) 2x | 2.5 | 1.1 | 0.4
 rx470 vs+ncnn (np+no tile+tta on) 2x | 0.4 | 0.2 | X
 1070ti vs+ncnn (np+no tile+tta off) | 3.8 | 1.7 | 0.7
-1070ti TensorRT8 docker 2x | 12 | 6.1 | 2.8
+1070ti TensorRT8 docker 2x (ONNX-TRT) | 12 | 6.1 | 2.8
+1070ti TensorRT8 docker 2x (C++ TRT) (num_streams=6) | 14 | 6.7 | 3
 3060ti TensorRT8 docker 2x | 19 | 7.1 | 3.2
 3060ti VSGAN 2x | 9.7 | 3.6 | 1.77
 3060ti ncnn (Windows binary) 2x | 7 | 4.2 | 1.2
