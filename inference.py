@@ -19,6 +19,7 @@ core = vs.core
 core.num_threads = 16 # can influence ram usage
 # only needed if you are inside docker
 core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
+core.std.LoadPlugin(path='/usr/local/lib/libvstrt.so')
 
 # cfr video
 clip = core.ffms2.Source(source='test.mkv')
@@ -30,7 +31,7 @@ clip = core.ffms2.Source(source='test.mkv')
 # convert colorspace
 clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # convert colorspace + resizing
-#clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matrix_in_s='709')
+#clip = vs.core.resize.Bicubic(clip, width=1280, height=720, format=vs.RGBS, matrix_in_s='709')
 
 ###############################################
 
@@ -53,7 +54,7 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 #clip = ESRGAN_inference(clip=clip, model_path="/workspace/RealESRGAN_x4plus_anime_6B.pth", tile_x=480, tile_y=480, tile_pad=16, fp16=False)
 # RealESRGAN Anime Video example
 # backends: tensorrt, cuda, onnx, quantized_onnx
-clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference = "tensorrt")
+#clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference = "tensorrt")
 # EGVSR
 #clip = egvsr_model(clip, interval=15)
 # BasicVSR++
@@ -68,7 +69,7 @@ clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference = "
 # models: l1 | vgg | style
 #clip = FILM_inference(clip, model_choise = "vgg")
 # vs-mlrt (you need to create the engine yourself)
-#clip = core.trt.Model(clip, engine_path="/content/test.engine", tilesize=[1280, 720], num_streams=5)
+clip = core.trt.Model(clip, engine_path="/workspace/tensorrt/real2x.engine", tilesize=[854, 480], num_streams=6)
 
 ###############################################
 # [NOT IN DOCKER] MODELS (NCNN)
