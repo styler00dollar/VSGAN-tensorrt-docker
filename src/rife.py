@@ -238,8 +238,18 @@ class Unet(nn.Module):
         x = self.conv(x)
         return torch.sigmoid(x)
 
+import math
+def PSNR(original, compressed):
+    mse = np.mean((original - compressed) ** 2)
+    if(mse == 0):  # MSE is zero means no noise is present in the signal .
+                  # Therefore PSNR have no importance.
+        return 100
+    max_pixel = 255.0
+    psnr = 20 * math.log10(max_pixel / math.sqrt(mse))
+    return psnr
+
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
-def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = True, fastmode: bool = False, ensemble:bool = True) -> vs.VideoNode:
+def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = True, fastmode: bool = False, ensemble:bool = True, psnr_dedup:bool = True, psnr_value:int = 70) -> vs.VideoNode:
     '''
     RIFE: Real-Time Intermediate Flow Estimation for Video Frame Interpolation
 
@@ -325,6 +335,10 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
         I0 = frame_to_tensor(clip.get_frame(n-1))
         I1 = frame_to_tensor(clip.get_frame(n+1))
 
+        #if too similar
+        if PSNR(I0, I1) > psnr_value and psnr_dedup == True:
+          return clip
+
         I0 = torch.Tensor(I0).unsqueeze(0).to("cuda", non_blocking=True)
         I1 = torch.Tensor(I1).unsqueeze(0).to("cuda", non_blocking=True)
 
@@ -370,6 +384,11 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
 
           I0 = frame_to_tensor(f[0]).to("cuda", non_blocking=True)
           I1 = frame_to_tensor(f[1]).to("cuda", non_blocking=True)
+
+          #if too similar
+          if PSNR(I0, I1) > psnr_value and psnr_dedup == True:
+            return f[0]
+
           if fp16:
               I0 = I0.half()
               I1 = I1.half()

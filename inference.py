@@ -45,7 +45,7 @@ clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matri
 # sepconv
 #clip = sepconv_model(clip)
 # RIFE4
-#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True)
+#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = True, psnr_value = 70)
 # VFI example for jit models
 #clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 # SwinIR
