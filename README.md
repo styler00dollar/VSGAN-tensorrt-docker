@@ -39,6 +39,9 @@ Some important things:
 yay -S docker nvidia-docker nvidia-container-toolkit
 # Put the dockerfile in a directory and run that inside that directory
 docker build -t vsgan_tensorrt:latest .
+# If you want to rebuild from scratch or have errors, try to build without cache
+# If you still have problems, try to uncomment "RUN apt-get dist-upgrade -y" in the Dockerfile and try again
+docker build --no-cache -t vsgan_tensorrt:latest . 
 # run the docker
 # the folderpath before ":" will be mounted in the path which follows afterwards
 # contents of the vsgan folder should appear inside /workspace/tensorrt
