@@ -221,6 +221,7 @@ V100 (Colab High RAM) (vs+TensorRT7) (ONNX-TRT) | 21 | 12 | 5.5
 V100 (Colab High RAM) (vs+TensorRT8) (ONNX-TRT) | 21 | 12 | 5.5
 A100 (Colab) (vs+CUDA) | 40 | 19 | 8.5
 A100 (Colab) (vs+TensorRT8) (ONNX-TRT) | 44 | 21 | 9.5
+A100 (Colab) (vs+TensorRT8) (C++ TRT) (num_streams=50) | 51 | 23 | 11
 A100 (Colab) (vs+onnx) | 26 | 12 | 4.9
 A100 (Colab) (vs+quantized onnx) | 26 | 12 | 5.7
 A100 (Colab) (jpg+CUDA) | 28.2 (9 Threads) | 28.2 (7 Threads) | 9.96 (4 Threads)
