@@ -71,6 +71,10 @@ You need to convert onnx models into engines. You need to do that on the same sy
 ```
 trtexec --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT
 ```
+Be aware that DPIR (color) needs 4 channels.
+```
+trtexec --fp16 --onnx=dpir_drunet_color.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT
+```
 and put that engine path into `inference.py`. Only do FP16 if your GPU does support it.
 
 ## ncnn
