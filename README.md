@@ -218,6 +218,7 @@ rx470 vs+ncnn (np+no tile+tta on) 2x | 0.4 | 0.2 | X
 3060ti Joey 2x | 2.24 | 0.87 | 0.36
 3070 TensorRT8 docker 2x (ONNX-TRT) | 20 | 7.55 | 3.36
 3090 TensorRT8 docker 2x (ONNX-TRT) | ? | ? | 6.7
+3090 TensorRT8 docker 2x (C++ TRT) (num_streams=22) | 61 | ? | 14
 V100 (Colab) (vs+CUDA) | 8.4 | 3.8 | 1.6
 V100 (Colab) (vs+TensorRT8) (ONNX-TRT) | 8.3 | 3.8 | 1.7
 V100 (Colab High RAM) (vs+CUDA) | 29 | 13 | 6
