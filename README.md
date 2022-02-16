@@ -31,7 +31,7 @@ Some important things:
 - Processing variable framerate (vfr) video is dangerous, but you can try to use fpsnum and fpsden. I would recommend to just render the input video into constant framerate (crf).
 - `x264` can be faster than `ffmpeg`, use that instead.
 - `ncnn` does not work in docker. It detects a GPU as CPU for some reason and refuses to run on GPU. Set up your own os for that.
-- `rife4` can use PSNR deduplication. Quick testing showed quite some speed increase.
+- `rife4` can use PSNR, SSIM, MS_SSIM deduplication. Quick testing showed quite some speed increase.
 
 ## Usage
 ```bash

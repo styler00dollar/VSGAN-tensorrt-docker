@@ -15,6 +15,7 @@ import torch.nn as nn
 import torch.optim as optim
 import vapoursynth as vs
 import functools
+from pytorch_msssim import ssim, ms_ssim, SSIM, MS_SSIM
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 backwarp_tenGrid = {}
@@ -249,7 +250,7 @@ def PSNR(original, compressed):
     return psnr
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
-def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = True, fastmode: bool = False, ensemble:bool = True, psnr_dedup:bool = True, psnr_value:int = 70) -> vs.VideoNode:
+def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = True, fastmode: bool = False, ensemble:bool = True, psnr_dedup:bool = False, psnr_value:float = 70, ssim_dedup:bool = True, ms_ssim_dedup:bool=False, ssim_value:float=0.999) -> vs.VideoNode:
     '''
     RIFE: Real-Time Intermediate Flow Estimation for Video Frame Interpolation
 
@@ -342,6 +343,10 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
         I0 = torch.Tensor(I0).unsqueeze(0).to("cuda", non_blocking=True)
         I1 = torch.Tensor(I1).unsqueeze(0).to("cuda", non_blocking=True)
 
+        #if too similar
+        if (ssim(I0, I1) > ssim_value and ssim_dedup == True) or (ms_ssim(I0, I1) > ssim_value and ms_ssim_dedup == True):
+          return clip
+
         if fp16:
             I0 = I0.half()
             I1 = I1.half()
@@ -384,10 +389,6 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
 
           I0 = frame_to_tensor(f[0]).to("cuda", non_blocking=True)
           I1 = frame_to_tensor(f[1]).to("cuda", non_blocking=True)
-
-          #if too similar
-          if PSNR(I0, I1) > psnr_value and psnr_dedup == True:
-            return f[0]
 
           if fp16:
               I0 = I0.half()
