@@ -284,9 +284,11 @@ Rife4+vs (fastmode False, ensemble True) + Compact 2x | 480p | 720p | 1080p
 V100 (Colab High RAM) (vs+CUDA+ffmpeg+ModifyFrame) | ? | ? | 5.1
 V100 (Colab High RAM) (vs+CUDA+x264+ModifyFrame) | ? | ? | 5.2
 V100 (Colab High RAM) (vs+CUDA+x264+FrameEval) | ? | ? | 5.1
-V100 (Colab High RAM) (vs+TensorRT8+x264+ModifyFrame) (rife fp16=False) | ? | ? | 4.2
+V100 (Colab High RAM) (vs+ONNX-TensorRT8+x264+ModifyFrame) (rife fp16=False) | ? | ? | 4.2
 A100 (Colab) (vs+CUDA+ffmpeg+ModifyFrame) | 23 | 13 | 6.6
-A100 (Colab) (vs+TensorRT8+ffmpeg+ModifyFrame) (rife fp16=False) | 27 | 15 | 7.4
+A100 (Colab) (vs+ONNX-TensorRT8+ffmpeg+ModifyFrame) (rife fp16=False) | 27 | 15 | 7.4
+A100 (Colab) (vs+ONNX-TensorRT8+ffmpeg+ModifyFrame) (rife fp16=False) | 27 | 15 | 7.4
+A100 (Colab) (vs+C++ TensorRT8+ffmpeg+FrameEval) | 39 | 22 | 11
 
 EGVSR | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
