@@ -71,6 +71,11 @@ clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matri
 #clip = FILM_inference(clip, model_choise = "vgg")
 # vs-mlrt (you need to create the engine yourself)
 #clip = core.trt.Model(clip, engine_path="/workspace/tensorrt/real2x.engine", tilesize=[854, 480], num_streams=6)
+# vs-mlrt (DPIR)
+# DPIR does need an extra channel
+#sigma = 10.0
+#noise_level_map = core.std.BlankClip(clip, width=1280, height=720, format=vs.GRAYS)
+#clip = core.trt.Model([clip, core.std.BlankClip(noise_level_map, color=sigma/255.0)], engine_path="model.engine", tilesize=[1280, 720], num_streams=2)
 # PAN
 # scale = 2 | 3 | 4
 clip = PAN_inference(clip, scale=2, fp16=True)
