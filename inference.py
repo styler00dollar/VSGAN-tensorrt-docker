@@ -22,8 +22,9 @@ core.num_threads = 16 # can influence ram usage
 core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
 core.std.LoadPlugin(path='/usr/local/lib/libvstrt.so')
 
+video_path = "test.mkv"
 # cfr video
-clip = core.ffms2.Source(source='480.mkv')
+clip = core.ffms2.Source(source=video_path)
 # vfr video (untested)
 #clip = core.ffms2.Source(source='input.mkv', fpsnum = 24000, fpsden = 1001)
 ###############################################
@@ -95,6 +96,16 @@ clip = PAN_inference(clip, scale=2, fp16=True)
 # 0 = upconv_7_anime_style_art_rgb, 1 = upconv_7_photo, 2 = cunet (For 2D artwork. Slow, but better quality.)
 #clip = core.w2xnvk.Waifu2x(clip, noise=0, scale=2, model=0, tile_size=0, gpu_id=0, gpu_thread=0, precision=16)
 
+
+###############################################
+# Deduplicated inference for faster inference
+# only use this for upscaling
+###############################################
+#from src.dedup import return_frames
+#frames_duplicated, frames_duplicating = return_frames(video_path, psnr_value=60)
+#clip = core.std.DeleteFrames(clip, frames_duplicated)
+# do upscaling here
+#clip = core.std.DuplicateFrames(clip, frames_duplicating)
 ###############################################
 # OUTPUT
 ###############################################

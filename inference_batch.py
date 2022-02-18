@@ -100,6 +100,15 @@ clip = FILM_inference(clip, model_choise = "l1")
 #clip = core.w2xnvk.Waifu2x(clip, noise=0, scale=2, model=0, tile_size=0, gpu_id=0, gpu_thread=0, precision=16)
 
 ###############################################
+# Deduplicated inference for faster inference
+# only use this for upscaling
+###############################################
+#from src.dedup import return_frames
+#frames_duplicated, frames_duplicating = return_frames(txt, psnr_value=60)
+#clip = core.std.DeleteFrames(clip, frames_duplicated)
+# do upscaling here
+#clip = core.std.DuplicateFrames(clip, frames_duplicating)
+###############################################
 # OUTPUT
 ###############################################
 clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")

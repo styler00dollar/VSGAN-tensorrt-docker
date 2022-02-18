@@ -66,6 +66,16 @@ There is also batch processing, just edit and use `main.py` (which calls `infere
 ```bash
 python main.py
 ```
+## Deduplicated inference
+You can delete and duplicate video frames, so you only process non-duplicated frames.
+```python
+from src.dedup import return_frames
+frames_duplicated, frames_duplicating = return_frames(video_path, psnr_value=60)
+clip = core.std.DeleteFrames(clip, frames_duplicated)
+# do upscaling here
+clip = core.std.DuplicateFrames(clip, frames_duplicating)
+```
+
 ## vs-mlrt (C++ TRT)
 You need to convert onnx models into engines. You need to do that on the same system where you want to do inference. Download onnx models from [here]( https://github.com/AmusementClub/vs-mlrt/releases/download/v7/models.v7.7z). You can technically just use any ONNX model if you want. Inside the docker, you do
 ```
