@@ -66,6 +66,7 @@ There is also batch processing, just edit and use `main.py` (which calls `infere
 ```bash
 python main.py
 ```
+
 ## Deduplicated inference
 You can delete and duplicate video frames, so you only process non-duplicated frames.
 ```python
@@ -74,6 +75,14 @@ frames_duplicated, frames_duplicating = return_frames(video_path, psnr_value=60)
 clip = core.std.DeleteFrames(clip, frames_duplicated)
 # do upscaling here
 clip = core.std.DuplicateFrames(clip, frames_duplicating)
+```
+
+## Skipping scenes with scene detection
+Create framelist with pyscenedetect and pass that.
+```pyhton
+from src.scene_detect import find_scenes
+skip_framelist = find_scenes(video_path, threshold=30)
+clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 70, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999, skip_framelist=skip_framelist)
 ```
 
 ## vs-mlrt (C++ TRT)

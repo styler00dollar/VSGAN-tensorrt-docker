@@ -16,7 +16,7 @@ RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R57.zip &&
     7z x R57.zip && cd vapoursynth-R57 && ./autogen.sh && ./configure && make && \
     make install && cd .. && ldconfig
 RUN ln -s /usr/local/lib/python3.9/site-packages/vapoursynth.so /usr/lib/python3.9/lib-dynload/vapoursynth.so
-RUN pip install vapoursynth kornia opencv-python onnx onnxruntime onnxruntime-gpu cupy-cuda115 pytorch-msssim
+RUN pip install vapoursynth scenedetect kornia opencv-python onnx onnxruntime onnxruntime-gpu cupy-cuda115 pytorch-msssim
 
 # installing onnx tensorrt with a workaround, error with import otherwise
 # https://github.com/onnx/onnx-tensorrt/issues/643
