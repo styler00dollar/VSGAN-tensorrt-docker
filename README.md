@@ -79,7 +79,7 @@ clip = core.std.DuplicateFrames(clip, frames_duplicating)
 
 ## Skipping scenes with scene detection
 Create framelist with pyscenedetect and pass that.
-```pyhton
+```python
 from src.scene_detect import find_scenes
 skip_framelist = find_scenes(video_path, threshold=30)
 clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 70, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999, skip_framelist=skip_framelist)
