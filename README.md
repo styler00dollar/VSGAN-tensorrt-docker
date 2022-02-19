@@ -78,7 +78,7 @@ clip = core.std.DuplicateFrames(clip, frames_duplicating)
 ```
 
 ## Skipping scenes with scene detection
-Create framelist with pyscenedetect and pass that.
+This avoids interpolation when a scene change happens. Create framelist with pyscenedetect and pass that.
 ```python
 from src.scene_detect import find_scenes
 skip_framelist = find_scenes(video_path, threshold=30)
