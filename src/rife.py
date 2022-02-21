@@ -320,7 +320,7 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
 
       @torch.inference_mode()
       def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        if (n % 2 == 0) or n == 0 or n not in skip_framelist:
+        if (n % 2 == 0) or n == 0 or n in skip_framelist:
           return clip
 
         # if frame number odd
