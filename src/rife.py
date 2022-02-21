@@ -16,7 +16,7 @@ import torch.optim as optim
 import vapoursynth as vs
 import functools
 from pytorch_msssim import ssim, ms_ssim, SSIM, MS_SSIM
-from dedup import PSNR
+from .dedup import PSNR
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 backwarp_tenGrid = {}
