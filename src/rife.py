@@ -241,7 +241,7 @@ class Unet(nn.Module):
         return torch.sigmoid(x)
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
-def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = True, fastmode: bool = False, ensemble:bool = True, psnr_dedup:bool = False, psnr_value:float = 70, ssim_dedup:bool = True, ms_ssim_dedup:bool=False, ssim_value:float=0.999) -> vs.VideoNode:
+def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = True, fastmode: bool = False, ensemble:bool = True, psnr_dedup:bool = False, psnr_value:float = 70, ssim_dedup:bool = True, ms_ssim_dedup:bool=False, ssim_value:float=0.999, skip_framelist=[]) -> vs.VideoNode:
     '''
     RIFE: Real-Time Intermediate Flow Estimation for Video Frame Interpolation
 
@@ -320,7 +320,7 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
 
       @torch.inference_mode()
       def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        if (n % 2 == 0) or n == 0:
+        if (n % 2 == 0) or n == 0 or n not in skip_framelist:
           return clip
 
         # if frame number odd
