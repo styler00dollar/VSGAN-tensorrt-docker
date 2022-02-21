@@ -49,7 +49,7 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # sepconv
 #clip = sepconv_model(clip)
 # RIFE4
-#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 70, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999)
+#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 50, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999)
 # VFI example for jit models
 #clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 # SwinIR
@@ -104,7 +104,7 @@ clip = FILM_inference(clip, model_choise = "l1")
 # only use this for upscaling
 ###############################################
 #from src.dedup import return_frames
-#frames_duplicated, frames_duplicating = return_frames(txt, psnr_value=60)
+#frames_duplicated, frames_duplicating = return_frames(txt, psnr_value=50)
 #clip = core.std.DeleteFrames(clip, frames_duplicated)
 # do upscaling here
 #clip = core.std.DuplicateFrames(clip, frames_duplicating)
@@ -114,7 +114,7 @@ clip = FILM_inference(clip, model_choise = "l1")
 ###############################################
 #from src.scene_detect import find_scenes
 #skip_framelist = find_scenes(video_path, threshold=30)
-#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 70, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999, skip_framelist=skip_framelist)
+#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 50, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999, skip_framelist=skip_framelist)
 ###############################################
 # OUTPUT
 ###############################################

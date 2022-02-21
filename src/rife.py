@@ -16,6 +16,7 @@ import torch.optim as optim
 import vapoursynth as vs
 import functools
 from pytorch_msssim import ssim, ms_ssim, SSIM, MS_SSIM
+from dedup import PSNR
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 backwarp_tenGrid = {}
@@ -239,16 +240,6 @@ class Unet(nn.Module):
         x = self.conv(x)
         return torch.sigmoid(x)
 
-import math
-def PSNR(original, compressed):
-    mse = np.mean((original - compressed) ** 2)
-    if(mse == 0):  # MSE is zero means no noise is present in the signal .
-                  # Therefore PSNR have no importance.
-        return 100
-    max_pixel = 255.0
-    psnr = 20 * math.log10(max_pixel / math.sqrt(mse))
-    return psnr
-
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = True, fastmode: bool = False, ensemble:bool = True, psnr_dedup:bool = False, psnr_value:float = 70, ssim_dedup:bool = True, ms_ssim_dedup:bool=False, ssim_value:float=0.999) -> vs.VideoNode:
     '''
@@ -337,7 +328,7 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
         I1 = frame_to_tensor(clip.get_frame(n+1))
 
         #if too similar
-        if PSNR(I0, I1) > psnr_value and psnr_dedup == True:
+        if PSNR(I0.swapaxes(0,2).swapaxes(0,1), I1.swapaxes(0,2).swapaxes(0,1)) > psnr_value and psnr_dedup == True:
           return clip
 
         I0 = torch.Tensor(I0).unsqueeze(0).to("cuda", non_blocking=True)

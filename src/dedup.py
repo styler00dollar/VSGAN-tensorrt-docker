@@ -3,6 +3,8 @@ from tqdm import tqdm
 import numpy as np
 import math
 import torch
+import numba
+from numba import prange
 
 # forcing printing by printing to error, normal print gets piped
 # https://stackoverflow.com/questions/5574702/how-to-print-to-stderr-in-python
@@ -17,8 +19,14 @@ def ranges(nums):
     edges = iter(nums[:1] + sum(gaps, []) + nums[-1:])
     return list(zip(edges, edges))
 
+@numba.jit(nopython=True, parallel=True, fastmath=True, boundscheck=False, nogil=True)
 def PSNR(original, compressed):
-    mse = np.mean((original - compressed) ** 2)
+    mse = 0.0
+    for i in prange(original.shape[0]):
+      for j in range(original.shape[1]):
+        for k in range(3):
+          mse += (original[i][j][k]-compressed[i][j][k])**2
+    mse = mse/(original.shape[0]*original.shape[1])
     if(mse == 0):
         return 100
     max_pixel = 255.0
