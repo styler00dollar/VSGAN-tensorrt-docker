@@ -112,7 +112,7 @@ clip = PAN_inference(clip, scale=2, fp16=True)
 ###############################################
 #from src.scene_detect import find_scenes
 #skip_framelist = find_scenes(video_path, threshold=30)
-#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 50, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999, skip_framelist=skip_framelist)
+#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 70, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999, skip_framelist=skip_framelist)
 ###############################################
 # OUTPUT
 ###############################################
