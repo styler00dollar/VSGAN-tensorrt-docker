@@ -342,7 +342,8 @@ V100 (Colab High RAM) (vs+CUDA) | 9.8 | 4.7 | 2.1
 
 Rife4+vs (fastmode False, ensemble True) + Compact 2x | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti (TensorRT8+ffmpeg+ModifyFrame) | 9.3 | 4.6 | 2.2
+1070ti (ONNX-TensorRT8+ffmpeg+ModifyFrame) | 9.3 | 4.6 | 2.2
+1070ti (C++ TensorRT8+ffmpeg+ModifyFrame) | ? | ? | 2.7
 V100 (Colab High RAM) (vs+CUDA+ffmpeg+ModifyFrame) | ? | ? | 5.1
 V100 (Colab High RAM) (vs+CUDA+x264+ModifyFrame) | ? | ? | 5.2
 V100 (Colab High RAM) (vs+CUDA+x264+FrameEval) | ? | ? | 5.1
