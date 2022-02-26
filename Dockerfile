@@ -106,7 +106,7 @@ RUN cp /workspace/x265/source/build/x265 /usr/bin/x265 && \
     cp /workspace/x265/source/build/x265 /usr/local/bin/x265
 
 # descale
-RUN https://github.com/Irrational-Encoding-Wizardry/descale && cd descale && meson build && ninja -C build && ninja -C build install
+RUN git clone https://github.com/Irrational-Encoding-Wizardry/descale && cd descale && meson build && ninja -C build && ninja -C build install
 
 # cleaning
 RUN apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
