@@ -27,6 +27,11 @@ video_path = "test.mkv"
 clip = core.ffms2.Source(source=video_path)
 # vfr video (untested)
 #clip = core.ffms2.Source(source='input.mkv', fpsnum = 24000, fpsden = 1001)
+
+# resizing with descale
+# Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale
+clip = core.descale.Debilinear(clip, 1280, 720)
+
 ###############################################
 # COLORSPACE
 ###############################################
@@ -46,7 +51,7 @@ clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matri
 # sepconv
 #clip = sepconv_model(clip)
 # RIFE4
-#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 50, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999)
+#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 70, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999)
 # VFI example for jit models
 #clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 # SwinIR
@@ -91,7 +96,7 @@ clip = PAN_inference(clip, scale=2, fp16=True)
 # 0 = rife-v3.1, 1 = rife-v3.0, 2 = rife-v2.4, 3 = rife-v2, 4 = rife-anime
 #clip = core.rife.RIFE(clip, model=0, gpu_id=0, gpu_thread=2, tta=False, uhd=False, sc=False, list_gpu=False)
 # RealESRGAN example
-#clip = SRVGGNetCompactRealESRGAN_ncnn(clip, gpuid=0, model="models-DF2K", tta_mode=False, scale = 2, tilesize=0, param_path = None, bin_path = None)
+#clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference = "ncnn", param_path = "test.param", bin_path = "test.bin")
 # Waifu2x
 # 0 = upconv_7_anime_style_art_rgb, 1 = upconv_7_photo, 2 = cunet (For 2D artwork. Slow, but better quality.)
 #clip = core.w2xnvk.Waifu2x(clip, noise=0, scale=2, model=0, tile_size=0, gpu_id=0, gpu_thread=0, precision=16)

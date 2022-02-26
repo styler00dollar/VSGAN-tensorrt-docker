@@ -105,6 +105,9 @@ RUN git clone https://github.com/AmusementClub/x265 && cd x265/source/ && mkdir 
 RUN cp /workspace/x265/source/build/x265 /usr/bin/x265 && \
     cp /workspace/x265/source/build/x265 /usr/local/bin/x265
 
+# descale
+RUN https://github.com/Irrational-Encoding-Wizardry/descale && cd descale && meson build && ninja -C build && ninja -C build install
+
 # cleaning
 RUN apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 RUN rm -rf x265 vs-mlrt zimg onnx-tensorrt vapoursynth-R57 R57.zip mmediting FILM.tar.gz cmake-3.23.0-rc1-linux-x86_64.sh

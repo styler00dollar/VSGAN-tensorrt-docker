@@ -84,7 +84,7 @@ class SRVGGNetCompact(nn.Module):
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
-def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = False, backend_inference: str = "cuda") -> vs.VideoNode:
+def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = False, backend_inference: str = "cuda", tta_mode:bool = False, param_path:str = "eest.param", bin_path:str = "test.bin") -> vs.VideoNode:
     if not isinstance(clip, vs.VideoNode):
         raise vs.Error('RealESRGAN: this is not a clip')
 
@@ -125,10 +125,14 @@ def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = F
             if fp16:
                 model = model.half()
             model.cuda()
-        
+        elif backend_inference == "ncnn":
+            from realsr_ncnn_vulkan_python import RealSR
+            model = RealSR(gpuid=gpuid, tta_mode=tta_mode, scale=scale, param_path=param_path, bin_path=bin_path)
+
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
         img = frame_to_tensor(clip.get_frame(n))
-        img = np.expand_dims(img, 0)
+        if backend_inference != "ncnn":
+            img = np.expand_dims(img, 0)
 
         if backend_inference == "tensorrt":
           output = model.run(img)[0]
@@ -140,8 +144,14 @@ def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = F
             img = img.half()
           output = model(img)
           output = output.detach().cpu().numpy()
+        elif backend_inference == "ncnn":
+            img = img * 255
+            img = np.rollaxis(img.clip(0,255).astype(np.uint8), 0,3)
+            output = model.process(img)
+            output = output.swapaxes(0, 2).swapaxes(1, 2)/255
 
-        output = np.squeeze(output, 0)
+        if backend_inference != "ncnn":
+            output = np.squeeze(output, 0)
         return tensor_to_clip(clip=clip, image=output)
 
     return core.std.FrameEval(
