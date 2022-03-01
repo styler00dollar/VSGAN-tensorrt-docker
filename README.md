@@ -7,7 +7,7 @@ Currently working:
 - RealESRGAN / RealESERGANVideo with [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) and [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN)
 - RealESRGAN ncnn with [styler00dollar/realsr-ncnn-vulkan-python](https://github.com/styler00dollar/realsr-ncnn-vulkan-python)
 - [Rife4 with HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/)
-- Rife ncnn with [DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan](https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan)
+- Rife ncnn with [styler00dollar/realsr-ncnn-vulkan-python](https://github.com/styler00dollar/realsr-ncnn-vulkan-python)
 - [SwinIR with HolyWu/vs-swinir](https://github.com/HolyWu/vs-swinir)
 - [Sepconv (enhanced) with sniklaus/revisiting-sepconv](https://github.com/sniklaus/revisiting-sepconv/)
 - EGVSR with [Thmen/EGVSR](https://github.com/Thmen/EGVSR) and [HolyWu/vs-basicvsrpp](https://github.com/HolyWu/vs-basicvsrpp)
@@ -23,7 +23,7 @@ Model | ESRGAN | SRVGGNetCompact | Rife | SwinIR | Sepconv | EGVSR | BasicVSR++ 
 ---  | ------- | --------------- | ---- | ------ | ------- | ----- | ---------- | ------- | ------------ | --------- | ---- | ---- | ---
 CUDA | - | [yes](https://github.com/xinntao/Real-ESRGAN/releases/tag/v0.2.3.0) | yes ([rife4](https://drive.google.com/file/d/1mUK9iON6Es14oK46-cCflRoPTeGiI_A9/view)) | [yes](https://github.com/HolyWu/vs-swinir/tree/master/vsswinir) | [yes](http://content.sniklaus.com/resepconv/network-paper.pytorch) | [yes](https://github.com/Thmen/EGVSR/raw/master/pretrained_models/EGVSR_iter420000.pth) | [yes](https://github.com/HolyWu/vs-basicvsrpp/releases/tag/model) | - | [yes](https://drive.google.com/file/d/1OYR1J2GXE90Zu2gVU5xc0t0P_UmKH7ID/view) | [yes](https://drive.google.com/drive/folders/1jAJyBf2qKe2povySwsGXsVMnzVyQzqDD) | [yes](https://drive.google.com/drive/folders/1q8110-qp225asX3DQvZnfLfJPkCHmDpy) | - | [yes](https://github.com/zhaohengyuan1/PAN/tree/master/experiments/pretrained_models)
 TensoRT | yes (torch_tensorrt / C++ TRT) | yes (onnx_tensorrt / C++ TRT) | - | - | - | - | - | yes (C++ TRT) | - | - | - | yes (C++ TRT) | -
-ncnn | yes ([realsr ncnn models](https://github.com/nihui/realsr-ncnn-vulkan/tree/master/models)) | yes ([2x](https://files.catbox.moe/u62vpw.tar)) | yes ([rife3.1, 3.0, 2.4, 2, anime](https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan/tree/master/models)) | - | - | - | - | [yes](https://github.com/Nlzy/vapoursynth-waifu2x-ncnn-vulkan/releases/download/r0.1/models.7z) | - | - | -
+ncnn | yes ([realsr ncnn models](https://github.com/nihui/realsr-ncnn-vulkan/tree/master/models)) | yes ([2x](https://files.catbox.moe/u62vpw.tar)) | [yes (all nihui models)](https://github.com/nihui/rife-ncnn-vulkan/tree/master/models) | - | - | - | - | [yes](https://github.com/Nlzy/vapoursynth-waifu2x-ncnn-vulkan/releases/download/r0.1/models.7z) | - | - | -
 onnx | - | yes | - | - | - | - | - | - | - | yes | - | - | -
 
 Some important things:
@@ -113,47 +113,19 @@ or
 yay -S vulkan-amdgpu-pro
 ```
 #### Rife ncnn:
+You can install precompiled whl files from [here](https://github.com/styler00dollar/rife-ncnn-vulkan-python/releases/tag/v1). If you want to compile it, visit [styler00dollar/rife-ncnn-vulkan-python](https://github.com/styler00dollar/rife-ncnn-vulkan-python).
 ```bash
-sudo pacman -S base-devel cmake vulkan-headers vulkan-icd-loader python
-pip install meson ninja
-
-git clone https://github.com/DaGooseYT/VapourSynth-RIFE-ncnn-Vulkan
-cd VapourSynth-RIFE-ncnn-Vulkan && git submodule update --init --recursive --depth 1 && meson build && ninja -C build install
+sudo pacman -S base-devel vulkan-headers vulkan-icd-loader vulkan-devel
+pip install [URL for whl]
 ```
 #### RealSR / ESRGAN ncnn:
+You can install precompiled whl files from [here](https://github.com/styler00dollar/realsr-ncnn-vulkan-python/releases/tag/v1). If you want to compile it, visit [styler00dollar/realsr-ncnn-vulkan-python](https://github.com/styler00dollar/realsr-ncnn-vulkan-python).
 ```bash
-sudo pacman -S base-devel cmake vulkan-headers vulkan-icd-loader swig python
-pip install cmake-build-extension numpy -U
-
-# dont use conda, CXX errors in manjaro otherwise
-conda deactivate
-git clone https://github.com/styler00dollar/realsr-ncnn-vulkan-python
-cd realsr-ncnn-vulkan-python/realsr_ncnn_vulkan_python/realsr-ncnn-vulkan/
-git submodule update --init --recursive
-cd src
-
-# There are 2 CMakeLists.txt
-# Make sure that prelu is set to ON, otherwise the compact model wont work
-# option(WITH_LAYER_prelu "" ON)
-
-# comment this line in the realsr.cpp file
-# fprintf(stderr, "%.2f%%\n", (float)(yi * xtiles + xi) / (ytiles * xtiles) * 100);
-
-# if you dont want the 2 default pth files in your whl / install,
-# comment the lines with say "models" in CMakeLists.txt
-
-# replace realsr_ncnn_vulkan_without_PIL.py with realsr_ncnn_vulkan.py
-
-cmake -B build .
-cd build
-make -j16
-sudo su
-make install
-exit
-cd .. && cd .. && cd .. && cd ..
-python setup.py install --user
+sudo pacman -S base-devel vulkan-headers vulkan-icd-loader vulkan-devel
+pip install [URL for whl]
 ```
-Any ESRGAN model will work with this, when you have the fitting param file. Make sure the input is called "data" and output is "output".
+
+Any ESRGAN model will work with this (aside RealESRGAN 2x because of pixelshuffle), when you have the fitting param file. Make sure the input is called "data" and output is "output".
 
 If you want to convert a normal pth to ncnn, you need to do `pth->onnx->ncnn(bin/param)`. For the first step you can use `torch.onnx` and for the second one you can use [this website](https://convertmodel.com/).
 

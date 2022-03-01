@@ -54,7 +54,8 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # sepconv
 #clip = sepconv_model(clip)
 # RIFE4
-#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 70, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999)
+# rife4 can do cuda and ncnn, but only cuda is supported in docker
+#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 70, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999, backend_inference = "cuda")
 # VFI example for jit models
 #clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 # SwinIR
@@ -96,8 +97,7 @@ clip = FILM_inference(clip, model_choise = "l1")
 #from src.SRVGGNetCompact_ncnn import SRVGGNetCompactRealESRGAN_ncnn
 
 # Rife ncnn
-# 0 = rife-v3.1, 1 = rife-v3.0, 2 = rife-v2.4, 3 = rife-v2, 4 = rife-anime
-#clip = core.rife.RIFE(clip, model=0, gpu_id=0, gpu_thread=2, tta=False, uhd=False, sc=False, list_gpu=False)
+#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 70, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999, backend_inference = "ncnn")
 # RealESRGAN example
 #clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference = "ncnn", param_path = "test.param", bin_path = "test.bin")
 # Waifu2x
