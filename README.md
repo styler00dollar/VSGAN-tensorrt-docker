@@ -30,7 +30,7 @@ Some important things:
 - Do not use `webm` video, webm is often broken. It can work, but don't complain about broken output afterwards.
 - Processing variable framerate (vfr) video is dangerous, but you can try to use fpsnum and fpsden. I would recommend to just render the input video into constant framerate (crf).
 - `x264` can be faster than `ffmpeg`, use that instead.
-- `ncnn` does not work in docker. It detects a GPU as CPU for some reason and refuses to run on GPU. Set up your own os for that.
+- `ncnn` does not work with docker. Docker can only support Nvidia GPUs and even if you want to run ncnn with a supported GPU inside docker, you will just get llvmpipe instead of GPU acceleration. If you want ncnn, install dependencies to your own system.
 - `rife4` can use PSNR, SSIM, MS_SSIM deduplication. Quick testing showed quite some speed increase.
 
 ## Usage
