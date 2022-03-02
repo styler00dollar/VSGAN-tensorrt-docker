@@ -1,4 +1,3 @@
-
 import itertools
 import numpy as np
 import vapoursynth as vs
@@ -45,8 +44,9 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
         raise vs.Error('RIFE: scale must be 0.25, 0.5, 1.0, 2.0, or 4.0')
 
     core = vs.core
-    if inference_backend == "cuda":
+    if backend_inference == "cuda":
         from .rife_arch import IFNet
+        import torch
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
         if fp16:
@@ -54,7 +54,7 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
         model = IFNet()
         model.load_state_dict(torch.load("/workspace/rife40.pth"), False)
         model.eval().cuda()
-    elif inference_backend == "ncnn":
+    elif backend_inference == "ncnn":
         from rife_ncnn_vulkan_python import Rife
         model = Rife(gpuid=0, model="rife-v4", tta_mode=False, num_threads=4)
 
@@ -64,7 +64,7 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
 
     # using frameeval if multi = 2
     if multi == 2:
-      def frame_to_tensor(frame: vs.VideoFrame) -> torch.Tensor:
+      def frame_to_tensor(frame: vs.VideoFrame):
         return np.stack([
           np.asarray(frame[plane])
           for plane in range(frame.format.num_planes)
@@ -88,7 +88,6 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
           selector=lambda n, f: tensor_to_frame(f.copy(), image)
         )
 
-      @torch.inference_mode()
       def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
         if (n % 2 == 0) or n == 0 or n in skip_framelist:
           return clip
@@ -101,13 +100,13 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
         if PSNR(I0.swapaxes(0,2).swapaxes(0,1), I1.swapaxes(0,2).swapaxes(0,1)) > psnr_value and psnr_dedup == True:
           return clip
 
-        if inference_backend == "cuda":
+        if backend_inference == "cuda":
             I0 = torch.Tensor(I0).unsqueeze(0).to("cuda", non_blocking=True)
             I1 = torch.Tensor(I1).unsqueeze(0).to("cuda", non_blocking=True)
 
-            #if too similar
+            # if too similar
             if (ssim(I0, I1) > ssim_value and ssim_dedup == True) or (ms_ssim(I0, I1) > ssim_value and ms_ssim_dedup == True):
-            return clip
+              return clip
 
             if fp16:
                 I0 = I0.half()
@@ -115,10 +114,15 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
 
             middle = model(I0, I1, scale_list=scale_list, fastmode=fastmode, ensemble=ensemble)
             middle = middle.detach().squeeze(0).cpu().numpy()
-        elif inference_backend == "ncnn":
-            middle = model.process(I0.swapaxes(0,2).swapaxes(0,1)*255, I1.swapaxes(0,2).swapaxes(0,1)*255)
-            middle = middle.swapaxes(0, 2).swapaxes(1, 2)
 
+        elif backend_inference == "ncnn":
+            I0 = I0.swapaxes(0,2).swapaxes(0,1)*255
+            I0 = np.clip(I0, 0, 255).astype(np.int8)
+            I1 = I1.swapaxes(0,2).swapaxes(0,1)*255
+            I1 = np.clip(I1, 0, 255).astype(np.int8)
+            middle = model.process(I0, I1)
+            middle = middle.swapaxes(0, 2).swapaxes(1, 2).astype(np.float16)/255
+            
         return tensor_to_clip(clip=clip, image=middle)
 
       clip = core.std.Interleave([clip, clip])

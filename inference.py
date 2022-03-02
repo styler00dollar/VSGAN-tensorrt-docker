@@ -17,7 +17,7 @@ from src.pan import PAN_inference
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 core = vs.core
-core.num_threads = 16 # can influence ram usage
+core.num_threads = 4 # can influence ram usage
 # only needed if you are inside docker
 core.std.LoadPlugin(path='/usr/lib/x86_64-linux-gnu/libffms2.so')
 core.std.LoadPlugin(path='/usr/local/lib/libvstrt.so')
@@ -30,15 +30,15 @@ clip = core.ffms2.Source(source=video_path)
 
 # resizing with descale
 # Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale
-clip = core.descale.Debilinear(clip, 1280, 720)
+#clip = core.descale.Debilinear(clip, 1280, 720)
 
 ###############################################
 # COLORSPACE
 ###############################################
 # convert colorspace
-#clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
+clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # convert colorspace + resizing
-clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matrix_in_s='709')
+#clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matrix_in_s='709')
 
 ###############################################
 
@@ -52,7 +52,7 @@ clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matri
 #clip = sepconv_model(clip)
 # RIFE4
 # rife4 can do cuda and ncnn, but only cuda is supported in docker
-#clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 70, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999, backend_inference = "cuda")
+clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = True, ensemble = False, psnr_dedup = False, psnr_value = 70, ssim_dedup = False, ms_ssim_dedup = False, ssim_value = 0.999, backend_inference = "cuda")
 # VFI example for jit models
 #clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 # SwinIR
@@ -85,7 +85,7 @@ clip = vs.core.resize.Bicubic(clip, width=848, height=480, format=vs.RGBS, matri
 #clip = core.trt.Model([clip, core.std.BlankClip(noise_level_map, color=sigma/255.0)], engine_path="model.engine", tilesize=[1280, 720], num_streams=2)
 # PAN
 # scale = 2 | 3 | 4
-clip = PAN_inference(clip, scale=2, fp16=True)
+#clip = PAN_inference(clip, scale=2, fp16=True)
 
 ###############################################
 # [NOT IN DOCKER] MODELS (NCNN)
