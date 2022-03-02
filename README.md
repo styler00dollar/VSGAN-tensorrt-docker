@@ -112,17 +112,27 @@ yay -S vulkan-radeon
 or
 yay -S vulkan-amdgpu-pro
 ```
+
+#### if you have errors installing ncnn whl files with pip:
+It seems like certain pip versions are broken and will not allow certain ncnn whl files to install properly. If you have install erorrs, either run the install with `sudo` or manually upgrade your pip with
+```
+wget https://bootstrap.pypa.io/get-pip.py -O ./get-pip.py
+python ./get-pip.py
+python3 ./get-pip.py
+``` 
+`pip 21.0` is confirmed by myself to be broken.
+
 #### Rife ncnn:
 You can install precompiled whl files from [here](https://github.com/styler00dollar/rife-ncnn-vulkan-python/releases/tag/v1). If you want to compile it, visit [styler00dollar/rife-ncnn-vulkan-python](https://github.com/styler00dollar/rife-ncnn-vulkan-python).
 ```bash
 sudo pacman -S base-devel vulkan-headers vulkan-icd-loader vulkan-devel
-sudo pip install [URL for whl]
+pip install [URL for whl]
 ```
 #### RealSR / ESRGAN ncnn:
 You can install precompiled whl files from [here](https://github.com/styler00dollar/realsr-ncnn-vulkan-python/releases/tag/v1). If you want to compile it, visit [styler00dollar/realsr-ncnn-vulkan-python](https://github.com/styler00dollar/realsr-ncnn-vulkan-python).
 ```bash
 sudo pacman -S base-devel vulkan-headers vulkan-icd-loader vulkan-devel
-sudo pip install [URL for whl]
+pip install [URL for whl]
 ```
 
 Any ESRGAN model will work with this (aside RealESRGAN 2x because of pixelshuffle), when you have the fitting param file. Make sure the input is called "data" and output is "output".
