@@ -290,6 +290,7 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 
 Rife4+vs ncnn | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
+rx470 (ffmpeg+ModifyFrame) | 11 | 6.1 | 3.2
 1070ti (ffmpeg+ModifyFrame) | 32 | 15 | 6.7
 
 EGVSR | 480p | 720p | 1080p 
