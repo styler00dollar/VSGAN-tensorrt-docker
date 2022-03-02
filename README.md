@@ -288,6 +288,10 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 3060ti (TensorRT8+ffmpeg+ModifyFrame) | 86 | 49 | 24 | 
 3090 (TensorRT8+ffmpeg+ModifyFrame) | ? | 90.3 | 45
 
+Rife4+vs ncnn | 480p | 720p | 1080p 
+---  | -------  | ------- | ------- 
+1070ti (ffmpeg+ModifyFrame) | 32 | 15 | 6.7
+
 EGVSR | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
 1070ti | 3.1 | OOM | OOM
