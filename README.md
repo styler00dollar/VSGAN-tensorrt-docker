@@ -113,7 +113,7 @@ or
 yay -S vulkan-amdgpu-pro
 ```
 
-#### if you have errors installing ncnn whl files with pip:
+#### If you have errors installing ncnn whl files with pip:
 It seems like certain pip versions are broken and will not allow certain ncnn whl files to install properly. If you have install erorrs, either run the install with `sudo` or manually upgrade your pip with
 ```
 wget https://bootstrap.pypa.io/get-pip.py -O ./get-pip.py
