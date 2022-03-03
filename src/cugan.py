@@ -354,10 +354,11 @@ class UpCunet2x_fast(nn.Module):#完美tile，全程无损
 import vapoursynth as vs
 import os
 import functools
+from .realesrganner import RealESRGANer
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
-def cugan_inference(clip: vs.VideoNode, fp16: bool = True, scale: int = 2, kind_model: str = "no_denoise", backend_inference: str = "cuda") -> vs.VideoNode:
+def cugan_inference(clip: vs.VideoNode, fp16: bool = True, scale: int = 2, kind_model: str = "no_denoise", backend_inference: str = "cuda", tile_x:int = 512, tile_y:int = 512, tile_pad:int = 10, pre_pad:int = 0) -> vs.VideoNode:
     if not isinstance(clip, vs.VideoNode):
         raise vs.Error('cugan: This is not a clip')
 
@@ -395,6 +396,8 @@ def cugan_inference(clip: vs.VideoNode, fp16: bool = True, scale: int = 2, kind_
       model.eval().cuda()
       if fp16:
         model = model.half()
+      upsampler = RealESRGANer("cuda", scale, model_path, model, tile_x, tile_y, tile_pad, pre_pad)
+
     elif backend_inference == "onnx":
         import onnx as ox
         import onnxruntime as ort
@@ -412,7 +415,8 @@ def cugan_inference(clip: vs.VideoNode, fp16: bool = True, scale: int = 2, kind_
           img = torch.Tensor(img).unsqueeze(0).to("cuda", non_blocking=True)
           if fp16:
             img = img.half()
-          output = model(img)
+          #output = model(img)
+          output = upsampler.enhance(img)
           output = output.detach().squeeze(0).cpu().numpy()
         elif backend_inference == "onnx":
           img = np.expand_dims(img, 0)
