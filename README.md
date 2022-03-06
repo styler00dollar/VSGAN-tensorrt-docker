@@ -340,7 +340,7 @@ V100 (Colab High RAM) (vs+ONNX-TensorRT8+x264+ModifyFrame) (rife fp16=False) | ?
 A100 (Colab) (vs+CUDA+ffmpeg+ModifyFrame) | 23 | 13 | 6.6
 A100 (Colab) (vs+ONNX-TensorRT8+ffmpeg+ModifyFrame) (rife fp16=False) | 27 | 15 | 7.4
 A100 (Colab) (vs+ONNX-TensorRT8+ffmpeg+ModifyFrame) (rife fp16=False) | 27 | 15 | 7.4
-A100 (Colab) (vs+C++ TensorRT8+ffmpeg+FrameEval) | ~29 | ~18 | 9.96
+A100 (Colab) (vs+C++ TensorRT8+ffmpeg+FrameEval) (num_streams=49) | ~29 | ~18 | 9.96
 A100 (Colab) (vs+C++ TensorRT8+x264 (--opencl)+FrameEval) (num_streams=49) | 30.10 | 19.81 | 10.6
 
 rife4 + cugan 2x | 480p | 720p | 1080p 
