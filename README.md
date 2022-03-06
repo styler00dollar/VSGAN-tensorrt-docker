@@ -32,6 +32,7 @@ Some important things:
 - `x264` can be faster than `ffmpeg`, use that instead.
 - `ncnn` does not work with docker. Docker can only support Nvidia GPUs and even if you want to run ncnn with a supported GPU inside docker, you will just get llvmpipe instead of GPU acceleration. If you want ncnn, install dependencies to your own system.
 - `rife4` can use PSNR, SSIM, MS_SSIM deduplication. Quick testing showed quite some speed increase.
+- Colabs have a weak cpu, you should try `x264` with `--opencl`. (A100 does not support NVENC and such)
 
 ## Usage
 ```bash
@@ -231,7 +232,8 @@ V100 (Colab High RAM) (vs+TensorRT7) (ONNX-TRT) | 21 | 12 | 5.5
 V100 (Colab High RAM) (vs+TensorRT8) (ONNX-TRT) | 21 | 12 | 5.5
 A100 (Colab) (vs+CUDA) | 40 | 19 | 8.5
 A100 (Colab) (vs+TensorRT8) (ONNX-TRT) | 44 | 21 | 9.5
-A100 (Colab) (vs+TensorRT8) (C++ TRT) (num_streams=50) | 51 | 23 | 11
+A100 (Colab) (vs+TensorRT8) (C++ TRT+ffmpeg) (num_streams=50) | 52.72 | 24.37 | 11.84
+A100 (Colab) (vs+TensorRT8) (C++ TRT+x264 (--opencl) (num_streams=50) | 57.16 | 26.25 | 12.42
 A100 (Colab) (vs+onnx) | 26 | 12 | 4.9
 A100 (Colab) (vs+quantized onnx) | 26 | 12 | 5.7
 A100 (Colab) (jpg+CUDA) | 28.2 (9 Threads) | 28.2 (7 Threads) | 9.96 (4 Threads)
@@ -338,7 +340,8 @@ V100 (Colab High RAM) (vs+ONNX-TensorRT8+x264+ModifyFrame) (rife fp16=False) | ?
 A100 (Colab) (vs+CUDA+ffmpeg+ModifyFrame) | 23 | 13 | 6.6
 A100 (Colab) (vs+ONNX-TensorRT8+ffmpeg+ModifyFrame) (rife fp16=False) | 27 | 15 | 7.4
 A100 (Colab) (vs+ONNX-TensorRT8+ffmpeg+ModifyFrame) (rife fp16=False) | 27 | 15 | 7.4
-A100 (Colab) (vs+C++ TensorRT8+ffmpeg+FrameEval) | 39 | 22 | 11
+A100 (Colab) (vs+C++ TensorRT8+ffmpeg+FrameEval) | ~29 | ~18 | 9.96
+A100 (Colab) (vs+C++ TensorRT8+x264 (--opencl)+FrameEval) (num_streams=49) | 30.10 | 19.81 | 10.6
 
 rife4 + cugan 2x | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
