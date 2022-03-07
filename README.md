@@ -251,12 +251,14 @@ A100 (Colab) (jpg+CUDA) | ? | ?| 3 (4 Threads)
 
 ESRGAN 4x (64mb) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
-1070ti TensorRT8 docker (ffmpeg+FrameEval) | 0.5 | 0.2 | >0.1
-3060ti TensorRT8 docker (ffmpeg+FrameEval) | 2 | 0.7 | 0.29
+1070ti TensorRT8 docker (Torch-TensorRT+ffmpeg+FrameEval) | 0.5 | 0.2 | >0.1
+3060ti TensorRT8 docker (Torch-TensorRT+ffmpeg+FrameEval) | 2 | 0.7 | 0.29
 3060ti Cupscale (Pytorch) | 0.41 | 0.13 | 0.044
 3060ti Cupscale (ncnn) | 0.27 | 0.1 | 0.04
 3060ti Joey | 0.41 | 0.095 | 0.043
 V100 (Colab) (Torch-TensorRT+ffmpeg+FrameEval) | 1.8 | 0.8 | ?
+V100 (Colab High VRAM) (C++ TensorRT+x264 (--opencl)+FrameEval+no tiling) | 2.46 | OOM (OpenCL) | OOM (OpenCL)
+V100 (Colab High VRAM) (C++ TensorRT+x264+FrameEval+no tiling) | 2.49 | 1.14 | 0.47
 A100 (Colab) (Torch-TensorRT+ffmpeg+FrameEval) | 5.6 | 2.6 | 1.1
 
 RealESRGAN (4x) | 480p | 720p | 1080p
@@ -267,7 +269,7 @@ V100 (Colab High RAM) (vs+TensorRT8+x264+C++ TRT+num_streams=1+no tiling) | ? | 
 Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
 1070ti (vs+ffmpeg+ModifyFrame) | 61 | 30 | 15
-3060ti (vs+ffmpeg+ModifyFrame) | 89 | 45 | 24 | 
+3060ti (vs+ffmpeg+ModifyFrame) | 89 | 45 | 24
 
 Rife4+vs (fastmode False, ensemble True) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
