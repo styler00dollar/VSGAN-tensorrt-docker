@@ -216,48 +216,53 @@ rx470 vs+ncnn (np+no tile+tta off) 2x | 2.8 | 1.3 | 0.5
 rx470 vs+ncnn (np+auto tile+tta off) 2x | 2.5 | 1.1 | 0.4
 rx470 vs+ncnn (np+no tile+tta on) 2x | 0.4 | 0.2 | X
 1070ti vs+ncnn (np+no tile+tta off) | 3.8 | 1.7 | 0.7
-1070ti TensorRT8 docker 2x (ONNX-TRT) | 12 | 6.1 | 2.8
-1070ti TensorRT8 docker 2x (C++ TRT) (num_streams=6) | 14 | 6.7 | 3
-3060ti TensorRT8 docker 2x (ONNX-TRT) | 19 | 7.1 | 3.2
+1070ti TensorRT8 docker 2x (ONNX-TRT+FrameEval) | 12 | 6.1 | 2.8
+1070ti TensorRT8 docker 2x (C++ TRT+FrameEval+num_streams=6) | 14 | 6.7 | 3
+3060ti TensorRT8 docker 2x (ONNX-TRT+FrameEval) | 19 | 7.1 | 3.2
 3060ti VSGAN 2x | 9.7 | 3.6 | 1.77
 3060ti ncnn (Windows binary) 2x | 7 | 4.2 | 1.2
 3060ti Joey 2x | 2.24 | 0.87 | 0.36
-3070 TensorRT8 docker 2x (ONNX-TRT) | 20 | 7.55 | 3.36
-3090 TensorRT8 docker 2x (ONNX-TRT) | ? | ? | 6.7
-3090 TensorRT8 docker 2x (C++ TRT) (num_streams=22) | 61 | ? | 14
+3070 TensorRT8 docker 2x (ONNX-TRT+FrameEval) | 20 | 7.55 | 3.36
+3090 TensorRT8 docker 2x (ONNX-TRT+FrameEval) | ? | ? | 6.7
+3090 TensorRT8 docker 2x (C++ TRT+FrameEval+num_streams=22) | 61 | ? | 14
 V100 (Colab) (vs+CUDA) | 8.4 | 3.8 | 1.6
-V100 (Colab) (vs+TensorRT8) (ONNX-TRT) | 8.3 | 3.8 | 1.7
-V100 (Colab High RAM) (vs+CUDA) | 29 | 13 | 6
-V100 (Colab High RAM) (vs+TensorRT7) (ONNX-TRT) | 21 | 12 | 5.5
-V100 (Colab High RAM) (vs+TensorRT8) (ONNX-TRT) | 21 | 12 | 5.5
-A100 (Colab) (vs+CUDA) | 40 | 19 | 8.5
-A100 (Colab) (vs+TensorRT8) (ONNX-TRT) | 44 | 21 | 9.5
-A100 (Colab) (vs+TensorRT8) (C++ TRT+ffmpeg) (num_streams=50) | 52.72 | 24.37 | 11.84
-A100 (Colab) (vs+TensorRT8) (C++ TRT+x264 (--opencl) (num_streams=50) | 57.16 | 26.25 | 12.42
-A100 (Colab) (vs+onnx) | 26 | 12 | 4.9
-A100 (Colab) (vs+quantized onnx) | 26 | 12 | 5.7
+V100 (Colab) (vs+TensorRT8+ONNX-TRT+FrameEval) | 8.3 | 3.8 | 1.7
+V100 (Colab High RAM) (vs+CUDA+FrameEval) | 29 | 13 | 6
+V100 (Colab High RAM) (vs+TensorRT7+ONNX-TRT+FrameEval) | 21 | 12 | 5.5
+V100 (Colab High RAM) (vs+TensorRT8+ONNX-TRT+FrameEval) | 21 | 12 | 5.5
+A100 (Colab) (vs+CUDA+FrameEval) | 40 | 19 | 8.5
+A100 (Colab) (vs+TensorRT8+ONNX-TRT+FrameEval) | 44 | 21 | 9.5
+A100 (Colab) (vs+TensorRT8+C++ TRT+ffmpeg+FrameEval+num_streams=50) | 52.72 | 24.37 | 11.84
+A100 (Colab) (vs+TensorRT8) (C++ TRT+x264 (--opencl)+FrameEval+num_streams=50) | 57.16 | 26.25 | 12.42
+A100 (Colab) (vs+onnx+FrameEval) | 26 | 12 | 4.9
+A100 (Colab) (vs+quantized onnx+FrameEval) | 26 | 12 | 5.7
 A100 (Colab) (jpg+CUDA) | 28.2 (9 Threads) | 28.2 (7 Threads) | 9.96 (4 Threads)
 
 
 Compact (4x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
-1070ti TensorRT8 docker 4x | 11 | 5.6 | X
-3060ti TensorRT8 docker 4x | 16 | 6.1 | 2.7
+1070ti TensorRT8 docker (FrameEval) | 11 | 5.6 | X
+3060ti TensorRT8 docker (FrameEval) | 16 | 6.1 | 2.7
 3060ti VSGAN 4x | 7.2 | 3 | 1.3
 3060ti ncnn (Windows binary) 4x | 3.72 | 0.85 | 0.53
 3060ti Joey 4x | 0.65 | 0.25 | 0.11
-A100 (Colab) (vs+CUDA) | 12 | 5.6 | 2.9
+A100 (Colab) (vs+CUDA) (FrameEval) | 12 | 5.6 | 2.9
 A100 (Colab) (jpg+CUDA) | ? | ?| 3 (4 Threads)
 
-ESRGAN (64mb) | 480p | 720p | 1080p
+ESRGAN 4x (64mb) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
-1070ti TensorRT8 docker 4x | 0.5 | 0.2 | >0.1
-3060ti TensorRT8 docker 4x | 2 | 0.7 | 0.29
-3060ti Cupscale (Pytorch) 4x | 0.41 | 0.13 | 0.044
-3060ti Cupscale (ncnn) 4x | 0.27 | 0.1 | 0.04
-3060ti Joey 4x | 0.41 | 0.095 | 0.043
-V100 TensoRT8 (Colab) | 1.8 | 0.8 | ?
-A100 TensoRT8 (Colab) | 5.6 | 2.6 | 1.1
+1070ti TensorRT8 docker (ffmpeg+FrameEval) | 0.5 | 0.2 | >0.1
+3060ti TensorRT8 docker (ffmpeg+FrameEval) | 2 | 0.7 | 0.29
+3060ti Cupscale (Pytorch) | 0.41 | 0.13 | 0.044
+3060ti Cupscale (ncnn) | 0.27 | 0.1 | 0.04
+3060ti Joey | 0.41 | 0.095 | 0.043
+V100 (Colab) (Torch-TensorRT+ffmpeg+FrameEval) | 1.8 | 0.8 | ?
+A100 (Colab) (Torch-TensorRT+ffmpeg+FrameEval) | 5.6 | 2.6 | 1.1
+
+RealESRGAN (4x) | 480p | 720p | 1080p
+------------  | ---  | ---- | ------
+V100 (Colab High RAM) (vs+TensorRT8+x264 (--opencl)+C++ TRT+num_streams=1+no tiling) | 6.82 | 3.15 | OOM (OpenCL) 
+V100 (Colab High RAM) (vs+TensorRT8+x264+C++ TRT+num_streams=1+no tiling) | ? | ? | 1.39
 
 Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
