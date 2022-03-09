@@ -61,7 +61,7 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s='709')
 # SwinIR
 #clip = SwinIR(clip, task="lightweight_sr", scale=2)
 # ESRGAN / RealESRGAN
-# tta_mode 1-3, means the amount of times the image gets processed while being mirrored
+# tta_mode 1-7, means the amount of times the image gets processed while being mirrored
 #clip = ESRGAN_inference(clip=clip, model_path="/workspace/4x_fatal_Anime_500000_G.pth", tile_x=400, tile_y=400, tile_pad=10, fp16=False, tta=False, tta_mode=1)
 #clip = ESRGAN_inference(clip=clip, model_path="/workspace/RealESRGAN_x4plus_anime_6B.pth", tile_x=480, tile_y=480, tile_pad=16, fp16=False, tta=False, tta_mode=1)
 # RealESRGAN Anime Video example

@@ -507,7 +507,7 @@ vs_api_below4 = vs.__api_version__.api_major < 4
 
 
 def ESRGAN_inference(clip: vs.VideoNode, model_path: str = "/workspace/4x_fatal_Anime_500000_G.pth", tile_x: int = 0, tile_y: int = 0, tile_pad: int = 10, pre_pad: int = 0,
-               device_type: str = 'cuda', device_index: int = 0, fp16: bool = False, tta: bool = True, tta_mode: int=3) -> vs.VideoNode:
+               device_type: str = 'cuda', device_index: int = 0, fp16: bool = False, tta: bool = False, tta_mode: int=1) -> vs.VideoNode:
 
     if not isinstance(clip, vs.VideoNode):
         raise vs.Error('RealESRGAN: this is not a clip')
@@ -595,6 +595,126 @@ def ESRGAN_inference(clip: vs.VideoNode, model_path: str = "/workspace/4x_fatal_
             output4 = upsampler.enhance(img_flipped)
             output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
             final_output = (output + output2 + output3 + output4) / 4
+          # rot90
+          elif tta_mode == 4:
+            img_flipped = torch.flip(img, [2, 3])
+            output2 = upsampler.enhance(img_flipped)
+            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [2])
+            output3 = upsampler.enhance(img_flipped)
+            output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [3])
+            output4 = upsampler.enhance(img_flipped)
+            output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [2, 3])
+            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+            output5 = upsampler.enhance(img_flipped)
+            output5 = torch.rot90(output5, 3, [2, 3])
+            output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
+
+            final_output = (output + output2 + output3 + output4 + output5) / 5
+
+          elif tta_mode == 5:
+            img_flipped = torch.flip(img, [2, 3])
+            output2 = upsampler.enhance(img_flipped)
+            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [2])
+            output3 = upsampler.enhance(img_flipped)
+            output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [3])
+            output4 = upsampler.enhance(img_flipped)
+            output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [2, 3])
+            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+            output5 = upsampler.enhance(img_flipped)
+            output5 = torch.rot90(output5, 3, [2, 3])
+            output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [2])
+            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+            output6 = upsampler.enhance(img_flipped)
+            output6 = torch.rot90(output6, 3, [2, 3])
+            output6 = torch.flip(output6, [2]).detach().cpu().squeeze().numpy()
+
+            final_output = (output + output2 + output3 + output4 + output5 + output6) / 6
+
+          elif tta_mode == 6:
+            img_flipped = torch.flip(img, [2, 3])
+            output2 = upsampler.enhance(img_flipped)
+            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [2])
+            output3 = upsampler.enhance(img_flipped)
+            output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [3])
+            output4 = upsampler.enhance(img_flipped)
+            output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [2, 3])
+            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+            output5 = upsampler.enhance(img_flipped)
+            output5 = torch.rot90(output5, 3, [2, 3])
+            output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [2])
+            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+            output6 = upsampler.enhance(img_flipped)
+            output6 = torch.rot90(output6, 3, [2, 3])
+            output6 = torch.flip(output6, [2]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [3])
+            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+            output7 = upsampler.enhance(img_flipped)
+            output7 = torch.rot90(output7, 3, [2, 3])
+            output7 = torch.flip(output7, [3]).detach().cpu().squeeze().numpy()
+
+            final_output = (output + output2 + output3 + output4 + output5 + output6 + output7) / 7
+
+          elif tta_mode == 7:
+            img_flipped = torch.flip(img, [2, 3])
+            output2 = upsampler.enhance(img_flipped)
+            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [2])
+            output3 = upsampler.enhance(img_flipped)
+            output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [3])
+            output4 = upsampler.enhance(img_flipped)
+            output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [2, 3])
+            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+            output5 = upsampler.enhance(img_flipped)
+            output5 = torch.rot90(output5, 3, [2, 3])
+            output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [2])
+            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+            output6 = upsampler.enhance(img_flipped)
+            output6 = torch.rot90(output6, 3, [2, 3])
+            output6 = torch.flip(output6, [2]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [3])
+            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+            output7 = upsampler.enhance(img_flipped)
+            output7 = torch.rot90(output7, 3, [2, 3])
+            output7 = torch.flip(output7, [3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.rot90(img, 1, [2, 3])
+            output8 = upsampler.enhance(img_flipped)
+            output8 = torch.rot90(output8, 3, [2, 3])
+            output8 = output8.detach().cpu().squeeze().numpy()
+
+            final_output = (output + output2 + output3 + output4 + output5 + output6 + output7 + output8) / 8
+
           return tensor_to_clip(clip=clip, image=final_output)
         else:
           return tensor_to_clip(clip=clip, image=output)
