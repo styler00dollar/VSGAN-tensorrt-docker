@@ -507,7 +507,7 @@ vs_api_below4 = vs.__api_version__.api_major < 4
 
 
 def ESRGAN_inference(clip: vs.VideoNode, model_path: str = "/workspace/4x_fatal_Anime_500000_G.pth", tile_x: int = 0, tile_y: int = 0, tile_pad: int = 10, pre_pad: int = 0,
-               device_type: str = 'cuda', device_index: int = 0, fp16: bool = False) -> vs.VideoNode:
+               device_type: str = 'cuda', device_index: int = 0, fp16: bool = False, tta: bool = True, tta_mode: int=3) -> vs.VideoNode:
 
     if not isinstance(clip, vs.VideoNode):
         raise vs.Error('RealESRGAN: this is not a clip')
@@ -565,7 +565,39 @@ def ESRGAN_inference(clip: vs.VideoNode, model_path: str = "/workspace/4x_fatal_
         output = upsampler.enhance(img)
         output = output.detach().squeeze().cpu().numpy()
 
-        return tensor_to_clip(clip=clip, image=output)
+        # flip for tta
+        # vs does optimize variables away, explicitly getting all images to avoid "referenced before assignment"
+        if tta == True:
+          if tta_mode == 1:
+            img_flipped = torch.flip(img, [2, 3])
+            output2 = upsampler.enhance(img_flipped)
+            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+            final_output = (output + output2) / 2
+          elif tta_mode == 2:
+            img_flipped = torch.flip(img, [2, 3])
+            output2 = upsampler.enhance(img_flipped)
+            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [2])
+            output3 = upsampler.enhance(img_flipped)
+            output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+            final_output = (output + output2 + output3) / 3
+          elif tta_mode == 3:
+            img_flipped = torch.flip(img, [2, 3])
+            output2 = upsampler.enhance(img_flipped)
+            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [2])
+            output3 = upsampler.enhance(img_flipped)
+            output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+
+            img_flipped = torch.flip(img, [3])
+            output4 = upsampler.enhance(img_flipped)
+            output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+            final_output = (output + output2 + output3 + output4) / 4
+          return tensor_to_clip(clip=clip, image=final_output)
+        else:
+          return tensor_to_clip(clip=clip, image=output)
 
     return core.std.FrameEval(
             core.std.BlankClip(
