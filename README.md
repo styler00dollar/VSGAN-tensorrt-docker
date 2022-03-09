@@ -221,6 +221,7 @@ rx470 vs+ncnn (np+no tile+tta on) 2x | 0.4 | 0.2 | X
 1070ti TensorRT8 docker 2x (ONNX-TRT+FrameEval) | 12 | 6.1 | 2.8
 1070ti TensorRT8 docker 2x (C++ TRT+FrameEval+num_streams=6) | 14 | 6.7 | 3
 3060ti TensorRT8 docker 2x (ONNX-TRT+FrameEval) | 19 | 7.1 | 3.2
+3060ti TensorRT8 docker 2x (C++ TRT+FrameEval+num_streams=5) | 47.93 | 15.97 | 7.83
 3060ti VSGAN 2x | 9.7 | 3.6 | 1.77
 3060ti ncnn (Windows binary) 2x | 7 | 4.2 | 1.2
 3060ti Joey 2x | 2.24 | 0.87 | 0.36
@@ -245,6 +246,7 @@ Compact (4x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
 1070ti TensorRT8 docker (FrameEval) | 11 | 5.6 | X
 3060ti TensorRT8 docker (FrameEval) | 16 | 6.1 | 2.7
+3060ti TensorRT8 docker 2x (C++ TRT+FrameEval+num_streams=5) | 29.78 | 11 | 5.24
 3060ti VSGAN 4x | 7.2 | 3 | 1.3
 3060ti ncnn (Windows binary) 4x | 3.72 | 0.85 | 0.53
 3060ti Joey 4x | 0.65 | 0.25 | 0.11
