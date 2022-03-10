@@ -244,8 +244,8 @@ A100 (Colab) (jpg+CUDA) | 28.2 (9 Threads) | 28.2 (7 Threads) | 9.96 (4 Threads)
 
 Compact (4x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
-1070ti TensorRT8 docker (FrameEval) | 11 | 5.6 | X
-3060ti TensorRT8 docker (FrameEval) | 16 | 6.1 | 2.7
+1070ti TensorRT8 docker (ONNX-TensorRT+FrameEval) | 11 | 5.6 | X
+3060ti TensorRT8 docker (ONNX-TensorRT+FrameEval) | 16 | 6.1 | 2.7
 3060ti TensorRT8 docker 2x (C++ TRT+FrameEval+num_streams=5) | 29.78 | 11 | 5.24
 3060ti VSGAN 4x | 7.2 | 3 | 1.3
 3060ti ncnn (Windows binary) 4x | 3.72 | 0.85 | 0.53
