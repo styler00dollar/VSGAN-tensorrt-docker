@@ -71,7 +71,7 @@ RUN pip install --upgrade vsbasicvsrpp && python -m vsbasicvsrpp
 
 # dependencies for RealBasicVSR_x4
 # mmedit
-RUN git clone https://github.com/open-mmlab/mmediting.git && cd mmediting && pip install -v -e .
+RUN pip install mmedit
 # RealBasicVSR_x4 will download this
 RUN wget "https://download.pytorch.org/models/vgg19-dcbb9e9d.pth" -P /root/.cache/torch/hub/checkpoints/
 
