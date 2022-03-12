@@ -62,6 +62,10 @@ RUN cd /workspace && tar -zxvf FILM.tar.gz
 # vs plugings from others
 # https://github.com/HolyWu/vs-swinir
 RUN pip install --upgrade vsswinir && python -m vsswinir
+
+# installing mmcv-full manually since pip has a failed build, which needs to be fixed
+ENV MMCV_WITH_OPS=1
+RUN wget https://github.com/open-mmlab/mmcv/archive/refs/tags/v1.4.6.zip && 7z x v1.4.6.zip && cd mmcv-1.4.6 && MMCV_WITH_OPS=1 pip install -e .
 # https://github.com/HolyWu/vs-basicvsrpp
 RUN pip install --upgrade vsbasicvsrpp && python -m vsbasicvsrpp
 
