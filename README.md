@@ -250,7 +250,7 @@ Compact (4x) | 480p | 720p | 1080p
 3060ti VSGAN 4x | 7.2 | 3 | 1.3
 3060ti ncnn (Windows binary) 4x | 3.72 | 0.85 | 0.53
 3060ti Joey 4x | 0.65 | 0.25 | 0.11
-A100 (Colab) (vs+CUDA) (FrameEval) | 12 | 5.6 | 2.9
+A100 (Colab) (vs+CUDA+FrameEval) | 12 | 5.6 | 2.9
 A100 (Colab) (jpg+CUDA) | ? | ?| 3 (4 Threads)
 
 ESRGAN 4x (64mb) | 480p | 720p | 1080p
@@ -269,6 +269,7 @@ RealESRGAN (4x) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
 V100 (Colab High RAM) (vs+TensorRT8+x264 (--opencl)+C++ TRT+num_streams=1+no tiling) | 6.82 | 3.15 | OOM (OpenCL) 
 V100 (Colab High RAM) (vs+TensorRT8+x264+C++ TRT+num_streams=1+no tiling) | ? | ? | 1.39
+A100 (vs+TensorRT8+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 | 6.74 | 2.76
 
 Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
