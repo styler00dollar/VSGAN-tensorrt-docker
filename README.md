@@ -341,7 +341,7 @@ V100 (Colab High RAM) (vs+CUDA) | 9.8 | 4.7 | 2.1
 
 ## Combined Benchmarks
 
-Rife4+vs (fastmode False, ensemble True) + Compact 2x | 480p | 720p | 1080p 
+Rife4 (fastmode False, ensemble True) + Compact 2x | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
 1070ti (ONNX-TensorRT8+ffmpeg+ModifyFrame) | 9.3 | 4.6 | 2.2
 1070ti (C++ TensorRT8+ffmpeg+ModifyFrame) | ? | ? | 2.7
@@ -355,7 +355,11 @@ A100 (Colab) (vs+ONNX-TensorRT8+ffmpeg+ModifyFrame) (rife fp16=False) | 27 | 15 
 A100 (Colab) (vs+C++ TensorRT8+ffmpeg+FrameEval) (num_streams=49) | ~29 | ~18 | 9.96
 A100 (Colab) (vs+C++ TensorRT8+x264 (--opencl)+FrameEval) (num_streams=49) | 30.10 | 19.81 | 10.6
 
-rife4 + cugan 2x | 480p | 720p | 1080p 
+Rife4 (fastmode False, ensemble True) + RealESRGAN (4x) | 480p | 720p | 1080p 
+---  | -------  | ------- | ------- 
+A100 (vs+TensorRT8+x264 (--opencl)+C++ TRT+num_streams=2+no tiling) | 14.46 | 7.39 | 3.18
+
+Rife4 + cugan 2x | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
 A100 (vs+CUDA+ffmpeg+FrameEval) | 19 | 10 | 5
 
