@@ -126,13 +126,13 @@ python3 ./get-pip.py
 `pip 21.0` is confirmed by myself to be broken.
 
 #### Rife ncnn:
-You can install precompiled whl files from [here](https://github.com/styler00dollar/rife-ncnn-vulkan-python/releases/tag/v1). If you want to compile it, visit [styler00dollar/rife-ncnn-vulkan-python](https://github.com/styler00dollar/rife-ncnn-vulkan-python).
+You can install precompiled whl files from [here](https://github.com/styler00dollar/rife-ncnn-vulkan-python/releases/tag/v1a). If you want to compile it, visit [styler00dollar/rife-ncnn-vulkan-python](https://github.com/styler00dollar/rife-ncnn-vulkan-python).
 ```bash
 sudo pacman -S base-devel vulkan-headers vulkan-icd-loader vulkan-devel
 pip install [URL for whl]
 ```
 #### RealSR / ESRGAN ncnn:
-You can install precompiled whl files from [here](https://github.com/styler00dollar/realsr-ncnn-vulkan-python/releases/tag/v1). If you want to compile it, visit [styler00dollar/realsr-ncnn-vulkan-python](https://github.com/styler00dollar/realsr-ncnn-vulkan-python).
+You can install precompiled whl files from [here](https://github.com/styler00dollar/realsr-ncnn-vulkan-python/releases/tag/v1a). If you want to compile it, visit [styler00dollar/realsr-ncnn-vulkan-python](https://github.com/styler00dollar/realsr-ncnn-vulkan-python).
 ```bash
 sudo pacman -S base-devel vulkan-headers vulkan-icd-loader vulkan-devel
 pip install [URL for whl]
@@ -210,14 +210,12 @@ Warnings:
 - The 3090 benches were done with a low powerlimit and throttled the GPU.
 - The default is ffmpeg.
 - ModifyFrame is depricated. Trying to use FrameEval everywhere and is used by default.
+- All ncnn benchmarks are done after [this commit which did improve ncnn performance](https://github.com/Tencent/ncnn/commit/6e19ab26ba82a35c9b7c306bd9519c38ade26bf3).
 
 Compact (2x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
-rx470 vs+ncnn (PIL+no tile+tta off) 2x | 2.8 | 1.3 | 0.5
-rx470 vs+ncnn (np+no tile+tta off) 2x | 2.8 | 1.3 | 0.5
-rx470 vs+ncnn (np+auto tile+tta off) 2x | 2.5 | 1.1 | 0.4
-rx470 vs+ncnn (np+no tile+tta on) 2x | 0.4 | 0.2 | X
-1070ti vs+ncnn (np+no tile+tta off) | 3.8 | 1.7 | 0.7
+rx470 vs+ncnn (np+no tile+tta off) | 2.7 | 1.6 | 0.6
+1070ti vs+ncnn (np+no tile+tta off) | 4.2 | 2 | 0.9
 1070ti TensorRT8 docker 2x (ONNX-TRT+FrameEval) | 12 | 6.1 | 2.8
 1070ti TensorRT8 docker 2x (C++ TRT+FrameEval+num_streams=6) | 14 | 6.7 | 3
 3060ti TensorRT8 docker 2x (ONNX-TRT+FrameEval) | 19 | 7.1 | 3.2
@@ -304,8 +302,8 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 
 Rife4+vs ncnn | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-rx470 (ffmpeg+FrameEval) | 10 | 6.1 | 3.2
-1070ti (ffmpeg+FrameEval) | 32 | 15 | 6.7
+rx470 (ffmpeg+FrameEval) | 11 | 6.2 | 3.4
+1070ti (ffmpeg+FrameEval) | 34 | 16 | 7.5
 
 EGVSR | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
