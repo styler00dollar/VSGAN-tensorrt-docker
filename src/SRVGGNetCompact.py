@@ -30,7 +30,7 @@ def stdout_redirected(to=os.devnull):
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
-def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = False, backend_inference: str = "cuda", tta_mode:bool = False, param_path:str = "eest.param", bin_path:str = "test.bin") -> vs.VideoNode:
+def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = False, backend_inference: str = "cuda", tta_mode:bool = False, param_path:str = "eest.param", bin_path:str = "test.bin", gpuid:int = 0) -> vs.VideoNode:
     if not isinstance(clip, vs.VideoNode):
         raise vs.Error('RealESRGAN: this is not a clip')
 
