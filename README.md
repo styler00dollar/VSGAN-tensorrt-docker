@@ -6,18 +6,19 @@ Table of contents
 =================
 
 <!--ts-->
-   * [Usage](#Usage)
-   * [Deduplicated inference](#Deduplicated)
-   * [Skipping scenes with scene detection](#Skipping)
+   * [Usage](#usage)
+   * [Deduplicated inference](#deduplicated)
+   * [Skipping scenes with scene detection](#skipping)
    * [vs-mlrt (C++ TRT)](#vs-mlrt)
    * [ncnn](#ncnn)
        * [If you have errors installing ncnn whl files with pip](#pip-error)
        * [Rife ncnn](#rife-ncnn)
        * [RealSR / ESRGAN ncnn](#sr-ncnn)
        * [Waifu2x ncnn](#waifu-ncnn)
-   * [VFR](#vfr)
+   * [VFR (variable refresh rate)](#vfr)
    * [mpv](#mpv)
    * [Benchmarks](#benchmarks)
+   * [License](#license)
 <!--te-->
 
 -------
@@ -54,7 +55,7 @@ Some important things:
 - `rife4` can use PSNR, SSIM, MS_SSIM deduplication. Quick testing showed quite some speed increase.
 - Colabs have a weak cpu, you should try `x264` with `--opencl`. (A100 does not support NVENC and such)
 
-<div id='Usage'/>
+<div id='usage'/>
 
 ## Usage
 ```bash
@@ -91,7 +92,7 @@ There is also batch processing, just edit and use `main.py` (which calls `infere
 ```bash
 python main.py
 ```
-<div id='Deduplicated'/>
+<div id='deduplicated'/>
 
 ## Deduplicated inference
 You can delete and duplicate video frames, so you only process non-duplicated frames.
@@ -103,7 +104,7 @@ clip = core.std.DeleteFrames(clip, frames_duplicated)
 clip = core.std.DuplicateFrames(clip, frames_duplicating)
 ```
 
-<div id='Skipping'/>
+<div id='skipping'/>
 
 ## Skipping scenes with scene detection
 This avoids interpolation when a scene change happens. Create framelist with pyscenedetect and pass that.
@@ -406,6 +407,8 @@ A100 (vs+TensorRT8+x264 (--opencl)+C++ TRT+num_streams=2+no tiling) | 14.46 | 7.
 Rife4 + cugan 2x | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
 A100 (vs+CUDA+ffmpeg+FrameEval) | 19 | 10 | 5
+
+<div id='license'/>
 
 ## License
 
