@@ -2,6 +2,26 @@
 
 Using image super resolution models with vapoursynth and speeding them up with TensorRT if possible. This repo is the fastest inference code that you can find. Not all codes can use TensorRT due to various reasons, but I try to add that if it works. Using [NVIDIA/Torch-TensorRT](https://github.com/NVIDIA/Torch-TensorRT) combined with [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN). This repo makes the usage of tiling and ESRGAN models very easy. Models can be found on the [wiki page](https://upscale.wiki/wiki/Model_Database). Further model architectures are planned to be added later on.
 
+Table of contents
+=================
+
+<!--ts-->
+   * [Usage](#Usage)
+   * [Deduplicated inference](#Deduplicated)
+   * [Skipping scenes with scene detection](#Skipping)
+   * [vs-mlrt (C++ TRT)](#vs-mlrt)
+   * [ncnn](#ncnn)
+       * [If you have errors installing ncnn whl files with pip](#pip-error)
+       * [Rife ncnn](#rife-ncnn)
+       * [RealSR / ESRGAN ncnn](#sr-ncnn)
+       * [Waifu2x ncnn](#waifu-ncnn)
+   * [VFR](#vfr)
+   * [mpv](#mpv)
+   * [Benchmarks](#benchmarks)
+<!--te-->
+
+-------
+
 Currently working:
 - ESRGAN with [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN) and [HolyWu/vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
 - RealESRGAN / RealESERGANVideo with [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) and [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN)
@@ -33,6 +53,8 @@ Some important things:
 - `ncnn` does not work with docker. Docker can only support Nvidia GPUs and even if you want to run ncnn with a supported GPU inside docker, you will just get llvmpipe instead of GPU acceleration. If you want ncnn, install dependencies to your own system.
 - `rife4` can use PSNR, SSIM, MS_SSIM deduplication. Quick testing showed quite some speed increase.
 - Colabs have a weak cpu, you should try `x264` with `--opencl`. (A100 does not support NVENC and such)
+
+<div id='Usage'/>
 
 ## Usage
 ```bash
@@ -69,6 +91,7 @@ There is also batch processing, just edit and use `main.py` (which calls `infere
 ```bash
 python main.py
 ```
+<div id='Deduplicated'/>
 
 ## Deduplicated inference
 You can delete and duplicate video frames, so you only process non-duplicated frames.
@@ -80,6 +103,8 @@ clip = core.std.DeleteFrames(clip, frames_duplicated)
 clip = core.std.DuplicateFrames(clip, frames_duplicating)
 ```
 
+<div id='Skipping'/>
+
 ## Skipping scenes with scene detection
 This avoids interpolation when a scene change happens. Create framelist with pyscenedetect and pass that.
 ```python
@@ -88,8 +113,10 @@ skip_framelist = find_scenes(video_path, threshold=30)
 clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 70, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999, skip_framelist=skip_framelist)
 ```
 
+<div id='vs-mlrt'/>
+
 ## vs-mlrt (C++ TRT)
-You need to convert onnx models into engines. You need to do that on the same system where you want to do inference. Download onnx models from [here]( https://github.com/AmusementClub/vs-mlrt/releases/download/v7/models.v7.7z). You can technically just use any ONNX model if you want. Inside the docker, you do
+You need to convert onnx models into engines. You need to do that on the same system where you want to do inference. Download onnx models from [here]( https://github.com/AmusementClub/vs-mlrt/releases/download/v7/models.v7.7z) or from [my Github page](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models). You can technically just use any ONNX model you want or convert a pth into onnx with [convert_esrgan_to_onnx.py](https://github.com/styler00dollar/VSGAN-tensorrt-docker/blob/main/convert_esrgan_to_onnx.py). Inside the docker, you do
 ```
 trtexec --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT
 ```
@@ -98,6 +125,8 @@ Be aware that DPIR (color) needs 4 channels.
 trtexec --fp16 --onnx=dpir_drunet_color.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT
 ```
 and put that engine path into `inference.py`. Only do FP16 if your GPU does support it.
+
+<div id='ncnn'/>
 
 ## ncnn
 If you want to use ncnn, then you need to set up your own os for this and install dependencies manually. I tried to create a docker, but it isn't working properly. 
@@ -116,6 +145,8 @@ or
 yay -S vulkan-amdgpu-pro
 ```
 
+<div id='pip-error'/>
+
 #### If you have errors installing ncnn whl files with pip:
 It seems like certain pip versions are broken and will not allow certain ncnn whl files to install properly. If you have install erorrs, either run the install with `sudo` or manually upgrade your pip with
 ```
@@ -125,12 +156,17 @@ python3 ./get-pip.py
 ``` 
 `pip 21.0` is confirmed by myself to be broken.
 
+<div id='rife-ncnn'/>
+
 #### Rife ncnn:
 You can install precompiled whl files from [here](https://github.com/styler00dollar/rife-ncnn-vulkan-python/releases/tag/v1a). If you want to compile it, visit [styler00dollar/rife-ncnn-vulkan-python](https://github.com/styler00dollar/rife-ncnn-vulkan-python).
 ```bash
 sudo pacman -S base-devel vulkan-headers vulkan-icd-loader vulkan-devel
 pip install [URL for whl]
 ```
+
+<div id='sr-ncnn'/>
+
 #### RealSR / ESRGAN ncnn:
 You can install precompiled whl files from [here](https://github.com/styler00dollar/realsr-ncnn-vulkan-python/releases/tag/v1a). If you want to compile it, visit [styler00dollar/realsr-ncnn-vulkan-python](https://github.com/styler00dollar/realsr-ncnn-vulkan-python).
 ```bash
@@ -141,6 +177,8 @@ pip install [URL for whl]
 Any ESRGAN model will work with this (aside RealESRGAN 2x because of pixelshuffle), when you have the fitting param file. Make sure the input is called "data" and output is "output".
 
 If you want to convert a normal pth to ncnn, you need to do `pth->onnx->ncnn(bin/param)`. For the first step you can use `torch.onnx` and for the second one you can use [this website](https://convertmodel.com/).
+
+<div id='waifu-ncnn'/>
 
 #### Waifu2x ncnn:
 ```python
@@ -157,6 +195,8 @@ sudo su
 make install
 exit
 ```
+
+<div id='vfr'/>
 
 ## VFR
 **Warning**: Using variable refresh rate video input will result in desync errors. To check if a video is do
@@ -176,6 +216,9 @@ or use my `vfr_to_cfr.py` to process a folder.
 If you don't want to use docker, vapoursynth install commands are [here](https://github.com/styler00dollar/vs-vfi) and a TensorRT example is [here](https://github.com/styler00dollar/Colab-torch2trt/blob/main/Colab-torch2trt.ipynb).
 
 Set the input video path in `inference.py` and access videos with the mounted folder.
+
+<div id='mpv'/>
+
 ## mpv
 It is also possible to directly pipe the video into mpv, but you most likely wont be able to archive realtime speed. If you use a very efficient model, it may be possible on a very good GPU. Only tested in Manjaro. 
 ```bash
@@ -204,6 +247,9 @@ vspipe --y4m inference.py - | mpv - --audio-file=file.aac --sub-files=file.ass
 # to increase the buffer cache, you can use
 --demuxer-max-bytes=250MiB
 ```
+
+<div id='benchmarks'/>
+
 ## Benchmarks
 
 Warnings: 
