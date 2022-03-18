@@ -43,7 +43,7 @@ def SRVGGNetCompactRealESRGAN(clip: vs.VideoNode, scale: int = 2, fp16: bool = F
     with stdout_redirected(to=os.devnull):
         # load network
         if backend_inference != "ncnn":
-            from SRVGGNetCompact_arch import SRVGGNetCompact
+            from .SRVGGNetCompact_arch import SRVGGNetCompact
             model_path = f'/workspace/RealESRGANv2-animevideo-xsx{scale}.pth'
             model = SRVGGNetCompact(num_in_ch=3, num_out_ch=3, num_feat=64, num_conv=16, upscale=scale, act_type='prelu')
             model.load_state_dict(torch.load(model_path, map_location="cpu")['params'])
