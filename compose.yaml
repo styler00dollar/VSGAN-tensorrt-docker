@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  vsgan_tensorrt:
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    image: vsgan_tensorrt:latest
+    volumes:
+      - ./:/workspace/tensorrt
+    privileged: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+              driver: nvidia

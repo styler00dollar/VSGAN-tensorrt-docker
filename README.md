@@ -60,7 +60,7 @@ Some important things:
 ## Usage
 ```bash
 # install docker, command for arch
-yay -S docker nvidia-docker nvidia-container-toolkit
+yay -S docker nvidia-docker nvidia-container-toolkit docker-compose
 # Put the dockerfile in a directory and run that inside that directory
 docker build -t vsgan_tensorrt:latest .
 # If you want to rebuild from scratch or have errors, try to build without cache
@@ -68,10 +68,17 @@ docker build -t vsgan_tensorrt:latest .
 docker build --no-cache -t vsgan_tensorrt:latest . 
 # If you encounter 401 unauthorized error, use this command before running docker build
 docker pull nvcr.io/nvidia/tensorrt:21.12-py3
-# run the docker
+
+# run the docker with docker-compose
+# go into the vsgan folder, inside that folder should be compose.yaml, run this command
+# you can adjust folder mounts in the yaml file
+docker-compose run --rm vsgan_tensorrt
+
+# run docker manually
 # the folderpath before ":" will be mounted in the path which follows afterwards
 # contents of the vsgan folder should appear inside /workspace/tensorrt
 docker run --privileged --gpus all -it --rm -v /home/vsgan_path/:/workspace/tensorrt vsgan_tensorrt:latest
+
 # you can use it in various ways, ffmpeg example
 vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv
 ```
@@ -225,9 +232,11 @@ It is also possible to directly pipe the video into mpv, but you most likely won
 ```bash
 yay -S pulseaudio
 
-# i am not sure if it is needed, but go into pulseaudio settings and check "make pulseaudio network audio devices discoverable in the local network" and reboot
+# start docker with docker-compose
+# same instructions as above, but delete compose.yaml and rename compose_mpv.yaml to compose.yaml 
+docker-compose run --rm vsgan_tensorrt
 
-# start docker
+# start docker manually
 docker run --rm -i -t \
     --network host \
     -e DISPLAY \

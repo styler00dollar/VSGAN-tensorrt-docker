@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  vsgan_tensorrt:
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    image: vsgan_tensorrt:latest
+    volumes:
+      - ./:/workspace/tensorrt
+      - "$HOME/.config/pulse/cookie:/root/.config/pulse/cookie"
+      - ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native
+    devices:
+      - "/dev/snd:/dev/snd"
+    privileged: true
+    network_mode: "host"
+    ipc: host
+    environment:
+      - DISPLAY
+      - PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+              driver: nvidia
