@@ -65,6 +65,7 @@ yay -S docker nvidia-docker nvidia-container-toolkit docker-compose
 # Download prebuild image from dockerhub (recommended)
 docker pull styler00dollar/vsgan_tensorrt:latest
 
+# Build docker manually
 # Put the dockerfile in a directory and run that inside that directory
 # You can name it whatever you want, I just applied the same name as the dockerhub command
 docker build -t styler00dollar/vsgan_tensorrt:latest .
