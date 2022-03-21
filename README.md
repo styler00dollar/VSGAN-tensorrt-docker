@@ -61,11 +61,16 @@ Some important things:
 ```bash
 # install docker, command for arch
 yay -S docker nvidia-docker nvidia-container-toolkit docker-compose
+
+# Download prebuild image from dockerhub (recommended)
+docker pull styler00dollar/vsgan_tensorrt:latest
+
 # Put the dockerfile in a directory and run that inside that directory
-docker build -t vsgan_tensorrt:latest .
+# You can name it whatever you want, I just applied the same name as the dockerhub command
+docker build -t styler00dollar/vsgan_tensorrt:latest .
 # If you want to rebuild from scratch or have errors, try to build without cache
 # If you still have problems, try to uncomment "RUN apt-get dist-upgrade -y" in the Dockerfile and try again
-docker build --no-cache -t vsgan_tensorrt:latest . 
+docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest . 
 # If you encounter 401 unauthorized error, use this command before running docker build
 docker pull nvcr.io/nvidia/tensorrt:21.12-py3
 
@@ -77,7 +82,7 @@ docker-compose run --rm vsgan_tensorrt
 # run docker manually
 # the folderpath before ":" will be mounted in the path which follows afterwards
 # contents of the vsgan folder should appear inside /workspace/tensorrt
-docker run --privileged --gpus all -it --rm -v /home/vsgan_path/:/workspace/tensorrt vsgan_tensorrt:latest
+docker run --privileged --gpus all -it --rm -v /home/vsgan_path/:/workspace/tensorrt styler00dollar/vsgan_tensorrt:latest
 
 # you can use it in various ways, ffmpeg example
 vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv
