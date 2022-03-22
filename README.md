@@ -325,8 +325,13 @@ V100 (Colab High VRAM) (C++ TensorRT+x264 (--opencl)+FrameEval+no tiling) | 2.46
 V100 (Colab High VRAM) (C++ TensorRT+x264+FrameEval+no tiling) | 2.49 | 1.14 | 0.47
 A100 (Colab) (Torch-TensorRT+ffmpeg+FrameEval) | 5.6 | 2.6 | 1.1
 
+RealESRGAN (2x) | 480p | 720p | 1080p
+------------  | ---  | ---- | ------
+3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=1) | 8.14 | 3.12 | 1.4
+
 RealESRGAN (4x) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
+3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=2) | 6.8 | 1.7 | 0.75
 V100 (Colab High RAM) (vs+TensorRT8+x264 (--opencl)+C++ TRT+num_streams=1+no tiling) | 6.82 | 3.15 | OOM (OpenCL) 
 V100 (Colab High RAM) (vs+TensorRT8+x264+C++ TRT+num_streams=1+no tiling) | ? | ? | 1.39
 A100 (vs+TensorRT8+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 | 6.74 | 2.76
