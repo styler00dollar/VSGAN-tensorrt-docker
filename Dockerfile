@@ -13,7 +13,8 @@ RUN apt install p7zip-full x264 ffmpeg autoconf libtool yasm python3.9 python3.9
     ln -s /usr/local/lib/python3.9/site-packages/vapoursynth.so /usr/lib/python3.9/lib-dynload/vapoursynth.so && \
     pip install mmedit vapoursynth meson ninja numba scenedetect kornia opencv-python onnx onnxruntime onnxruntime-gpu cupy-cuda115 pytorch-msssim \
         torch==1.10.0+cu113 torchvision==0.11.1+cu113 torchaudio==0.10.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html \
-        https://github.com/NVIDIA/Torch-TensorRT/releases/download/v1.0.0/torch_tensorrt-1.0.0-cp38-cp38-linux_x86_64.whl && \
+        https://github.com/NVIDIA/Torch-TensorRT/releases/download/v1.0.0/torch_tensorrt-1.0.0-cp38-cp38-linux_x86_64.whl \
+        mmcv-full -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.10.0/index.html && \
     # not deleting vapoursynth-R57 since vs-mlrt needs it
     rm -rf R57.zip zimg && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip3 cache purge
@@ -41,8 +42,10 @@ RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/downlo
     https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sepconv.pth \
 # EGVSR
     https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/EGVSR_iter420000.pth \
-# rife4 (fixed rife4.0 model)
+# rife4 (fixed)
     https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/rife40.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/rife41.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sudo_rife4_269.662_testV1_scale1.pth \
 # RealBasicVSR_x4
     https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/RealBasicVSR_x4.pth \
 # cugan models
@@ -66,14 +69,6 @@ RUN wget "https://download.pytorch.org/models/vgg19-dcbb9e9d.pth" -P /root/.cach
 # vs plugings from others
 # https://github.com/HolyWu/vs-swinir
 RUN pip install --upgrade vsswinir && python -m vsswinir
-
-# installing mmcv-full manually since pip has a failed build, which needs to be fixed
-ENV MMCV_WITH_OPS=1
-RUN wget https://github.com/open-mmlab/mmcv/archive/refs/tags/v1.4.6.zip && 7z x v1.4.6.zip && cd mmcv-1.4.6 && MMCV_WITH_OPS=1 pip install -e . && \
-# https://github.com/HolyWu/vs-basicvsrpp
-    pip install --upgrade vsbasicvsrpp && python -m vsbasicvsrpp && \
-# cleaning
-    cd .. && rm -rf mmcv-1.4.6 v1.4.6.zip
 
 # vs-mlrt
 # upgrading cmake

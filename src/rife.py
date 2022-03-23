@@ -6,7 +6,8 @@ from pytorch_msssim import ssim, ms_ssim, SSIM, MS_SSIM
 from .dedup import PSNR
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
-def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = True, fastmode: bool = False, ensemble:bool = True, psnr_dedup:bool = False, psnr_value:float = 70, ssim_dedup:bool = True, ms_ssim_dedup:bool=False, ssim_value:float=0.999, skip_framelist=[], backend_inference:str = "cuda") -> vs.VideoNode:
+def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = True, fastmode: bool = False, ensemble:bool = True, psnr_dedup:bool = False, psnr_value:float = 70, 
+          ssim_dedup:bool = True, ms_ssim_dedup:bool=False, ssim_value:float=0.999, skip_framelist=[], backend_inference:str = "cuda", model_version:str = "rife41") -> vs.VideoNode:
     '''
     RIFE: Real-Time Intermediate Flow Estimation for Video Frame Interpolation
 
@@ -52,7 +53,13 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
         if fp16:
             torch.set_default_tensor_type(torch.cuda.HalfTensor)
         model = IFNet()
-        model.load_state_dict(torch.load("/workspace/rife40.pth"), False)
+
+        if model_version == "rife40":
+            model.load_state_dict(torch.load("/workspace/rife40.pth"), False)
+        elif model_version == "rife41":
+            model.load_state_dict(torch.load("/workspace/rife41.pth"), False)
+        elif model_version == "sudo_rife4":
+            model.load_state_dict(torch.load("/workspace/sudo_rife4_269.662_testV1_scale1.pth"), False)
         model.eval().cuda()
     elif backend_inference == "ncnn":
         from rife_ncnn_vulkan_python import Rife
