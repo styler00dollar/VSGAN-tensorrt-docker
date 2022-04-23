@@ -17,6 +17,7 @@ Table of contents
        * [Waifu2x ncnn](#waifu-ncnn)
    * [VFR (variable refresh rate)](#vfr)
    * [mpv](#mpv)
+   * [Color transfer](#color)
    * [Benchmarks](#benchmarks)
    * [License](#license)
 <!--te-->
@@ -267,6 +268,23 @@ vspipe --y4m inference.py - | mpv -
 vspipe --y4m inference.py - | mpv - --audio-file=file.aac --sub-files=file.ass
 # to increase the buffer cache, you can use
 --demuxer-max-bytes=250MiB
+```
+
+<div id='color'/>
+
+## Color transfer (experimental)
+A small script for color transfer is available. Currently it can only be used outside of VapourSynth. Since it uses `color-matcher` as a dependency, you need to install it first.
+I only tested it on a single image for now, but it may be usable for video sequences.
+```bash
+pip install docutils
+git clone https://github.com/hahnec/color-matcher
+cd color-matcher
+python setup.py install
+```
+
+You can choose between `rgb`, `lab`, `ycbcr`, `lum`, `pdf`, `sot`, `hm`, `reinhard`, `mvgd`, `mkl`, `hm-mvgd-hm` and `hm-mkl-hm`. Specify folders.
+```bash
+python color_transfer.py -s input -t target -o output -algo mkl -threads 8
 ```
 
 <div id='benchmarks'/>
