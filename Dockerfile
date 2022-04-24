@@ -68,7 +68,10 @@ RUN wget "https://download.pytorch.org/models/vgg19-dcbb9e9d.pth" -P /root/.cach
 
 # vs plugings from others
 # https://github.com/HolyWu/vs-swinir
-RUN pip install --upgrade vsswinir && python -m vsswinir
+# https://github.com/HolyWu/vs-basicvsrpp
+RUN pip install --upgrade vsswinir && python -m vsswinir && \
+    pip install --upgrade vsbasicvsrpp && python -m vsbasicvsrpp && \
+    pip3 cache purge
 
 # vs-mlrt
 # upgrading cmake
