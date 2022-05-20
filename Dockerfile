@@ -1,5 +1,5 @@
 # https://ngc.nvidia.com/catalog/containers/nvidia:tensorrt
-FROM nvcr.io/nvidia/tensorrt:21.12-py3
+FROM nvcr.io/nvidia/tensorrt:22.04-py3
 ARG DEBIAN_FRONTEND=noninteractive
 # if you have 404 problems when you build the docker, try to run the upgrade
 #RUN apt-get dist-upgrade -y
@@ -11,21 +11,25 @@ RUN apt install p7zip-full x264 ffmpeg autoconf libtool yasm python3.9 python3.9
     pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R57.zip && \
     7z x R57.zip && cd vapoursynth-R57 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.9/site-packages/vapoursynth.so /usr/lib/python3.9/lib-dynload/vapoursynth.so && \
-    pip install mmedit vapoursynth meson ninja numba scenedetect kornia opencv-python onnx onnxruntime onnxruntime-gpu cupy-cuda115 pytorch-msssim \
-        torch==1.10.0+cu113 torchvision==0.11.1+cu113 torchaudio==0.10.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html \
-        https://github.com/NVIDIA/Torch-TensorRT/releases/download/v1.0.0/torch_tensorrt-1.0.0-cp38-cp38-linux_x86_64.whl \
-        mmcv-full -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.10.0/index.html && \
+    pip install scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python onnx onnxruntime onnxruntime-gpu cupy-cuda115 pytorch-msssim \
+        https://download.pytorch.org/whl/cu115/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl \
+        https://download.pytorch.org/whl/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl \
+        https://github.com/pytorch/TensorRT/releases/download/v1.1.0/torch_tensorrt-1.1.0-cp38-cp38-linux_x86_64.whl \
+        mmcv-full==1.5.0 -f https://download.openmmlab.com/mmcv/dist/cu115/torch1.11.0/index.html && \
     # not deleting vapoursynth-R57 since vs-mlrt needs it
     rm -rf R57.zip zimg && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip3 cache purge
+
+# upgrading ffmpeg manually (ffmpeg 20220422 from https://johnvansickle.com/ffmpeg/)
+RUN wget https://files.catbox.moe/nm1sfp -O ffmpeg && \
+    chmod +x ./ffmpeg && mv ffmpeg /usr/bin/ffmpeg
 
 # installing tensorflow because of FILM
 RUN pip install tensorflow tensorflow-gpu tensorflow_addons gin-config -U && pip3 cache purge
 
 # installing onnx tensorrt with a workaround, error with import otherwise
 # https://github.com/onnx/onnx-tensorrt/issues/643
-RUN git clone --depth 1 --branch 21.02 \
-    https://github.com/onnx/onnx-tensorrt.git && \
+RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
     cd onnx-tensorrt && \
     cp -r onnx_tensorrt /usr/local/lib/python3.8/dist-packages && \
     cd .. && rm -rf onnx-tensorrt
@@ -104,3 +108,20 @@ RUN apt install mpv -y && apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install --yes pulseaudio-utils && \
     apt-get install -y pulseaudio && apt-get install pulseaudio libpulse-dev osspd -y && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
+
+# av1an
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+    source $HOME/.cargo/env && \
+    apt install clang-12 nasm libavutil-dev libavformat-dev libavfilter-dev -y && \
+    git clone https://github.com/master-of-zen/Av1an && \
+    cd Av1an && cargo build --release --features ffmpeg_static && \
+    mv /workspace/Av1an/target/release/av1an /usr/bin && \
+    cd /workspace && rm -rf Av1an && apt-get autoremove -y && apt-get clean
+# svt
+RUN git clone https://github.com/AOMediaCodec/SVT-AV1 && cd SVT-AV1/Build/linux/ && sh build.sh release && \
+    cd /workspace/SVT-AV1/Bin/Release/ && chmod +x ./SvtAv1EncApp && mv SvtAv1EncApp /usr/bin && \
+    mv libSvtAv1Enc.so.1.1.0 /usr/local/lib && mv libSvtAv1Enc.so.1 /usr/local/lib && mv libSvtAv1Enc.so /usr/local/lib && \
+    cd /workspace && rm -rf SVT-AV1
+
+# pycuda and numpy hotfix
+RUN pip install pycuda numpy==1.21 --force-reinstall && pip3 cache purge

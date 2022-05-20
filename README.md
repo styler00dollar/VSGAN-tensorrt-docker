@@ -88,6 +88,11 @@ docker run --privileged --gpus all -it --rm -v /home/vsgan_path/:/workspace/tens
 
 # you can use it in various ways, ffmpeg example
 vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv
+
+# av1an is supported too (with svt)
+# Warning: Currently frame interpolation does not properly work, but upscaling does
+# Torch-TensorRT backend seems to break, C++ TRT seems to work. Either use engine or CUDA.
+av1an -e svt-av1 -i inference.py -o output.mkv
 ```
 
 If docker does not want to start, try this before you use docker:
