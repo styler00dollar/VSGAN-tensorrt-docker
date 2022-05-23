@@ -48,13 +48,18 @@ TensoRT | yes (torch_tensorrt / C++ TRT) | yes (onnx_tensorrt / C++ TRT) | - | -
 ncnn | yes ([realsr ncnn models](https://github.com/nihui/realsr-ncnn-vulkan/tree/master/models)) | yes ([2x](https://files.catbox.moe/u62vpw.tar)) | [yes (all nihui models)](https://github.com/nihui/rife-ncnn-vulkan/tree/master/models) | - | - | - | - | [yes](https://github.com/Nlzy/vapoursynth-waifu2x-ncnn-vulkan/releases/download/r0.1/models.7z) | - | - | -
 onnx | - | yes | - | - | - | - | - | - | - | yes | - | - | -
 
+
+
+Algo | CUDA | TensoRT | ncnn | onnx
+ESRGAN | - | yes | yes | yes
+
 Some important things:
-- Do not use `webm` video, webm is often broken. It can work, but don't complain about broken output afterwards.
+- Using `Webm` video files is unadvised since it often results in broken results.
 - Processing variable framerate (vfr) video is dangerous, but you can try to use fpsnum and fpsden. I would recommend to just render the input video into constant framerate (crf).
-- `x264` can be faster than `ffmpeg`, use that instead.
+- `x264` can be faster than `ffmpeg`, try that out instead.
 - `ncnn` does not work with docker. Docker can only support Nvidia GPUs and even if you want to run ncnn with a supported GPU inside docker, you will just get llvmpipe instead of GPU acceleration. If you want ncnn, install dependencies to your own system.
 - `rife4` can use PSNR, SSIM, MS_SSIM deduplication. Quick testing showed quite some speed increase.
-- Colabs have a weak cpu, you should try `x264` with `--opencl`. (A100 does not support NVENC and such)
+- Colabs have a weak cpu, you should try `x264` with `--opencl` (A100 does not support NVENC and such).
 
 <div id='usage'/>
 
@@ -63,16 +68,13 @@ Some important things:
 # install docker, command for arch
 yay -S docker nvidia-docker nvidia-container-toolkit docker-compose
 
-# Download prebuild image from dockerhub (recommended)
-docker pull styler00dollar/vsgan_tensorrt:latest
-
-# Build docker manually
+# Build docker
 # Put the dockerfile in a directory and run that inside that directory
-# You can name it whatever you want, I just applied the same name as the dockerhub command
-docker build -t styler00dollar/vsgan_tensorrt:latest .
+# You can name it whatever you want, I just applied the same name as my github repo.
+docker build -t xpscyho/vsgan_tensorrt:latest .
 # If you want to rebuild from scratch or have errors, try to build without cache
 # If you still have problems, try to uncomment "RUN apt-get dist-upgrade -y" in the Dockerfile and try again
-docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest . 
+docker build --no-cache -t xpscyho/vsgan_tensorrt:latest . 
 # If you encounter 401 unauthorized error, use this command before running docker build
 docker pull nvcr.io/nvidia/tensorrt:21.12-py3
 
@@ -80,11 +82,6 @@ docker pull nvcr.io/nvidia/tensorrt:21.12-py3
 # go into the vsgan folder, inside that folder should be compose.yaml, run this command
 # you can adjust folder mounts in the yaml file
 docker-compose run --rm vsgan_tensorrt
-
-# run docker manually
-# the folderpath before ":" will be mounted in the path which follows afterwards
-# contents of the vsgan folder should appear inside /workspace/tensorrt
-docker run --privileged --gpus all -it --rm -v /home/vsgan_path/:/workspace/tensorrt styler00dollar/vsgan_tensorrt:latest
 
 # you can use it in various ways, ffmpeg example
 vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv
@@ -119,12 +116,12 @@ python main.py
 <div id='deduplicated'/>
 
 ## Deduplicated inference
-You can delete and duplicate video frames, so you only process non-duplicated frames.
+You can delete and duplicate video frames, so you only process non-duplicated frames. These examples can also be viewed inside `inference.py.`
 ```python
 from src.dedup import return_frames
 frames_duplicated, frames_duplicating = return_frames(video_path, psnr_value=60)
 clip = core.std.DeleteFrames(clip, frames_duplicated)
-# do upscaling here
+# place upscaling commands here
 clip = core.std.DuplicateFrames(clip, frames_duplicating)
 ```
 
@@ -224,19 +221,21 @@ exit
 <div id='vfr'/>
 
 ## VFR
-**Warning**: Using variable refresh rate video input will result in desync errors. To check if a video is do
+
+**Warning**:Using variable refresh rate video input will result in desync errors. To check if a video is VFR, use this command:
 ```bash
 ffmpeg -i video_Name.mp4 -vf vfrdet -f null -
-```
-and look at the final line. If it is not zero, then it means it is variable refresh rate. Example:
-```bash
-[Parsed_vfrdet_0 @ 0x56518fa3f380] VFR:0.400005 (15185/22777) min: 1801 max: 3604)
-```
-To go around this issue, simply convert everything to constant framerate with ffmpeg.
-```bash
+
+#If the final line is not zero, then it means it is variable refresh rate. Example:
+
+#[Parsed_vfrdet_0 @ 0x56518fa3f380] VFR:0.400005 (15185/22777) min: 1801 max: 3604)
+
+#To go around this issue, simply convert everything to constant framerate with ffmpeg.
+
 ffmpeg -i video_input.mkv -vsync cfr -crf 10 -c:a copy video_out.mkv
-```
+
 or use my `vfr_to_cfr.py` to process a folder.
+```
 ## Manual instructions
 If you don't want to use docker, vapoursynth install commands are [here](https://github.com/styler00dollar/vs-vfi) and a TensorRT example is [here](https://github.com/styler00dollar/Colab-torch2trt/blob/main/Colab-torch2trt.ipynb).
 
@@ -245,7 +244,8 @@ Set the input video path in `inference.py` and access videos with the mounted fo
 <div id='mpv'/>
 
 ## mpv
-It is also possible to directly pipe the video into mpv, but you most likely wont be able to archive realtime speed. If you use a very efficient model, it may be possible on a very good GPU. Only tested in Manjaro. 
+It is also possible to directly pipe the video into mpv, but you most likely wont be able to archive realtime speed. If you use a very efficient model, it may be possible on a very good GPU. Only tested in Manjaro.
+
 ```bash
 yay -S pulseaudio
 
@@ -460,4 +460,6 @@ A100 (vs+CUDA+ffmpeg+FrameEval) | 19 | 10 | 5
 
 ## License
 
-This code uses code from other repositories, but the code I wrote myself is under BSD3.
+styler00dollar: This code uses code from other repositories, but the code I wrote myself is under BSD3.
+
+xpscyho:  Mine too! for what that's worth
