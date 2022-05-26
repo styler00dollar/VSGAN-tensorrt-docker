@@ -96,7 +96,7 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
         )
 
       def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        if (n % 2 == 0) or n == 0 or n in skip_framelist:
+        if (n % 2 == 0) or n == 0 or n in skip_framelist or n == clip.num_frames-1:
           return clip
 
         # if frame number odd
@@ -159,7 +159,7 @@ def RIFE(clip: vs.VideoNode, multi: int = 2, scale: float = 4.0, fp16: bool = Tr
 
       @torch.inference_mode()
       def rife(n: int, f: vs.VideoFrame) -> vs.VideoFrame:
-          if (n % multi == 0) or (n // multi == clip.num_frames - 1) or f[0].props.get('_SceneChangeNext'):
+          if (n % multi == 0) or (n // multi == clip.num_frames - 1) or f[0].props.get('_SceneChangeNext') or n == clip.num_frames-1::
               return f[0]
 
           I0 = frame_to_tensor(f[0]).to("cuda", non_blocking=True)
