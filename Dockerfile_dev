@@ -1,7 +1,7 @@
 # This is a cuda+vulkan docker
 # This docker requires you to download some files yourself and place them into the current directory
 
-# DOCKER_BUILDKIT=1 docker build -t styler00dollar/vsgan_tensorrt:latest .
+# DOCKER_BUILDKIT=1 docker build -t styler00dollar/vsgan_tensorrt_dev:latest .
 
 # 20.04 has python3.8, which is currently maximum for TensorRT 8.4 EA, 22.04 has 3.10
 
@@ -47,7 +47,7 @@ RUN ln -s /usr/bin/python3 /usr/bin/python && \
 
 
 #FROM nvidia/cuda:11.6.2-cudnn8-devel-ubuntu20.04
-FROM nvidia/cudagl:11.4.1-runtime-ubuntu20.04
+FROM nvidia/cudagl:11.4.1-devel-ubuntu20.04
 
 ENV NVIDIA_DRIVER_CAPABILITIES all
 
