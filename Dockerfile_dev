@@ -166,17 +166,24 @@ RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/downlo
 # RealBasicVSR_x4
     https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/RealBasicVSR_x4.pth \
 # cugan models
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up2x-latest-conservative.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up2x-latest-denoise1x.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up2x-latest-denoise2x.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up2x-latest-denoise3x.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up2x-latest-no-denoise.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up3x-latest-conservative.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up3x-latest-denoise3x.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up3x-latest-no-denoise.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up4x-latest-conservative.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up4x-latest-denoise3x.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up4x-latest-no-denoise.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-conservative.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-denoise1x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-denoise2x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-denoise3x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-no-denoise.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up3x-latest-conservative.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up3x-latest-denoise3x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up3x-latest-no-denoise.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up4x-latest-conservative.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up4x-latest-denoise3x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up4x-latest-no-denoise.pth \
+
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-conservative-up2x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-conservative-up3x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-denoise3x-up2x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-denoise3x-up3x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-no-denoise3x-up2x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-no-denoise3x-up3x.pth \
 # film
     https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/FILM.tar.gz && \
     tar -zxvf FILM.tar.gz && rm -rf FILM.tar.gz
@@ -241,9 +248,22 @@ RUN wget https://sdk.lunarg.com/sdk/download/1.3.211.0/linux/vulkansdk-linux-x86
     rm -rf vulkansdk-linux-x86_64-1.3.211.0.tar.gz
 ENV VULKAN_SDK=/workspace/1.3.211.0/x86_64/
 
-# does not seem to properly work and segfaults
 # rife ncnn
-RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan && cd VapourSynth-RIFE-ncnn-Vulkan && \
+RUN wget https://github.com/Netflix/vmaf/archive/refs/tags/v2.3.1.tar.gz && \
+    # VMAF
+    tar -xzf  v2.3.1.tar.gz && cd vmaf-2.3.1/libvmaf/ && \
+    meson build --buildtype release && ninja -C build && \
+    ninja -C build install && cd /workspace && rm -rf v2.3.1.tar.gz vmaf-2.3.1 && \
+
+    git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF && cd VapourSynth-VMAF && meson build && \
+    ninja -C build && ninja -C build install && cd /workspace && rm -rf VapourSynth-VMAF && \
+
+    # MISC
+    git clone https://github.com/vapoursynth/vs-miscfilters-obsolete && cd vs-miscfilters-obsolete && meson build && \
+    ninja -C build && ninja -C build install && cd /workspace && rm -rf vs-miscfilters-obsolete && \
+    
+    # RIFE
+    git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan && cd VapourSynth-RIFE-ncnn-Vulkan && \
     git submodule update --init --recursive --depth 1 && meson build -Dbuildtype=debug -Db_lto=false && ninja -C build && ninja -C build install && \
     cd /workspace && rm -rf VapourSynth-RIFE-ncnn-Vulkan
 

@@ -65,6 +65,8 @@ yay -S docker nvidia-docker nvidia-container-toolkit docker-compose
 
 # Download prebuild image from dockerhub (recommended)
 docker pull styler00dollar/vsgan_tensorrt:latest
+# I also created a development docker, which is more experimental. It has ncnn support.
+docker pull styler00dollar/vsgan_tensorrt_dev:latest
 
 # Build docker manually
 # Put the dockerfile in a directory and run that inside that directory
@@ -75,6 +77,8 @@ docker build -t styler00dollar/vsgan_tensorrt:latest .
 docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest . 
 # If you encounter 401 unauthorized error, use this command before running docker build
 docker pull nvcr.io/nvidia/tensorrt:21.12-py3
+# The dev docker has more requirements and requires that you get files manually prior to building
+# Look into the docker file for more information
 
 # run the docker with docker-compose
 # go into the vsgan folder, inside that folder should be compose.yaml, run this command

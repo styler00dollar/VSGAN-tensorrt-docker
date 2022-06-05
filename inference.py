@@ -92,12 +92,17 @@ clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = False, fastmode = False, ensemb
 #clip = PAN_inference(clip, scale=2, fp16=True)
 
 ###############################################
-# [NOT IN DOCKER] MODELS (NCNN)
+# [ONLY IN DEV DOCKER] MODELS (NCNN)
 # Only recommended for AMD GPUS, further instructions in README
 ###############################################
 #from src.SRVGGNetCompact_ncnn import SRVGGNetCompactRealESRGAN_ncnn
 
-# Rife ncnn
+# Rife ncnn (C++)
+# https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan
+#clip = core.misc.SCDetect(clip=clip,threshold=0.100)
+#clip = core.rife.RIFE(clip, model=9, multiplier=2, gpu_id=0, gpu_thread=4, tta=False, uhd=False, skip=True, sc=True)
+
+# Rife ncnn (python api)
 #clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 70, ssim_dedup = True, ms_ssim_dedup = False, 
 #             ssim_value = 0.999, backend_inference = "ncnn")
 # RealESRGAN example
