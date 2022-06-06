@@ -98,7 +98,7 @@ clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = False, fastmode = False, ensemb
 #from src.SRVGGNetCompact_ncnn import SRVGGNetCompactRealESRGAN_ncnn
 
 # Rife ncnn (C++)
-# https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan
+# https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan
 #clip = core.misc.SCDetect(clip=clip,threshold=0.100)
 #clip = core.rife.RIFE(clip, model=9, multiplier=2, gpu_id=0, gpu_thread=4, tta=False, uhd=False, skip=True, sc=True)
 
