@@ -159,7 +159,7 @@ and put that engine path into `inference.py`. Only do FP16 if your GPU does supp
 <div id='ncnn'/>
 
 ## ncnn
-If you want to use ncnn, then you need to get the dev docker with `docker pull styler00dollar/vsgan_tensorrt_dev:latest` or set up your own os for this and install dependencies manually. I tried to create a docker, but it isn't working properly. 
+If you want to use ncnn, then you need to get the dev docker with `docker pull styler00dollar/vsgan_tensorrt_dev:latest` or set up your own os for this if you use AMD GPU or simply want to run it locally.
 
 **WARNING: It seems like some videos result in a broken output. For some reason a certain `webm` video produced very weird results, despite it working with other (non-ncnn) models. If you encounter this, just mux to a mkv with `ffmpeg -i input.webm -c copy output.mkv` and it should work properly again.**
 
