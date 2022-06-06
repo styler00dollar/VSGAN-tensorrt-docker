@@ -12,7 +12,8 @@ Table of contents
    * [vs-mlrt (C++ TRT)](#vs-mlrt)
    * [ncnn](#ncnn)
        * [If you have errors installing ncnn whl files with pip](#pip-error)
-       * [Rife ncnn](#rife-ncnn)
+       * [Rife ncnn C++](#rife-ncnn-c)
+       * [Rife ncnn Python](#rife-ncnn-python)
        * [RealSR / ESRGAN ncnn](#sr-ncnn)
        * [Waifu2x ncnn](#waifu-ncnn)
    * [VFR (variable refresh rate)](#vfr)
@@ -158,7 +159,7 @@ and put that engine path into `inference.py`. Only do FP16 if your GPU does supp
 <div id='ncnn'/>
 
 ## ncnn
-If you want to use ncnn, then you need to set up your own os for this and install dependencies manually. I tried to create a docker, but it isn't working properly. 
+If you want to use ncnn, then you need to get the dev docker with `docker pull styler00dollar/vsgan_tensorrt_dev:latest` or set up your own os for this and install dependencies manually. I tried to create a docker, but it isn't working properly. 
 
 **WARNING: It seems like some videos result in a broken output. For some reason a certain `webm` video produced very weird results, despite it working with other (non-ncnn) models. If you encounter this, just mux to a mkv with `ffmpeg -i input.webm -c copy output.mkv` and it should work properly again.**
 
@@ -185,9 +186,32 @@ python3 ./get-pip.py
 ``` 
 `pip 21.0` is confirmed by myself to be broken.
 
-<div id='rife-ncnn'/>
+<div id='rife-ncnn-c'/>
 
-#### Rife ncnn:
+#### Rife ncnn C++ (recommended)
+I forked [HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan) and added my own models in [styler00dollar/VapourSynth-RIFE-ncnn-Vulkan](https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan). For the full experience you need to get VMAF and misc.
+```bash
+# VMAF
+wget https://github.com/Netflix/vmaf/archive/refs/tags/v2.3.1.tar.gz && \
+  tar -xzf  v2.3.1.tar.gz && cd vmaf-2.3.1/libvmaf/ && \
+  meson build --buildtype release && ninja -C build && \
+  ninja -C build install
+
+git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF && cd VapourSynth-VMAF && meson build && \
+  ninja -C build && ninja -C build install
+
+# MISC
+git clone https://github.com/vapoursynth/vs-miscfilters-obsolete && cd vs-miscfilters-obsolete && meson build && \
+  ninja -C build && ninja -C build install
+
+# RIFE
+git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan && cd VapourSynth-RIFE-ncnn-Vulkan && \
+  git submodule update --init --recursive --depth 1 && meson build -Dbuildtype=debug -Db_lto=false && ninja -C build && ninja -C build install
+```
+
+<div id='rife-ncnn-python'/>
+
+#### Rife ncnn (Python API):
 You can install precompiled whl files from [here](https://github.com/styler00dollar/rife-ncnn-vulkan-python/releases/tag/v1a). If you want to compile it, visit [styler00dollar/rife-ncnn-vulkan-python](https://github.com/styler00dollar/rife-ncnn-vulkan-python).
 ```bash
 sudo pacman -S base-devel vulkan-headers vulkan-icd-loader vulkan-devel
