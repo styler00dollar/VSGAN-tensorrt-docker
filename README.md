@@ -301,6 +301,7 @@ python color_transfer.py -s input -t target -o output -algo mkl -threads 8
 ## Benchmarks
 
 Warnings: 
+- Keep in mind that these benchmarks can get outdated very fast due to rapid code development and configurations.
 - The 3090 benches were done with a low powerlimit and throttled the GPU.
 - The default is ffmpeg.
 - ModifyFrame is depricated. Trying to use FrameEval everywhere and is used by default.
@@ -375,7 +376,8 @@ Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p
 
 Rife4+vs (fastmode False, ensemble True) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti (vs+ffmpeg+ModifyFrame) | 27 | 13 | 9.6
+1070ti Python (vs+ffmpeg+ModifyFrame) | 27 | 13 | 9.6
+1070ti C++ NCNN | ? | ? | 10
 3060ti (vs+ffmpeg+ModifyFrame) | ? | 36 | 20 |
 3090 (vs+ffmpeg+ModifyFrame) | ? | 69.6 | 35 | 
 V100 (Colab) (vs+ffmpeg+ModifyFrame) | 30 | 16 | 7.3
@@ -387,7 +389,8 @@ A100 (Colab) (jpg+CUDA+ffmpeg+ModifyFrame) | ? | ? | 19.92 (14 Threads)
 
 Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti (TensorRT8+ffmpeg+ModifyFrame) | 62 | 31 | 14
+1070ti Python (TensorRT8+ffmpeg+ModifyFrame) | 62 | 31 | 14
+1070ti C++ NCNN | ? | ? | 34
 3060ti (TensorRT8+ffmpeg+ModifyFrame) | 135 | 66 | 33 |
 3090 (TensorRT8+ffmpeg+ModifyFrame) | ? | 119 | 58 | 
 V100 (Colab) (TensorRT8+ffmpeg+ModifyFrame) | 34 | 17 | 7.6
@@ -396,13 +399,9 @@ A100 (Colab) (TensorRT8+ffmpeg+ModifyFrame) | 92 | 56 | 29
 Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
 1070ti (TensorRT8+ffmpeg+ModifyFrame) | 41 | 20 | 9.8 
+1070ti C++ NCNN | ? | ? | 17
 3060ti (TensorRT8+ffmpeg+ModifyFrame) | 86 | 49 | 24 | 
 3090 (TensorRT8+ffmpeg+ModifyFrame) | ? | 90.3 | 45
-
-Rife4+vs ncnn | 480p | 720p | 1080p 
----  | -------  | ------- | ------- 
-rx470 (ffmpeg+FrameEval) | 11 | 6.2 | 3.4
-1070ti (ffmpeg+FrameEval) | 34 | 16 | 7.5
 
 EGVSR | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
