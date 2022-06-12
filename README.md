@@ -459,6 +459,10 @@ FILM | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
 V100 (Colab High RAM) (vs+CUDA) | 9.8 | 4.7 | 2.1
 
+IFRNet (small model) | 480p | 720p | 1080p 
+-------- | ---- | ---- | ----
+V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | 78 | 47 | 23
+
 ## Combined Benchmarks
 
 Rife4 (fastmode False, ensemble True) + Compact 2x | 480p | 720p | 1080p 
