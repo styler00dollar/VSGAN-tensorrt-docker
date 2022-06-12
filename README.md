@@ -330,7 +330,10 @@ Warnings:
 - The 3090 benches were done with a low powerlimit and throttled the GPU.
 - The default is ffmpeg.
 - ModifyFrame is depricated. Trying to use FrameEval everywhere and is used by default.
-- All ncnn benchmarks are done after [this commit which did improve ncnn performance](https://github.com/Tencent/ncnn/commit/6e19ab26ba82a35c9b7c306bd9519c38ade26bf3).
+- ncnn did a lot of performance enhancements lately, so results may be a bit better.
+- TensorRT docker version and ONNX opset seem to influence speed but that wasn't known for quite some time. I have a hard time pinpointing which TensorRT and ONNX opset was used. Take benchmark as a rough indicator.
+- Colab may change hardware like CPU at any point.
+- Sometimes it takes a very long time to reach the final speed. It can happen that not enough time was waited.
 
 Compact (2x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
@@ -385,6 +388,8 @@ A100 (Colab) (Torch-TensorRT+ffmpeg+FrameEval) | 5.6 | 2.6 | 1.1
 
 RealESRGAN (2x) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
+V100 (Colab High RAM / 8CPU) (vs+TensorRT8+x264 (--opencl)+C++ TRT+num_streams=3+no tiling+opset15) | 5.09 | 4.56 | 2.02
+V100 (Colab High RAM / 8CPU) (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=3+no tiling+opset15) | 5.4 | 4.8 | 2.2
 3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=1) | 8.14 | 3.12 | 1.4
 
 RealESRGAN (4x) | 480p | 720p | 1080p
