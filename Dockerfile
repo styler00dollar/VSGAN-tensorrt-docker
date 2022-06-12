@@ -64,6 +64,9 @@ RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/downlo
     https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up4x-latest-conservative.pth \
     https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up4x-latest-denoise3x.pth \
     https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up4x-latest-no-denoise.pth \
+# IFRNet
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/IFRNet_S_Vimeo90K.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/IFRNet_L_Vimeo90K.pth \
 # film
     https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/FILM.tar.gz && \
     tar -zxvf FILM.tar.gz && rm -rf FILM.tar.gz

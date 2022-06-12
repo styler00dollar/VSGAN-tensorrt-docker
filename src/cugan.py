@@ -358,37 +358,59 @@ from .realesrganner import RealESRGANer
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
-def cugan_inference(clip: vs.VideoNode, fp16: bool = True, scale: int = 2, kind_model: str = "no_denoise", backend_inference: str = "cuda", tile_x:int = 512, tile_y:int = 512, tile_pad:int = 10, pre_pad:int = 0) -> vs.VideoNode:
+def cugan_inference(clip: vs.VideoNode, fp16: bool = True, scale: int = 2, kind_model: str = "no_denoise", backend_inference: str = "cuda", tile_x:int = 512, 
+        tile_y:int = 512, tile_pad:int = 10, pre_pad:int = 0, pro: bool = False) -> vs.VideoNode:
     if not isinstance(clip, vs.VideoNode):
         raise vs.Error('cugan: This is not a clip')
 
     if clip.format.id != vs.RGBS:
         raise vs.Error('cugan: only RGBS format is supported')
     
+    # normal
     if scale == 2:
-      model = UpCunet2x(in_channels=3, out_channels=3)
-      if kind_model == "no_denoise":
-        model_path = "/workspace/up2x-latest-no-denoise.pth"
-      elif kind_model == "conservative":
-        model_path = "/workspace/up2x-latest-conservative.pth"
-      elif kind_model == "denoise3x":
-        model_path = "/workspace/up2x-latest-denoise3x.pth"
+        model = UpCunet2x(in_channels=3, out_channels=3)
+        if kind_model == "no_denoise":
+            if pro == True:
+                model_path = "/workspace/cugan_pro-no-denoise3x-up2x.pth"
+            else:
+                model_path = "/workspace/cugan_up2x-latest-no-denoise.pth"
+        elif kind_model == "conservative":
+            if pro == True:
+                model_path = "/workspace/cugan_pro-conservative-up2x.pth"
+            else:
+                model_path = "/workspace/cugan_up2x-latest-conservative.pth"
+        elif kind_model == "denoise3x":
+            if pro == True:
+                model_path = "cugan_pro-denoise3x-up2x.pth"
+            else:
+                model_path = "/workspace/cugan_up2x-latest-denoise3x.pth"
+
     elif scale == 3:
-      model = UpCunet3x(in_channels=3, out_channels=3)
-      if kind_model == "no_denoise":
-        model_path = "/workspace/up3x-latest-no-denoise.pth"
-      elif kind_model == "conservative":
-        model_path = "/workspace/up3x-latest-conservative.pth"
-      elif kind_model == "denoise3x":
-        model_path = "/workspace/up3x-latest-denoise3x.pth"
+        model = UpCunet3x(in_channels=3, out_channels=3)
+        if kind_model == "no_denoise":
+            if pro == True:
+                model_path = "/workspace/cugan_pro-no-denoise3x-up3x.pth"
+            else:
+                model_path = "/workspace/cugan_up3x-latest-no-denoise.pth"
+        elif kind_model == "conservative":
+            if pro == True:
+                model_path = "/workspace/cugan_pro-conservative-up3x.pth"
+            else:
+                model_path = "/workspace/cugan_up3x-latest-conservative.pth"
+        elif kind_model == "denoise3x":
+            if pro == True:
+                model_path = "/workspace/cugan_pro-denoise3x-up3x.pth"
+            else:
+                model_path = "/workspace/cugan_up3x-latest-denoise3x.pth"
+
     elif scale == 4:
-      model = UpCunet4x(in_channels=3, out_channels=3)
-      if kind_model == "no_denoise":
-        model_path = "/workspace/up4x-latest-no-denoise.pth"
-      elif kind_model == "conservative":
-        model_path = "/workspace/up4x-latest-conservative.pth"
-      elif kind_model == "denoise3x":
-        model_path = "/workspace/up4x-latest-denoise3x.pth"
+        model = UpCunet4x(in_channels=3, out_channels=3)
+        if kind_model == "no_denoise":
+            model_path = "/workspace/cugan_up4x-latest-no-denoise.pth"
+        elif kind_model == "conservative":
+            model_path = "/workspace/cugan_up4x-latest-conservative.pth"
+        elif kind_model == "denoise3x":
+            model_path = "/workspace/cugan_up4x-latest-denoise3x.pth"
 
     model.load_state_dict(torch.load(model_path, map_location="cpu"))
 

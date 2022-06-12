@@ -13,6 +13,7 @@ from vsbasicvsrpp import BasicVSRPP
 from src.realbasicvsr import realbasicvsr_model
 from src.film import FILM_inference
 from src.pan import PAN_inference
+from src.IFRNet import IFRNet
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -74,7 +75,7 @@ clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = False, fastmode = False, ensemb
 # RealBasicVSR
 #clip = realbasicvsr_model(clip, interval=15, fp16=True)
 # cugan
-# scales: 2 | 3 | 4, kind_model: no_denoise | denoise3x | conservative, backend_inference: cuda | onnx
+# scales: 2 | 3 | 4, kind_model: no_denoise | denoise3x | conservative, backend_inference: cuda | onnx, pro: True/False (only available for 2x and 3x scale)
 # only cuda supports tiling
 #clip = cugan_inference(clip, fp16 = True, scale = 2, kind_model = "no_denoise", backend_inference = "cuda", tile_x=512, tile_y=512, tile_pad=10, pre_pad=0)
 # FILM
@@ -90,6 +91,9 @@ clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = False, fastmode = False, ensemb
 # PAN
 # scale = 2 | 3 | 4
 #clip = PAN_inference(clip, scale=2, fp16=True)
+# IFRNet
+# model: small | large
+#clip = IFRNet(clip, model="small")
 
 ###############################################
 # [ONLY IN DEV DOCKER] MODELS (NCNN)
