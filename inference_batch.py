@@ -25,7 +25,7 @@ core.std.LoadPlugin(path='/usr/local/lib/libvstrt.so')
 
 tmp_dir = "tmp/"
 with open(os.path.join(tmp_dir, "tmp.txt")) as f:
-    video_path = f.readlines()
+    video_path = f.readlines()[0]
 
 # cfr video
 clip = core.ffms2.Source(source=video_path)
