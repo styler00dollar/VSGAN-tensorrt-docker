@@ -8,20 +8,20 @@ RUN apt-get -y update
 # installing vapoursynth and torch
 RUN apt install p7zip-full x264 ffmpeg autoconf libtool yasm python3.9 python3.9-venv python3.9-dev ffmsindex libffms2-4 libffms2-dev -y && \
     git clone https://github.com/sekrit-twc/zimg.git && cd zimg && ./autogen.sh && ./configure && make -j4 && make install && cd .. && rm -rf zimg && \
-    pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R57.zip && \
-    7z x R57.zip && cd vapoursynth-R57 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
+    pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R59.zip && \
+    7z x R59.zip && cd vapoursynth-R59 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.9/site-packages/vapoursynth.so /usr/lib/python3.9/lib-dynload/vapoursynth.so && \
     pip install scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python onnx onnxruntime onnxruntime-gpu cupy-cuda115 pytorch-msssim \
         https://download.pytorch.org/whl/cu115/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl \
         https://download.pytorch.org/whl/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl \
         https://github.com/pytorch/TensorRT/releases/download/v1.1.0/torch_tensorrt-1.1.0-cp38-cp38-linux_x86_64.whl \
         mmcv-full==1.5.0 -f https://download.openmmlab.com/mmcv/dist/cu115/torch1.11.0/index.html && \
-    # not deleting vapoursynth-R57 since vs-mlrt needs it
-    rm -rf R57.zip zimg && \
+    # not deleting vapoursynth-R59 since vs-mlrt needs it
+    rm -rf R59.zip zimg && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip3 cache purge
 
-# upgrading ffmpeg manually (ffmpeg 20220422 from https://johnvansickle.com/ffmpeg/)
-RUN wget https://files.catbox.moe/nm1sfp -O ffmpeg && \
+# upgrading ffmpeg manually (ffmpeg 20220526 from https://johnvansickle.com/ffmpeg/)
+RUN wget https://files.catbox.moe/cplts2 -O ffmpeg && \
     chmod +x ./ffmpeg && mv ffmpeg /usr/bin/ffmpeg
 
 # installing tensorflow because of FILM
@@ -53,17 +53,24 @@ RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/downlo
 # RealBasicVSR_x4
     https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/RealBasicVSR_x4.pth \
 # cugan models
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up2x-latest-conservative.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up2x-latest-denoise1x.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up2x-latest-denoise2x.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up2x-latest-denoise3x.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up2x-latest-no-denoise.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up3x-latest-conservative.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up3x-latest-denoise3x.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up3x-latest-no-denoise.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up4x-latest-conservative.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up4x-latest-denoise3x.pth \
-    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/up4x-latest-no-denoise.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-conservative.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-denoise1x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-denoise2x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-denoise3x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-no-denoise.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up3x-latest-conservative.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up3x-latest-denoise3x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up3x-latest-no-denoise.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up4x-latest-conservative.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up4x-latest-denoise3x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up4x-latest-no-denoise.pth \
+
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-conservative-up2x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-conservative-up3x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-denoise3x-up2x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-denoise3x-up3x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-no-denoise3x-up2x.pth \
+    https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-no-denoise3x-up3x.pth \
 # IFRNet
     https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/IFRNet_S_Vimeo90K.pth \
     https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/IFRNet_L_Vimeo90K.pth \
@@ -92,8 +99,8 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11 && \
 # compiling
     git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt/vstrt && mkdir build && \
-    cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R57/include && make && make install && \
-    cd .. && rm -rf cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth-R57
+    cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R59/include && make && make install && \
+    cd .. && rm -rf cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth-R59
 
 # x265
 RUN git clone https://github.com/AmusementClub/x265 /workspace/x265 && cd /workspace/x265/source/ && mkdir build && cd build && \
