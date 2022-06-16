@@ -10,6 +10,7 @@ Table of contents
    * [Deduplicated inference](#deduplicated)
    * [Skipping scenes with scene detection](#skipping)
    * [vs-mlrt (C++ TRT)](#vs-mlrt)
+       * [multi-gpu](#multi-gpu)
    * [ncnn](#ncnn)
        * [If you have errors installing ncnn whl files with pip](#pip-error)
        * [Rife ncnn C++](#rife-ncnn-c)
@@ -156,6 +157,19 @@ Be aware that DPIR (color) needs 4 channels.
 trtexec --fp16 --onnx=dpir_drunet_color.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT
 ```
 and put that engine path into `inference.py`. Only do FP16 if your GPU does support it.
+
+<div id='multi-gpu'/>
+
+# multi-gpu
+
+Thanks to tepete who figured it out, there is also a way to do inference on multipe GPUs.
+
+```
+stream0 = core.std.SelectEvery(core.trt.Model(clip, engine_path="models/engines/model.engine", num_streams=2, device_id=0), cycle=3, offsets=0)
+stream1 = core.std.SelectEvery(core.trt.Model(clip, engine_path="models/engines/model.engine", num_streams=2, device_id=1), cycle=3, offsets=1)
+stream2 = core.std.SelectEvery(core.trt.Model(clip, engine_path="models/engines/model.engine", num_streams=2, device_id=2), cycle=3, offsets=2)
+clip = core.std.Interleave([stream0, stream1, stream2])
+```
 
 <div id='ncnn'/>
 
