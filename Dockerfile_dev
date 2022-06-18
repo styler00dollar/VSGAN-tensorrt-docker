@@ -139,11 +139,11 @@ RUN pip install docutils && git clone https://github.com/hahnec/color-matcher &&
     cd /workspace && rm -rf color-matcher && pip cache purge
 
 # imagemagick for imread
-RUN apt-get install checkinstall libwebp-dev libopenjp2-7-dev librsvg2-dev libde265-dev -y && wget https://www.imagemagick.org/download/ImageMagick.tar.gz && \
-    tar xvzf ImageMagick.tar.gz && cd ImageMagick-7.1.0-37 && ./configure --enable-shared --with-modules --with-gslib && make && \
-    make install && ldconfig /usr/local/lib && cd /workspace && rm -rf ImageMagick.tar.gz ImageMagick-7.1.0-32 && \
+RUN apt-get install checkinstall libwebp-dev libopenjp2-7-dev librsvg2-dev libde265-dev -y && git clone https://github.com/ImageMagick/ImageMagick && cd ImageMagick && \
+    ./configure --enable-shared --with-modules --with-gslib && make && \
+    make install && ldconfig /usr/local/lib && cd /workspace && rm -rf ImageMagick && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-
+    
 # upgrading ffmpeg manually (ffmpeg 20220526 from https://johnvansickle.com/ffmpeg/)
 RUN wget https://files.catbox.moe/cplts2 -O ffmpeg && \
     chmod +x ./ffmpeg && mv ffmpeg /usr/bin/ffmpeg
