@@ -469,8 +469,9 @@ A100 (Colab) | 76 | 47 | 25
 
 cugan 2x | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
-V100 (Colab) (vs+CUDA) | 7 | 3.1 | ?
-V100 (Colab High RAM) (vs+CUDA) | 21 | 9.7 | 4
+V100 (Colab) (vs+CUDA+ffmpeg+FrameEval) | 7 | 3.1 | ?
+V100 (Colab High RAM) (vs+CUDA+ffmpeg+FrameEval) | 21 | 9.7 | 4
+V100 (Colab Hich RAM / 8CPU) (vs+ffmpeg+TensorRT8.4GA+num_streams=3+opset13+no tiling) | 28 | 14 | 6.1
 
 cugan 4x | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
