@@ -1,7 +1,7 @@
 # This is a cuda+vulkan docker
 # This docker requires you to download some files yourself and place them into the current directory
 
-# DOCKER_BUILDKIT=1 docker build --force-rm -t styler00dollar/vsgan_tensorrt_dev:latest .
+# DOCKER_BUILDKIT=1 docker build -t styler00dollar/vsgan_tensorrt_dev:latest .
 
 # 20.04 has python3.8, which is currently maximum for TensorRT 8.4 EA, 22.04 has 3.10
 
@@ -9,7 +9,6 @@
 #https://github.com/bitnimble/docker-vulkan/blob/master/docker/Dockerfile.ubuntu20.04
 #https://gitlab.com/nvidia/container-images/vulkan/-/blob/ubuntu16.04/Dockerfile
 FROM ubuntu:20.04 as vulkan-khronos
-LABEL stage=vulkan-khronos
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
@@ -65,6 +64,8 @@ COPY --from=vulkan-khronos /usr/local/lib /usr/local/lib
 COPY --from=vulkan-khronos /usr/local/include/vulkan /usr/local/include/vulkan
 COPY --from=vulkan-khronos /usr/local/share/vulkan /usr/local/share/vulkan
 
+COPY nvidia_icd.json /etc/vulkan/icd.d/nvidia_icd.json
+
 ######################
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -77,8 +78,6 @@ WORKDIR workspace
 RUN apt-get -y update && apt install wget python3 python3.8 python3.8-venv python3.8-dev python3-pip python-is-python3 -y && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 RUN pip3 install --upgrade pip
-
-RUN wget https://raw.githubusercontent.com/bitnimble/docker-vulkan/master/nvidia_icd.json -o /etc/vulkan/icd.d/nvidia_icd.json
 
 # download it from nvidias website and put it into the same folder
 COPY nv-tensorrt-repo-ubuntu2004-cuda11.6-trt8.4.1.5-ga-20220604_1-1_amd64.deb nv-tensorrt-repo-ubuntu2004-cuda11.6-trt8.4.1.5-ga-20220604_1-1_amd64.deb
@@ -134,6 +133,16 @@ RUN apt update -y && \
     # not deleting vapoursynth-R59 since vs-mlrt needs it
     rm -rf R59.zip zimg && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip cache purge
+
+# color transfer
+RUN pip install docutils && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py install && \
+    cd /workspace && rm -rf color-matcher && pip cache purge
+
+# imagemagick for imread
+RUN apt-get install checkinstall libwebp-dev libopenjp2-7-dev librsvg2-dev libde265-dev -y && wget https://www.imagemagick.org/download/ImageMagick.tar.gz && \
+    tar xvzf ImageMagick.tar.gz && cd ImageMagick-7.1.0-37 && ./configure --enable-shared --with-modules --with-gslib && make && \
+    make install && ldconfig /usr/local/lib && cd /workspace && rm -rf ImageMagick.tar.gz ImageMagick-7.1.0-32 && \
+    apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 
 # upgrading ffmpeg manually (ffmpeg 20220526 from https://johnvansickle.com/ffmpeg/)
 RUN wget https://files.catbox.moe/cplts2 -O ffmpeg && \
