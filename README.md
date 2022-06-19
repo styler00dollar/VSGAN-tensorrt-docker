@@ -55,8 +55,9 @@ Some important things:
 - Do not use `webm` video, webm is often broken. It can work, but don't complain about broken output afterwards.
 - Processing variable framerate (vfr) video is dangerous, but you can try to use fpsnum and fpsden. I would recommend to just render the input video into constant framerate (crf).
 - `x264` can be faster than `ffmpeg`, use that instead.
-- `ncnn` does not work with docker. Docker can only support Nvidia GPUs and even if you want to run ncnn with a supported GPU inside docker, you will just get llvmpipe instead of GPU acceleration. If you want ncnn, install dependencies to your own system.
-- `rife4` can use PSNR, SSIM, MS_SSIM deduplication. Quick testing showed quite some speed increase.
+- NVidia makes it quite hard to use cuda and vulkan simultaneously in a docker. The official TensorRT docker uses llvmpipe instead of GPU if I attempt to use ncnn. Vulkan does not work with cuda dockers and it is not possible to install it manually afterwards. I also tried to compile TensorRT with an arch docker, but it is not possible to have a gpu during the build process, so that fails too. The only working way is to get TensorRT and ncnn working in one docker is to use the cudagl docker, but that breaks Python API (or rather pycuda based) code. So either one docker where all TensorRT APIs work (default docker) or one where only C++ TRT works, but also ncnn (dev docker).
+- The C++ VS rife extention can be faster than CUDA.
+- `rife4` with PyTorch can use PSNR, SSIM, MS_SSIM deduplication. The C++ plugin also supports VMAF. Quick testing showed quite some speed increase.
 - Colabs have a weak cpu, you should try `x264` with `--opencl`. (A100 does not support NVENC and such)
 
 <div id='usage'/>
@@ -68,7 +69,8 @@ yay -S docker nvidia-docker nvidia-container-toolkit docker-compose
 
 # Download prebuild image from dockerhub (recommended)
 docker pull styler00dollar/vsgan_tensorrt:latest
-# I also created a development docker, which is more experimental. It has ncnn support.
+# I also created a development docker, which is more experimental and bigger in size. 
+# It has ncnn support and has more features.
 docker pull styler00dollar/vsgan_tensorrt_dev:latest
 
 # Build docker manually
