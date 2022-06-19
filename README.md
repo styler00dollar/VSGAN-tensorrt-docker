@@ -440,7 +440,7 @@ Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p
 3090 (TensorRT8+ffmpeg+ModifyFrame) | ? | 119 | 58 | 
 V100 (Colab) (TensorRT8.2GA+ffmpeg+ModifyFrame) | 34 | 17 | 7.6
 V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | 64 | 43 | 25
-V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (8 thraeds)) | 136 | 65 | 29
+V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (8 threads)) | 136 | 65 | 29
 A100 (Colab) (TensorRT8.2GA.2GA+ffmpeg+ModifyFrame) | 92 | 56 | 29
 
 Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p 
