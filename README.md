@@ -2,6 +2,8 @@
 
 Using image super resolution models with vapoursynth and speeding them up with TensorRT if possible. This repo is the fastest inference code that you can find. Not all codes can use TensorRT due to various reasons, but I try to add that if it works. Using [NVIDIA/Torch-TensorRT](https://github.com/NVIDIA/Torch-TensorRT) combined with [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN). This repo makes the usage of tiling and ESRGAN models very easy. Models can be found on the [wiki page](https://upscale.wiki/wiki/Model_Database). Further model architectures are planned to be added later on.
 
+I also created a Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/styler00dollar/VSGAN-tensorrt-docker/blob/main/Colab-VSGAN.ipynb)
+
 Table of contents
 =================
 
