@@ -404,12 +404,18 @@ V100 (Colab High VRAM) (C++ TensorRT8.2GA+x264 (--opencl)+FrameEval+no tiling) |
 V100 (Colab High VRAM) (C++ TensorRT8.2GA+x264+FrameEval+no tiling) | 2.49 | 1.14 | 0.47
 A100 (Colab) (Torch-TensorRT8.2GA+ffmpeg+FrameEval) | 5.6 | 2.6 | 1.1
 
-RealESRGAN (2x) | 480p | 720p | 1080p
+Note: The offical RealESRGAN repository uses 6b (6 blocks) for the anime model.
+
+RealESRGAN (2x) (6b) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
 1070ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=1+no tiling+opset15) | 0.9 | 0.8 | 0.3
 3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=1) | 8.14 | 3.12 | 1.4
 V100 (Colab High RAM / 8CPU) (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling+opset15) | 5.09 | 4.56 | 2.02
 V100 (Colab High RAM / 8CPU) (vs+TensorRT8.2GA+ffmpeg+C++ TRT+num_streams=3+no tiling+opset15) | 5.4 | 4.8 | 2.2
+
+RealESRGAN (2x) (3b+dropout) | 480p | 720p | 1080p
+------------  | ---  | ---- | ------
+3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=2) | 15.93 | 5.69 | 2.64
 
 RealESRGAN (4x) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
