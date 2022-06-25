@@ -12,8 +12,9 @@ import numpy as np
 # for RCAN
 def default_conv(in_channels, out_channels, kernel_size, bias=True):
     return nn.Conv2d(
-        in_channels, out_channels, kernel_size,
-        padding=(kernel_size//2), bias=bias)
+        in_channels, out_channels, kernel_size, padding=(kernel_size // 2), bias=bias
+    )
+
 
 class MeanShift(nn.Conv2d):
     def __init__(self, rgb_range, rgb_mean, rgb_std, sign=-1):
@@ -24,7 +25,8 @@ class MeanShift(nn.Conv2d):
         self.bias.data = sign * rgb_range * torch.Tensor(rgb_mean)
         self.bias.data.div_(std)
         self.requires_grad = False
-        
+
+
 # for other networks
 def initialize_weights(net_l, scale=1):
     if not isinstance(net_l, list):
@@ -32,12 +34,12 @@ def initialize_weights(net_l, scale=1):
     for net in net_l:
         for m in net.modules():
             if isinstance(m, nn.Conv2d):
-                init.kaiming_normal_(m.weight, a=0, mode='fan_in')
+                init.kaiming_normal_(m.weight, a=0, mode="fan_in")
                 m.weight.data *= scale  # for residual block
                 if m.bias is not None:
                     m.bias.data.zero_()
             elif isinstance(m, nn.Linear):
-                init.kaiming_normal_(m.weight, a=0, mode='fan_in')
+                init.kaiming_normal_(m.weight, a=0, mode="fan_in")
                 m.weight.data *= scale
                 if m.bias is not None:
                     m.bias.data.zero_()
@@ -52,12 +54,12 @@ def make_layer(block, n_layers):
         layers.append(block())
     return nn.Sequential(*layers)
 
-        
+
 class ResidualBlock_noBN(nn.Module):
-    '''Residual block w/o BN
+    """Residual block w/o BN
     ---Conv-ReLU-Conv-+-
      |________________|
-    '''
+    """
 
     def __init__(self, nf=64):
         super(ResidualBlock_noBN, self).__init__()
@@ -74,7 +76,7 @@ class ResidualBlock_noBN(nn.Module):
         return identity + out
 
 
-def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros'):
+def flow_warp(x, flow, interp_mode="bilinear", padding_mode="zeros"):
     """Warp an image or feature map with optical flow
     Args:
         x (Tensor): size (N, C, H, W)
@@ -100,25 +102,28 @@ def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros'):
     output = F.grid_sample(x, vgrid_scaled, mode=interp_mode, padding_mode=padding_mode)
     return output
 
+
 def scalex4(im):
-    '''Nearest Upsampling by myself'''
+    """Nearest Upsampling by myself"""
     im1 = im[:, :1, ...].repeat(1, 16, 1, 1)
-    im2 =  im[:, 1:2, ...].repeat(1, 16, 1, 1)
+    im2 = im[:, 1:2, ...].repeat(1, 16, 1, 1)
     im3 = im[:, 2:, ...].repeat(1, 16, 1, 1)
-    
-#     b, c, h, w = im.shape
-#     w = torch.randn(b,16,h,w).cuda() * (5e-2)
-    
-#     img1 = im1 + im1 * w
-#     img2 = im2 + im2 * w
-#     img3 = im3 + im3 * w
-    
+
+    #     b, c, h, w = im.shape
+    #     w = torch.randn(b,16,h,w).cuda() * (5e-2)
+
+    #     img1 = im1 + im1 * w
+    #     img2 = im2 + im2 * w
+    #     img3 = im3 + im3 * w
+
     imhr = torch.cat((im1, im2, im3), 1)
     imhr = F.pixel_shuffle(imhr, 4)
     return imhr
 
+
 class PA(nn.Module):
-    '''PA is pixel attention'''
+    """PA is pixel attention"""
+
     def __init__(self, nf):
 
         super(PA, self).__init__()
@@ -132,16 +137,20 @@ class PA(nn.Module):
         out = torch.mul(x, y)
 
         return out
-    
-class PAConv(nn.Module):
 
+
+class PAConv(nn.Module):
     def __init__(self, nf, k_size=3):
 
         super(PAConv, self).__init__()
-        self.k2 = nn.Conv2d(nf, nf, 1) # 1x1 convolution nf->nf
+        self.k2 = nn.Conv2d(nf, nf, 1)  # 1x1 convolution nf->nf
         self.sigmoid = nn.Sigmoid()
-        self.k3 = nn.Conv2d(nf, nf, kernel_size=k_size, padding=(k_size - 1) // 2, bias=False) # 3x3 convolution
-        self.k4 = nn.Conv2d(nf, nf, kernel_size=k_size, padding=(k_size - 1) // 2, bias=False) # 3x3 convolution
+        self.k3 = nn.Conv2d(
+            nf, nf, kernel_size=k_size, padding=(k_size - 1) // 2, bias=False
+        )  # 3x3 convolution
+        self.k4 = nn.Conv2d(
+            nf, nf, kernel_size=k_size, padding=(k_size - 1) // 2, bias=False
+        )  # 3x3 convolution
 
     def forward(self, x):
 
@@ -152,38 +161,43 @@ class PAConv(nn.Module):
         out = self.k4(out)
 
         return out
-        
+
+
 class SCPA(nn.Module):
-    
+
     """SCPA is modified from SCNet (Jiang-Jiang Liu et al. Improving Convolutional Networks with Self-Calibrated Convolutions. In CVPR, 2020)
-        Github: https://github.com/MCG-NKU/SCNet
+    Github: https://github.com/MCG-NKU/SCNet
     """
 
     def __init__(self, nf, reduction=2, stride=1, dilation=1):
         super(SCPA, self).__init__()
         group_width = nf // reduction
-        
+
         self.conv1_a = nn.Conv2d(nf, group_width, kernel_size=1, bias=False)
         self.conv1_b = nn.Conv2d(nf, group_width, kernel_size=1, bias=False)
-        
+
         self.k1 = nn.Sequential(
-                    nn.Conv2d(
-                        group_width, group_width, kernel_size=3, stride=stride,
-                        padding=dilation, dilation=dilation,
-                        bias=False)
-                    )
-        
+            nn.Conv2d(
+                group_width,
+                group_width,
+                kernel_size=3,
+                stride=stride,
+                padding=dilation,
+                dilation=dilation,
+                bias=False,
+            )
+        )
+
         self.PAConv = PAConv(group_width)
-        
-        self.conv3 = nn.Conv2d(
-            group_width * reduction, nf, kernel_size=1, bias=False)
-        
+
+        self.conv3 = nn.Conv2d(group_width * reduction, nf, kernel_size=1, bias=False)
+
         self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
 
     def forward(self, x):
         residual = x
 
-        out_a= self.conv1_a(x)
+        out_a = self.conv1_a(x)
         out_b = self.conv1_b(x)
         out_a = self.lrelu(out_a)
         out_b = self.lrelu(out_b)
@@ -197,90 +211,98 @@ class SCPA(nn.Module):
         out += residual
 
         return out
-    
+
+
 class PAN(nn.Module):
-    
     def __init__(self, in_nc, out_nc, nf, unf, nb, scale=4):
         super(PAN, self).__init__()
         # SCPA
         SCPA_block_f = functools.partial(SCPA, nf=nf, reduction=2)
         self.scale = scale
-        
+
         ### first convolution
         self.conv_first = nn.Conv2d(in_nc, nf, 3, 1, 1, bias=True)
-        
+
         ### main blocks
         self.SCPA_trunk = make_layer(SCPA_block_f, nb)
         self.trunk_conv = nn.Conv2d(nf, nf, 3, 1, 1, bias=True)
-        
+
         #### upsampling
         self.upconv1 = nn.Conv2d(nf, unf, 3, 1, 1, bias=True)
         self.att1 = PA(unf)
         self.HRconv1 = nn.Conv2d(unf, unf, 3, 1, 1, bias=True)
-        
+
         if self.scale == 4:
             self.upconv2 = nn.Conv2d(unf, unf, 3, 1, 1, bias=True)
             self.att2 = PA(unf)
             self.HRconv2 = nn.Conv2d(unf, unf, 3, 1, 1, bias=True)
-            
+
         self.conv_last = nn.Conv2d(unf, out_nc, 3, 1, 1, bias=True)
         self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
 
     def forward(self, x):
-        
+
         fea = self.conv_first(x)
         trunk = self.trunk_conv(self.SCPA_trunk(fea))
         fea = fea + trunk
-        
+
         if self.scale == 2 or self.scale == 3:
-            fea = self.upconv1(F.interpolate(fea, scale_factor=self.scale, mode='nearest'))
+            fea = self.upconv1(
+                F.interpolate(fea, scale_factor=self.scale, mode="nearest")
+            )
             fea = self.lrelu(self.att1(fea))
             fea = self.lrelu(self.HRconv1(fea))
         elif self.scale == 4:
-            fea = self.upconv1(F.interpolate(fea, scale_factor=2, mode='nearest'))
+            fea = self.upconv1(F.interpolate(fea, scale_factor=2, mode="nearest"))
             fea = self.lrelu(self.att1(fea))
             fea = self.lrelu(self.HRconv1(fea))
-            fea = self.upconv2(F.interpolate(fea, scale_factor=2, mode='nearest'))
+            fea = self.upconv2(F.interpolate(fea, scale_factor=2, mode="nearest"))
             fea = self.lrelu(self.att2(fea))
             fea = self.lrelu(self.HRconv2(fea))
-        
+
         out = self.conv_last(fea)
-        
-        ILR = F.interpolate(x, scale_factor=self.scale, mode='bilinear', align_corners=False)
+
+        ILR = F.interpolate(
+            x, scale_factor=self.scale, mode="bilinear", align_corners=False
+        )
         out = out + ILR
         return out
- 
- # Code mainly from https://github.com/HolyWu/vs-realesrgan
+
+
+# Code mainly from https://github.com/HolyWu/vs-realesrgan
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
-def PAN_inference(clip: vs.VideoNode, scale: int = 2, fp16: bool = True) -> vs.VideoNode:
+
+def PAN_inference(
+    clip: vs.VideoNode, scale: int = 2, fp16: bool = True
+) -> vs.VideoNode:
     if not isinstance(clip, vs.VideoNode):
-        raise vs.Error('PAN: this is not a clip')
+        raise vs.Error("PAN: this is not a clip")
 
     if clip.format.id != vs.RGBS:
-        raise vs.Error('PAN: only RGBS format is supported')
+        raise vs.Error("PAN: only RGBS format is supported")
 
     if scale not in [2, 3, 4]:
-        raise vs.Error('PAN: scale must be 2 or 4')
-    
+        raise vs.Error("PAN: scale must be 2 or 4")
+
     # load network
     if scale == 2:
-        model_path = f'/workspace/PANx2_DF2K.pth'
+        model_path = f"/workspace/PANx2_DF2K.pth"
         model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=2)
     elif scale == 3:
-        model_path = f'/workspace/PANx3_DF2K.pth'
+        model_path = f"/workspace/PANx3_DF2K.pth"
         model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=3)
     elif scale == 4:
-        model_path = f'/workspace/PANx4_DF2K.pth'
-        model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=4) 
+        model_path = f"/workspace/PANx4_DF2K.pth"
+        model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=4)
     model.load_state_dict(torch.load(model_path, map_location="cpu"))
     model.eval()
 
     if fp16:
         model = model.half()
     model.cuda()
-        
+
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
         img = frame_to_tensor(clip.get_frame(n))
         img = np.expand_dims(img, 0)
@@ -294,22 +316,18 @@ def PAN_inference(clip: vs.VideoNode, scale: int = 2, fp16: bool = True) -> vs.V
         return tensor_to_clip(clip=clip, image=output)
 
     return core.std.FrameEval(
-            core.std.BlankClip(
-                clip=clip,
-                width=clip.width * scale,
-                height=clip.height * scale
-            ),
-            functools.partial(
-                execute,
-                clip=clip
-            )
+        core.std.BlankClip(
+            clip=clip, width=clip.width * scale, height=clip.height * scale
+        ),
+        functools.partial(execute, clip=clip),
     )
 
+
 def frame_to_tensor(frame: vs.VideoFrame) -> torch.Tensor:
-    return np.stack([
-        np.asarray(frame[plane])
-        for plane in range(frame.format.num_planes)
-    ])
+    return np.stack(
+        [np.asarray(frame[plane]) for plane in range(frame.format.num_planes)]
+    )
+
 
 def tensor_to_frame(f: vs.VideoFrame, array) -> vs.VideoFrame:
     for plane in range(f.format.num_planes):
@@ -317,14 +335,9 @@ def tensor_to_frame(f: vs.VideoFrame, array) -> vs.VideoFrame:
         np.copyto(d, array[plane, :, :])
     return f
 
+
 def tensor_to_clip(clip: vs.VideoNode, image) -> vs.VideoNode:
-    clip = core.std.BlankClip(
-        clip=clip,
-        width=image.shape[-1],
-        height=image.shape[-2]
-    )
+    clip = core.std.BlankClip(clip=clip, width=image.shape[-1], height=image.shape[-2])
     return core.std.ModifyFrame(
-        clip=clip,
-        clips=clip,
-        selector=lambda n, f: tensor_to_frame(f.copy(), image)
+        clip=clip, clips=clip, selector=lambda n, f: tensor_to_frame(f.copy(), image)
     )

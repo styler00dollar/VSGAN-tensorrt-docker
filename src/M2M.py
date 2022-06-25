@@ -7,17 +7,18 @@ from .dedup import PSNR
 import torch
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
-def IFRNet(
-    clip: vs.VideoNode, fp16: bool = True, fastmode: bool = False, model: str = "small"
+def M2M(
+    clip: vs.VideoNode,
+    fp16: bool = False,
 ) -> vs.VideoNode:
     if not isinstance(clip, vs.VideoNode):
-        raise vs.Error("IFRNet: this is not a clip")
+        raise vs.Error("M2M: this is not a clip")
 
     if clip.format.id != vs.RGBS:
-        raise vs.Error("IFRNet: only RGBS format is supported")
+        raise vs.Error("M2M: only RGBS format is supported")
 
     if clip.num_frames < 2:
-        raise vs.Error("IFRNet: clip's number of frames must be at least 2")
+        raise vs.Error("M2M: clip's number of frames must be at least 2")
 
     core = vs.core
 
@@ -26,17 +27,11 @@ def IFRNet(
     if fp16:
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
 
-    if model == "small":
-        from .IFRNet_S_arch import IRFNet_S
+    from .M2M_arch import M2M_PWC
 
-        model = IRFNet_S()
-        model.load_state_dict(torch.load("/workspace/IFRNet_S_Vimeo90K.pth"))
+    model = M2M_PWC()
+    model.load_state_dict(torch.load("/workspace/tensorrt/M2M.pth"))
 
-    elif model == "large":
-        from .IFRNet_L_arch import IRFNet_L
-
-        model = IRFNet_L()
-        model.load_state_dict(torch.load("/workspace/IFRNet_L_Vimeo90K.pth"))
     model.eval().cuda()
 
     w = clip.width
@@ -78,7 +73,11 @@ def IFRNet(
             I0 = I0.half()
             I1 = I1.half()
         with torch.inference_mode():
-            middle = model(I0, I1)
+            # forcing 2x for now
+            intRatio = None
+            intStep = 0.5
+            tenSteps = torch.FloatTensor([0.5]).view(1, 1, 1, 1).cuda()
+            middle = model(I0, I1, tenSteps, intRatio)[0]
 
         middle = middle.detach().squeeze(0).cpu().numpy()
 

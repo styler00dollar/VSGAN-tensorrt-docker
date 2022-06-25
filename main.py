@@ -9,7 +9,7 @@ import os
 input_dir = "/workspace/tensorrt/data/input/"
 tmp_dir = "tmp/"
 output_dir = "/workspace/tensorrt/data/output/"
-files = glob.glob(input_dir + '/**/*.mkv', recursive=True)
+files = glob.glob(input_dir + "/**/*.mkv", recursive=True)
 files.sort()
 
 
@@ -17,14 +17,16 @@ for f in files:
     # creating folders if they dont exist
     if os.path.exists(tmp_dir) == False:
         os.mkdir(tmp_dir)
-    if os.path.exists(output_dir) == False:  
+    if os.path.exists(output_dir) == False:
         os.mkdir(output_dir)
 
     # paths
     txt_path = os.path.join(tmp_dir, "tmp.txt")
-    subs_path = os.path.join(tmp_dir, "subs.ass") # srt, ass
-    audio_path = os.path.join(tmp_dir, "audio.ogg") # ogg, aac, flac, ac3
-    out_path = os.path.join(output_dir, os.path.splitext(os.path.basename(f))[0] + "_mux.mkv")
+    subs_path = os.path.join(tmp_dir, "subs.ass")  # srt, ass
+    audio_path = os.path.join(tmp_dir, "audio.ogg")  # ogg, aac, flac, ac3
+    out_path = os.path.join(
+        output_dir, os.path.splitext(os.path.basename(f))[0] + "_mux.mkv"
+    )
 
     # writing filepath into temp txt
     # workaround to pass filename parameter
@@ -40,11 +42,13 @@ for f in files:
     # copy audio without reencoding
     os.system(f"ffmpeg -i {f} -vn -acodec copy {audio_path}")
     # reencode if extract fails
-    #os.system(f"ffmpeg -i {f} -vn {audio_path}")
+    # os.system(f"ffmpeg -i {f} -vn {audio_path}")
     ###############################################
     # extract subtitles, -map 0:s:1 means second subtitle track
     os.system(f"ffmpeg -i {f} -map 0:s:0 {subs_path}")
-    os.system(f"vspipe -c y4m inference_batch.py - | ffmpeg -i {subs_path} -c:s mov_text -i pipe: -preset slow {out_path} -i {audio_path} -c copy")
+    os.system(
+        f"vspipe -c y4m inference_batch.py - | ffmpeg -i {subs_path} -c:s mov_text -i pipe: -preset slow {out_path} -i {audio_path} -c copy"
+    )
 
     # deleting temp files
     os.remove(txt_path)

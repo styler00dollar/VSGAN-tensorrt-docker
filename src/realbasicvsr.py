@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 import vapoursynth as vs
 
+
 def build(cfg, registry, default_args=None):
     """Build module function.
 
@@ -19,9 +20,7 @@ def build(cfg, registry, default_args=None):
         default_args (dict, optional): Default arguments. Defaults to None.
     """
     if isinstance(cfg, list):
-        modules = [
-            build_from_cfg(cfg_, registry, default_args) for cfg_ in cfg
-        ]
+        modules = [build_from_cfg(cfg_, registry, default_args) for cfg_ in cfg]
         return nn.Sequential(*modules)
 
     return build_from_cfg(cfg, registry, default_args)
@@ -70,21 +69,23 @@ core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
 
-def realbasicvsr_model(clip: vs.VideoNode, interval: int = 15, fp16: bool = False) -> vs.VideoNode:
+def realbasicvsr_model(
+    clip: vs.VideoNode, interval: int = 15, fp16: bool = False
+) -> vs.VideoNode:
 
     scale = 4
 
     if not isinstance(clip, vs.VideoNode):
-        raise vs.Error('EGVSR: this is not a clip')
+        raise vs.Error("EGVSR: this is not a clip")
 
     if clip.format.id != vs.RGBS:
-        raise vs.Error('EGVSR: only RGBS format is supported')
+        raise vs.Error("EGVSR: only RGBS format is supported")
 
     if interval < 1:
-        raise vs.Error('EGVSR: interval must be at least 1')
+        raise vs.Error("EGVSR: interval must be at least 1")
 
     if not torch.cuda.is_available():
-        raise vs.Error('EGVSR: CUDA is not available')
+        raise vs.Error("EGVSR: CUDA is not available")
 
     torch.backends.cudnn.enabled = True
     torch.backends.cudnn.benchmark = True
@@ -94,14 +95,16 @@ def realbasicvsr_model(clip: vs.VideoNode, interval: int = 15, fp16: bool = Fals
     config.model.pretrained = None
     config.test_cfg.metrics = None
     model = build_model(config.model, test_cfg=config.test_cfg)
-    model.load_state_dict(torch.load("/workspace/RealBasicVSR_x4.pth")["state_dict"], strict=True)
+    model.load_state_dict(
+        torch.load("/workspace/RealBasicVSR_x4.pth")["state_dict"], strict=True
+    )
     model.cuda().eval()
 
     if fp16:
         model.half()
 
     cache = {}
- 
+
     @torch.inference_mode()
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
         if str(n) not in cache:
@@ -118,7 +121,7 @@ def realbasicvsr_model(clip: vs.VideoNode, interval: int = 15, fp16: bool = Fals
             if fp16:
                 imgs = imgs.half()
 
-            output = model(imgs.cuda(), test_mode=True)['output']
+            output = model(imgs.cuda(), test_mode=True)["output"]
 
             output = output.squeeze(0).detach().cpu().numpy()
 
@@ -127,26 +130,22 @@ def realbasicvsr_model(clip: vs.VideoNode, interval: int = 15, fp16: bool = Fals
 
             del imgs
             torch.cuda.empty_cache()
-            
+
         return tensor_to_clip(clip=clip, image=cache[str(n)])
 
     return core.std.FrameEval(
-            core.std.BlankClip(
-                clip=clip,
-                width=clip.width * scale,
-                height=clip.height * scale
-            ),
-            functools.partial(
-                execute,
-                clip=clip
-            )
+        core.std.BlankClip(
+            clip=clip, width=clip.width * scale, height=clip.height * scale
+        ),
+        functools.partial(execute, clip=clip),
     )
 
+
 def frame_to_tensor(frame: vs.VideoFrame) -> torch.Tensor:
-    return np.stack([
-        np.asarray(frame[plane])
-        for plane in range(frame.format.num_planes)
-    ])
+    return np.stack(
+        [np.asarray(frame[plane]) for plane in range(frame.format.num_planes)]
+    )
+
 
 def tensor_to_frame(f: vs.VideoFrame, array) -> vs.VideoFrame:
     for plane in range(f.format.num_planes):
@@ -154,14 +153,9 @@ def tensor_to_frame(f: vs.VideoFrame, array) -> vs.VideoFrame:
         np.copyto(d, array[plane, :, :])
     return f
 
+
 def tensor_to_clip(clip: vs.VideoNode, image) -> vs.VideoNode:
-    clip = core.std.BlankClip(
-        clip=clip,
-        width=image.shape[-1],
-        height=image.shape[-2]
-    )
+    clip = core.std.BlankClip(clip=clip, width=image.shape[-1], height=image.shape[-2])
     return core.std.ModifyFrame(
-        clip=clip,
-        clips=clip,
-        selector=lambda n, f: tensor_to_frame(f.copy(), image)
+        clip=clip, clips=clip, selector=lambda n, f: tensor_to_frame(f.copy(), image)
     )

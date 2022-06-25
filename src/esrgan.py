@@ -42,26 +42,26 @@ def act(act_type, inplace=True, neg_slope=0.2, n_prelu=1):
     # neg_slope: for leakyrelu and init of prelu
     # n_prelu: for p_relu num_parameters
     act_type = act_type.lower()
-    if act_type == 'relu':
+    if act_type == "relu":
         layer = nn.ReLU(inplace)
-    elif act_type == 'leakyrelu':
+    elif act_type == "leakyrelu":
         layer = nn.LeakyReLU(neg_slope, inplace)
-    elif act_type == 'prelu':
+    elif act_type == "prelu":
         layer = nn.PReLU(num_parameters=n_prelu, init=neg_slope)
     else:
-        raise NotImplementedError('activation layer [%s] is not found' % act_type)
+        raise NotImplementedError("activation layer [%s] is not found" % act_type)
     return layer
 
 
 def norm(norm_type, nc):
     # helper selecting normalization layer
     norm_type = norm_type.lower()
-    if norm_type == 'batch':
+    if norm_type == "batch":
         layer = nn.BatchNorm2d(nc, affine=True)
-    elif norm_type == 'instance':
+    elif norm_type == "instance":
         layer = nn.InstanceNorm2d(nc, affine=False)
     else:
-        raise NotImplementedError('normalization layer [%s] is not found' % norm_type)
+        raise NotImplementedError("normalization layer [%s] is not found" % norm_type)
     return layer
 
 
@@ -71,12 +71,12 @@ def pad(pad_type, padding):
     pad_type = pad_type.lower()
     if padding == 0:
         return None
-    if pad_type == 'reflect':
+    if pad_type == "reflect":
         layer = nn.ReflectionPad2d(padding)
-    elif pad_type == 'replicate':
+    elif pad_type == "replicate":
         layer = nn.ReplicationPad2d(padding)
     else:
-        raise NotImplementedError('padding layer [%s] is not implemented' % pad_type)
+        raise NotImplementedError("padding layer [%s] is not implemented" % pad_type)
     return layer
 
 
@@ -97,8 +97,8 @@ class ConcatBlock(nn.Module):
         return output
 
     def __repr__(self):
-        tmpstr = 'Identity .. \n|'
-        modstr = self.sub.__repr__().replace('\n', '\n|')
+        tmpstr = "Identity .. \n|"
+        modstr = self.sub.__repr__().replace("\n", "\n|")
         tmpstr = tmpstr + modstr
         return tmpstr
 
@@ -114,8 +114,8 @@ class ShortcutBlock(nn.Module):
         return output
 
     def __repr__(self):
-        tmpstr = 'Identity + \n|'
-        modstr = self.sub.__repr__().replace('\n', '\n|')
+        tmpstr = "Identity + \n|"
+        modstr = self.sub.__repr__().replace("\n", "\n|")
         tmpstr = tmpstr + modstr
         return tmpstr
 
@@ -124,7 +124,7 @@ def sequential(*args):
     # Flatten Sequential. It unwraps nn.Sequential.
     if len(args) == 1:
         if isinstance(args[0], OrderedDict):
-            raise NotImplementedError('sequential does not support OrderedDict input.')
+            raise NotImplementedError("sequential does not support OrderedDict input.")
         return args[0]  # No sequential is needed.
     modules = []
     for module in args:
@@ -136,26 +136,45 @@ def sequential(*args):
     return nn.Sequential(*modules)
 
 
-def conv_block(in_nc, out_nc, kernel_size, stride=1, dilation=1, groups=1, bias=True,
-               pad_type='zero', norm_type=None, act_type: Optional[str] = 'relu', mode='CNA'):
+def conv_block(
+    in_nc,
+    out_nc,
+    kernel_size,
+    stride=1,
+    dilation=1,
+    groups=1,
+    bias=True,
+    pad_type="zero",
+    norm_type=None,
+    act_type: Optional[str] = "relu",
+    mode="CNA",
+):
     """
     Conv layer with padding, normalization, activation
     mode: CNA --> Conv -> Norm -> Act
         NAC --> Norm -> Act --> Conv (Identity Mappings in Deep Residual Networks, ECCV16)
     """
-    if mode not in ['CNA', 'NAC', 'CNAC']:
-        raise AssertionError('Wong conv mode [%s]' % mode)
+    if mode not in ["CNA", "NAC", "CNAC"]:
+        raise AssertionError("Wong conv mode [%s]" % mode)
     padding = get_valid_padding(kernel_size, dilation)
-    p = pad(pad_type, padding) if pad_type and pad_type != 'zero' else None
-    padding = padding if pad_type == 'zero' else 0
+    p = pad(pad_type, padding) if pad_type and pad_type != "zero" else None
+    padding = padding if pad_type == "zero" else 0
 
-    c = nn.Conv2d(in_nc, out_nc, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation, bias=bias,
-                  groups=groups)
+    c = nn.Conv2d(
+        in_nc,
+        out_nc,
+        kernel_size=kernel_size,
+        stride=stride,
+        padding=padding,
+        dilation=dilation,
+        bias=bias,
+        groups=groups,
+    )
     a = act(act_type) if act_type else None
-    if 'CNA' in mode:
+    if "CNA" in mode:
         n = norm(norm_type, out_nc) if norm_type else None
         return sequential(p, c, n, a)
-    if mode == 'NAC':
+    if mode == "NAC":
         if norm_type is None and act_type is not None:
             a = act(act_type, inplace=False)
             # Important!
@@ -171,8 +190,17 @@ def conv_block(in_nc, out_nc, kernel_size, stride=1, dilation=1, groups=1, bias=
 ####################
 
 
-def pixelshuffle_block(in_nc, out_nc, upscale_factor=2, kernel_size=3, stride=1, bias=True,
-                       pad_type='zero', norm_type=None, act_type='relu'):
+def pixelshuffle_block(
+    in_nc,
+    out_nc,
+    upscale_factor=2,
+    kernel_size=3,
+    stride=1,
+    bias=True,
+    pad_type="zero",
+    norm_type=None,
+    act_type="relu",
+):
     """
     Pixel shuffle layer
     (Real-Time Single Image and Video Super-Resolution Using an Efficient Sub-Pixel Convolutional
@@ -180,13 +208,13 @@ def pixelshuffle_block(in_nc, out_nc, upscale_factor=2, kernel_size=3, stride=1,
     """
     conv = conv_block(
         in_nc,
-        out_nc * (upscale_factor ** 2),
+        out_nc * (upscale_factor**2),
         kernel_size,
         stride,
         bias=bias,
         pad_type=pad_type,
         norm_type=None,
-        act_type=None
+        act_type=None,
     )
     pixel_shuffle = nn.PixelShuffle(upscale_factor)
 
@@ -195,15 +223,32 @@ def pixelshuffle_block(in_nc, out_nc, upscale_factor=2, kernel_size=3, stride=1,
     return sequential(conv, pixel_shuffle, n, a)
 
 
-def upconv_block(in_nc, out_nc, upscale_factor=2, kernel_size=3, stride=1, bias=True,
-                 pad_type='zero', norm_type=None, act_type='relu', mode='nearest'):
+def upconv_block(
+    in_nc,
+    out_nc,
+    upscale_factor=2,
+    kernel_size=3,
+    stride=1,
+    bias=True,
+    pad_type="zero",
+    norm_type=None,
+    act_type="relu",
+    mode="nearest",
+):
     # Up conv
     # described in https://distill.pub/2016/deconv-checkerboard/
     upsample = nn.Upsample(scale_factor=upscale_factor, mode=mode)
-    conv = conv_block(in_nc, out_nc, kernel_size, stride, bias=bias,
-                      pad_type=pad_type, norm_type=norm_type, act_type=act_type)
+    conv = conv_block(
+        in_nc,
+        out_nc,
+        kernel_size,
+        stride,
+        bias=bias,
+        pad_type=pad_type,
+        norm_type=norm_type,
+        act_type=act_type,
+    )
     return sequential(upsample, conv)
-
 
 
 # https://github.com/rlaphoenix/VSGAN/blob/master/vsgan/archs/ESRGAN.py
@@ -216,13 +261,19 @@ import torch
 import torch.nn as nn
 from torch import pixel_unshuffle
 
-#from vsgan.archs import blocks as block
-#from vsgan.constants import STATE_T
+# from vsgan.archs import blocks as block
+# from vsgan.constants import STATE_T
 
 
 class ESRGAN(nn.Module):
-    def __init__(self, model: str, norm=None, act: str = "leakyrelu", upsampler: str = "upconv",
-                 mode: str = "CNA") -> None:
+    def __init__(
+        self,
+        model: str,
+        norm=None,
+        act: str = "leakyrelu",
+        upsampler: str = "upconv",
+        mode: str = "CNA",
+    ) -> None:
         """
         ESRGAN - Enhanced Super-Resolution Generative Adversarial Networks.
         By Xintao Wang, Ke Yu, Shixiang Wu, Jinjin Gu, Yihao Liu, Chao Dong, Yu Qiao,
@@ -266,8 +317,8 @@ class ESRGAN(nn.Module):
             "model.10.bias": ("conv_last.bias",),
             r"model.1.sub.\1.RDB\2.conv\3.0.\4": (
                 r"RRDB_trunk\.(\d+)\.RDB(\d)\.conv(\d+)\.(weight|bias)",
-                r"body\.(\d+)\.rdb(\d)\.conv(\d+)\.(weight|bias)"
-            )
+                r"body\.(\d+)\.rdb(\d)\.conv(\d+)\.(weight|bias)",
+            ),
         }
         self.state = torch.load(self.model)
         if "params_ema" in self.state:
@@ -277,36 +328,43 @@ class ESRGAN(nn.Module):
 
         self.state: STATE_T = self.new_to_old_arch(self.state)
         self.in_nc = self.state["model.0.weight"].shape[1]
-        self.out_nc = self.get_out_nc() or self.in_nc  # assume same as in nc if not found
+        self.out_nc = (
+            self.get_out_nc() or self.in_nc
+        )  # assume same as in nc if not found
         self.scale = self.get_scale()
         self.num_filters = self.state["model.0.weight"].shape[0]
 
-        if self.in_nc in (self.out_nc * 4, self.out_nc * 16) and \
-                self.out_nc in (self.in_nc / 4, self.in_nc / 16):
+        if self.in_nc in (self.out_nc * 4, self.out_nc * 16) and self.out_nc in (
+            self.in_nc / 4,
+            self.in_nc / 16,
+        ):
             self.shuffle_factor = int(math.sqrt(self.in_nc / self.out_nc))
         else:
             self.shuffle_factor = None
 
         upsample_block = {
             "upconv": upconv_block,
-            "pixel_shuffle": pixelshuffle_block
+            "pixel_shuffle": pixelshuffle_block,
         }.get(self.upsampler)
         if upsample_block is None:
-            raise NotImplementedError("Upsample mode [%s] is not found" % self.upsampler)
+            raise NotImplementedError(
+                "Upsample mode [%s] is not found" % self.upsampler
+            )
 
         if self.scale == 3:
             upsample_blocks = upsample_block(
                 in_nc=self.num_filters,
                 out_nc=self.num_filters,
                 upscale_factor=3,
-                act_type=self.act
+                act_type=self.act,
             )
         else:
-            upsample_blocks = [upsample_block(
-                in_nc=self.num_filters,
-                out_nc=self.num_filters,
-                act_type=self.act
-            ) for _ in range(int(math.log(self.scale, 2)))]
+            upsample_blocks = [
+                upsample_block(
+                    in_nc=self.num_filters, out_nc=self.num_filters, act_type=self.act
+                )
+                for _ in range(int(math.log(self.scale, 2)))
+            ]
 
         self.model = sequential(
             # fea conv
@@ -315,32 +373,37 @@ class ESRGAN(nn.Module):
                 out_nc=self.num_filters,
                 kernel_size=3,
                 norm_type=None,
-                act_type=None
+                act_type=None,
             ),
-            ShortcutBlock(sequential(
-                # rrdb blocks
-                *[RRDB(
-                    nc=self.num_filters,
-                    kernel_size=3,
-                    gc=32,
-                    stride=1,
-                    bias=True,
-                    pad_type="zero",
-                    norm_type=self.norm,
-                    act_type=self.act,
-                    mode="CNA",
-                    plus=self.plus
-                ) for _ in range(self.num_blocks)],
-                # lr conv
-                conv_block(
-                    in_nc=self.num_filters,
-                    out_nc=self.num_filters,
-                    kernel_size=3,
-                    norm_type=self.norm,
-                    act_type=None,
-                    mode=self.mode
+            ShortcutBlock(
+                sequential(
+                    # rrdb blocks
+                    *[
+                        RRDB(
+                            nc=self.num_filters,
+                            kernel_size=3,
+                            gc=32,
+                            stride=1,
+                            bias=True,
+                            pad_type="zero",
+                            norm_type=self.norm,
+                            act_type=self.act,
+                            mode="CNA",
+                            plus=self.plus,
+                        )
+                        for _ in range(self.num_blocks)
+                    ],
+                    # lr conv
+                    conv_block(
+                        in_nc=self.num_filters,
+                        out_nc=self.num_filters,
+                        kernel_size=3,
+                        norm_type=self.norm,
+                        act_type=None,
+                        mode=self.mode,
+                    ),
                 )
-            )),
+            ),
             *upsample_blocks,
             # hr_conv0
             conv_block(
@@ -348,7 +411,7 @@ class ESRGAN(nn.Module):
                 out_nc=self.num_filters,
                 kernel_size=3,
                 norm_type=None,
-                act_type=self.act
+                act_type=self.act,
             ),
             # hr_conv1
             conv_block(
@@ -356,8 +419,8 @@ class ESRGAN(nn.Module):
                 out_nc=self.out_nc,
                 kernel_size=3,
                 norm_type=None,
-                act_type=None
-            )
+                act_type=None,
+            ),
         )
 
         # vapoursynth calls expect the real scale even if shuffled
@@ -377,7 +440,9 @@ class ESRGAN(nn.Module):
 
         # add nb to state keys
         for kind in ("weight", "bias"):
-            self.state_map[f"model.1.sub.{self.num_blocks}.{kind}"] = self.state_map[f"model.1.sub./NB/.{kind}"]
+            self.state_map[f"model.1.sub.{self.num_blocks}.{kind}"] = self.state_map[
+                f"model.1.sub./NB/.{kind}"
+            ]
             del self.state_map[f"model.1.sub./NB/.{kind}"]
 
         old_state = OrderedDict()
@@ -414,7 +479,7 @@ class ESRGAN(nn.Module):
                 part_num = int(parts[0])
                 if part_num > min_part and parts[1] == "weight":
                     n += 1
-        return 2 ** n
+        return 2**n
 
     def get_num_blocks(self) -> int:
         nbs = []
@@ -438,27 +503,83 @@ class ESRGAN(nn.Module):
 
 class ResidualDenseBlock5C(nn.Module):
     """
-    5 Convolution Residual Dense 
+    5 Convolution Residual Dense
     Residual Dense Network for Image Super-Resolution, CVPR 18.
     gc: growth channel, i.e. intermediate channels
     """
 
-    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type="zero", norm_type=None,
-                 act_type="leakyrelu", mode="CNA", plus=False):
+    def __init__(
+        self,
+        nc,
+        kernel_size=3,
+        gc=32,
+        stride=1,
+        bias=True,
+        pad_type="zero",
+        norm_type=None,
+        act_type="leakyrelu",
+        mode="CNA",
+        plus=False,
+    ):
         super(ResidualDenseBlock5C, self).__init__()
         last_act = None if mode == "CNA" else act_type
 
         self.conv1x1 = conv1x1(nc, gc) if plus else None
-        self.conv1 = conv_block(nc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
-                                      norm_type=norm_type, act_type=act_type, mode=mode)
-        self.conv2 = conv_block(nc + gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
-                                      norm_type=norm_type, act_type=act_type, mode=mode)
-        self.conv3 = conv_block(nc + 2 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
-                                      norm_type=norm_type, act_type=act_type, mode=mode)
-        self.conv4 = conv_block(nc + 3 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
-                                      norm_type=norm_type, act_type=act_type, mode=mode)
-        self.conv5 = conv_block(nc + 4 * gc, nc, 3, stride, bias=bias, pad_type=pad_type,
-                                      norm_type=norm_type, act_type=last_act, mode=mode)
+        self.conv1 = conv_block(
+            nc,
+            gc,
+            kernel_size,
+            stride,
+            bias=bias,
+            pad_type=pad_type,
+            norm_type=norm_type,
+            act_type=act_type,
+            mode=mode,
+        )
+        self.conv2 = conv_block(
+            nc + gc,
+            gc,
+            kernel_size,
+            stride,
+            bias=bias,
+            pad_type=pad_type,
+            norm_type=norm_type,
+            act_type=act_type,
+            mode=mode,
+        )
+        self.conv3 = conv_block(
+            nc + 2 * gc,
+            gc,
+            kernel_size,
+            stride,
+            bias=bias,
+            pad_type=pad_type,
+            norm_type=norm_type,
+            act_type=act_type,
+            mode=mode,
+        )
+        self.conv4 = conv_block(
+            nc + 3 * gc,
+            gc,
+            kernel_size,
+            stride,
+            bias=bias,
+            pad_type=pad_type,
+            norm_type=norm_type,
+            act_type=act_type,
+            mode=mode,
+        )
+        self.conv5 = conv_block(
+            nc + 4 * gc,
+            nc,
+            3,
+            stride,
+            bias=bias,
+            pad_type=pad_type,
+            norm_type=norm_type,
+            act_type=last_act,
+            mode=mode,
+        )
 
     def forward(self, x):
         x1 = self.conv1(x)
@@ -474,14 +595,31 @@ class ResidualDenseBlock5C(nn.Module):
 
 
 class RRDB(nn.Module):
-    """Residual in Residual Dense """
+    """Residual in Residual Dense"""
 
-    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type="zero", norm_type=None,
-                 act_type="leakyrelu", mode="CNA", plus=False):
+    def __init__(
+        self,
+        nc,
+        kernel_size=3,
+        gc=32,
+        stride=1,
+        bias=True,
+        pad_type="zero",
+        norm_type=None,
+        act_type="leakyrelu",
+        mode="CNA",
+        plus=False,
+    ):
         super(RRDB, self).__init__()
-        self.RDB1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
-        self.RDB2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
-        self.RDB3 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
+        self.RDB1 = ResidualDenseBlock5C(
+            nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus
+        )
+        self.RDB2 = ResidualDenseBlock5C(
+            nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus
+        )
+        self.RDB3 = ResidualDenseBlock5C(
+            nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus
+        )
 
     def forward(self, x):
         out = self.RDB1(x)
@@ -502,24 +640,36 @@ import numpy as np
 import torch
 import vapoursynth as vs
 from .realesrganner import RealESRGANer
+
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
 
-def ESRGAN_inference(clip: vs.VideoNode, model_path: str = "/workspace/4x_fatal_Anime_500000_G.pth", tile_x: int = 0, tile_y: int = 0, tile_pad: int = 10, pre_pad: int = 0,
-               device_type: str = 'cuda', device_index: int = 0, fp16: bool = False, tta: bool = False, tta_mode: int=1) -> vs.VideoNode:
+def ESRGAN_inference(
+    clip: vs.VideoNode,
+    model_path: str = "/workspace/4x_fatal_Anime_500000_G.pth",
+    tile_x: int = 0,
+    tile_y: int = 0,
+    tile_pad: int = 10,
+    pre_pad: int = 0,
+    device_type: str = "cuda",
+    device_index: int = 0,
+    fp16: bool = False,
+    tta: bool = False,
+    tta_mode: int = 1,
+) -> vs.VideoNode:
 
     if not isinstance(clip, vs.VideoNode):
-        raise vs.Error('RealESRGAN: this is not a clip')
+        raise vs.Error("RealESRGAN: this is not a clip")
 
     if clip.format.id != vs.RGBS:
-        raise vs.Error('RealESRGAN: only RGBS format is supported')
+        raise vs.Error("RealESRGAN: only RGBS format is supported")
 
-    if device_type not in ['cuda', 'cpu']:
+    if device_type not in ["cuda", "cpu"]:
         raise vs.Error("RealESRGAN: device_type must be 'cuda' or 'cpu'")
 
     device = torch.device(device_type, device_index)
-    if device_type == 'cuda':
+    if device_type == "cuda":
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
 
@@ -528,31 +678,48 @@ def ESRGAN_inference(clip: vs.VideoNode, model_path: str = "/workspace/4x_fatal_
     scale = model.scale
 
     import torch_tensorrt
+
     if fp16 == False:
         model.eval()
-        example_data = torch.rand(1,3,64,64)
+        example_data = torch.rand(1, 3, 64, 64)
         model = torch.jit.trace(model, [example_data])
-        model = torch_tensorrt.compile(model, inputs=[torch_tensorrt.Input( \
-                        min_shape=(1, 3, 24, 24), \
-                        opt_shape=(1, 3, 256, 256), \
-                        max_shape=(1, 3, 512, 512), \
-                        dtype=torch.float32)], \
-                        enabled_precisions={torch.float}, truncate_long_and_double=True)
+        model = torch_tensorrt.compile(
+            model,
+            inputs=[
+                torch_tensorrt.Input(
+                    min_shape=(1, 3, 24, 24),
+                    opt_shape=(1, 3, 256, 256),
+                    max_shape=(1, 3, 512, 512),
+                    dtype=torch.float32,
+                )
+            ],
+            enabled_precisions={torch.float},
+            truncate_long_and_double=True,
+        )
     elif fp16 == True:
         # for fp16, the data needs to be on cuda
         model.eval().half().cuda()
-        example_data = torch.rand(1,3,64,64).half().cuda()
+        example_data = torch.rand(1, 3, 64, 64).half().cuda()
         model = torch.jit.trace(model, [example_data])
-        model = torch_tensorrt.compile(model, inputs=[torch_tensorrt.Input( \
-                        min_shape=(1, 3, 24, 24), \
-                        opt_shape=(1, 3, 256, 256), \
-                        max_shape=(1, 3, 512, 512), \
-                        dtype=torch.half)], \
-                        enabled_precisions={torch.half}, truncate_long_and_double=True)
+        model = torch_tensorrt.compile(
+            model,
+            inputs=[
+                torch_tensorrt.Input(
+                    min_shape=(1, 3, 24, 24),
+                    opt_shape=(1, 3, 256, 256),
+                    max_shape=(1, 3, 512, 512),
+                    dtype=torch.half,
+                )
+            ],
+            enabled_precisions={torch.half},
+            truncate_long_and_double=True,
+        )
         model.half()
     del example_data
 
-    upsampler = RealESRGANer(device, scale, model_path, model, tile_x, tile_y, tile_pad, pre_pad)
+    upsampler = RealESRGANer(
+        device, scale, model_path, model, tile_x, tile_y, tile_pad, pre_pad
+    )
 
     @torch.inference_mode()
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
@@ -561,181 +728,190 @@ def ESRGAN_inference(clip: vs.VideoNode, model_path: str = "/workspace/4x_fatal_
 
         if fp16 == True:
             img = img.half()
-        
+
         output = upsampler.enhance(img)
         output = output.detach().squeeze().cpu().numpy()
 
         # flip for tta
         # vs does optimize variables away, explicitly getting all images to avoid "referenced before assignment"
         if tta == True:
-          if tta_mode == 1:
-            img_flipped = torch.flip(img, [2, 3])
-            output2 = upsampler.enhance(img_flipped)
-            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
-            final_output = (output + output2) / 2
-          elif tta_mode == 2:
-            img_flipped = torch.flip(img, [2, 3])
-            output2 = upsampler.enhance(img_flipped)
-            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+            if tta_mode == 1:
+                img_flipped = torch.flip(img, [2, 3])
+                output2 = upsampler.enhance(img_flipped)
+                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+                final_output = (output + output2) / 2
+            elif tta_mode == 2:
+                img_flipped = torch.flip(img, [2, 3])
+                output2 = upsampler.enhance(img_flipped)
+                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [2])
-            output3 = upsampler.enhance(img_flipped)
-            output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
-            final_output = (output + output2 + output3) / 3
-          elif tta_mode == 3:
-            img_flipped = torch.flip(img, [2, 3])
-            output2 = upsampler.enhance(img_flipped)
-            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [2])
+                output3 = upsampler.enhance(img_flipped)
+                output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+                final_output = (output + output2 + output3) / 3
+            elif tta_mode == 3:
+                img_flipped = torch.flip(img, [2, 3])
+                output2 = upsampler.enhance(img_flipped)
+                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [2])
-            output3 = upsampler.enhance(img_flipped)
-            output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [2])
+                output3 = upsampler.enhance(img_flipped)
+                output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [3])
-            output4 = upsampler.enhance(img_flipped)
-            output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
-            final_output = (output + output2 + output3 + output4) / 4
-          # rot90
-          elif tta_mode == 4:
-            img_flipped = torch.flip(img, [2, 3])
-            output2 = upsampler.enhance(img_flipped)
-            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [3])
+                output4 = upsampler.enhance(img_flipped)
+                output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+                final_output = (output + output2 + output3 + output4) / 4
+            # rot90
+            elif tta_mode == 4:
+                img_flipped = torch.flip(img, [2, 3])
+                output2 = upsampler.enhance(img_flipped)
+                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [2])
-            output3 = upsampler.enhance(img_flipped)
-            output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [2])
+                output3 = upsampler.enhance(img_flipped)
+                output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [3])
-            output4 = upsampler.enhance(img_flipped)
-            output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [3])
+                output4 = upsampler.enhance(img_flipped)
+                output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [2, 3])
-            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
-            output5 = upsampler.enhance(img_flipped)
-            output5 = torch.rot90(output5, 3, [2, 3])
-            output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [2, 3])
+                img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+                output5 = upsampler.enhance(img_flipped)
+                output5 = torch.rot90(output5, 3, [2, 3])
+                output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
 
-            final_output = (output + output2 + output3 + output4 + output5) / 5
+                final_output = (output + output2 + output3 + output4 + output5) / 5
 
-          elif tta_mode == 5:
-            img_flipped = torch.flip(img, [2, 3])
-            output2 = upsampler.enhance(img_flipped)
-            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+            elif tta_mode == 5:
+                img_flipped = torch.flip(img, [2, 3])
+                output2 = upsampler.enhance(img_flipped)
+                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [2])
-            output3 = upsampler.enhance(img_flipped)
-            output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [2])
+                output3 = upsampler.enhance(img_flipped)
+                output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [3])
-            output4 = upsampler.enhance(img_flipped)
-            output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [3])
+                output4 = upsampler.enhance(img_flipped)
+                output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [2, 3])
-            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
-            output5 = upsampler.enhance(img_flipped)
-            output5 = torch.rot90(output5, 3, [2, 3])
-            output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [2, 3])
+                img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+                output5 = upsampler.enhance(img_flipped)
+                output5 = torch.rot90(output5, 3, [2, 3])
+                output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [2])
-            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
-            output6 = upsampler.enhance(img_flipped)
-            output6 = torch.rot90(output6, 3, [2, 3])
-            output6 = torch.flip(output6, [2]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [2])
+                img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+                output6 = upsampler.enhance(img_flipped)
+                output6 = torch.rot90(output6, 3, [2, 3])
+                output6 = torch.flip(output6, [2]).detach().cpu().squeeze().numpy()
 
-            final_output = (output + output2 + output3 + output4 + output5 + output6) / 6
+                final_output = (
+                    output + output2 + output3 + output4 + output5 + output6
+                ) / 6
 
-          elif tta_mode == 6:
-            img_flipped = torch.flip(img, [2, 3])
-            output2 = upsampler.enhance(img_flipped)
-            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+            elif tta_mode == 6:
+                img_flipped = torch.flip(img, [2, 3])
+                output2 = upsampler.enhance(img_flipped)
+                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [2])
-            output3 = upsampler.enhance(img_flipped)
-            output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [2])
+                output3 = upsampler.enhance(img_flipped)
+                output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [3])
-            output4 = upsampler.enhance(img_flipped)
-            output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [3])
+                output4 = upsampler.enhance(img_flipped)
+                output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [2, 3])
-            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
-            output5 = upsampler.enhance(img_flipped)
-            output5 = torch.rot90(output5, 3, [2, 3])
-            output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [2, 3])
+                img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+                output5 = upsampler.enhance(img_flipped)
+                output5 = torch.rot90(output5, 3, [2, 3])
+                output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [2])
-            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
-            output6 = upsampler.enhance(img_flipped)
-            output6 = torch.rot90(output6, 3, [2, 3])
-            output6 = torch.flip(output6, [2]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [2])
+                img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+                output6 = upsampler.enhance(img_flipped)
+                output6 = torch.rot90(output6, 3, [2, 3])
+                output6 = torch.flip(output6, [2]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [3])
-            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
-            output7 = upsampler.enhance(img_flipped)
-            output7 = torch.rot90(output7, 3, [2, 3])
-            output7 = torch.flip(output7, [3]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [3])
+                img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+                output7 = upsampler.enhance(img_flipped)
+                output7 = torch.rot90(output7, 3, [2, 3])
+                output7 = torch.flip(output7, [3]).detach().cpu().squeeze().numpy()
 
-            final_output = (output + output2 + output3 + output4 + output5 + output6 + output7) / 7
+                final_output = (
+                    output + output2 + output3 + output4 + output5 + output6 + output7
+                ) / 7
 
-          elif tta_mode == 7:
-            img_flipped = torch.flip(img, [2, 3])
-            output2 = upsampler.enhance(img_flipped)
-            output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+            elif tta_mode == 7:
+                img_flipped = torch.flip(img, [2, 3])
+                output2 = upsampler.enhance(img_flipped)
+                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [2])
-            output3 = upsampler.enhance(img_flipped)
-            output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [2])
+                output3 = upsampler.enhance(img_flipped)
+                output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [3])
-            output4 = upsampler.enhance(img_flipped)
-            output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [3])
+                output4 = upsampler.enhance(img_flipped)
+                output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [2, 3])
-            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
-            output5 = upsampler.enhance(img_flipped)
-            output5 = torch.rot90(output5, 3, [2, 3])
-            output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [2, 3])
+                img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+                output5 = upsampler.enhance(img_flipped)
+                output5 = torch.rot90(output5, 3, [2, 3])
+                output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [2])
-            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
-            output6 = upsampler.enhance(img_flipped)
-            output6 = torch.rot90(output6, 3, [2, 3])
-            output6 = torch.flip(output6, [2]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [2])
+                img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+                output6 = upsampler.enhance(img_flipped)
+                output6 = torch.rot90(output6, 3, [2, 3])
+                output6 = torch.flip(output6, [2]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.flip(img, [3])
-            img_flipped = torch.rot90(img_flipped, 1, [2, 3])
-            output7 = upsampler.enhance(img_flipped)
-            output7 = torch.rot90(output7, 3, [2, 3])
-            output7 = torch.flip(output7, [3]).detach().cpu().squeeze().numpy()
+                img_flipped = torch.flip(img, [3])
+                img_flipped = torch.rot90(img_flipped, 1, [2, 3])
+                output7 = upsampler.enhance(img_flipped)
+                output7 = torch.rot90(output7, 3, [2, 3])
+                output7 = torch.flip(output7, [3]).detach().cpu().squeeze().numpy()
 
-            img_flipped = torch.rot90(img, 1, [2, 3])
-            output8 = upsampler.enhance(img_flipped)
-            output8 = torch.rot90(output8, 3, [2, 3])
-            output8 = output8.detach().cpu().squeeze().numpy()
+                img_flipped = torch.rot90(img, 1, [2, 3])
+                output8 = upsampler.enhance(img_flipped)
+                output8 = torch.rot90(output8, 3, [2, 3])
+                output8 = output8.detach().cpu().squeeze().numpy()
 
-            final_output = (output + output2 + output3 + output4 + output5 + output6 + output7 + output8) / 8
+                final_output = (
+                    output
+                    + output2
+                    + output3
+                    + output4
+                    + output5
+                    + output6
+                    + output7
+                    + output8
+                ) / 8
 
-          return tensor_to_clip(clip=clip, image=final_output)
+            return tensor_to_clip(clip=clip, image=final_output)
         else:
-          return tensor_to_clip(clip=clip, image=output)
+            return tensor_to_clip(clip=clip, image=output)
 
     return core.std.FrameEval(
-            core.std.BlankClip(
-                clip=clip,
-                width=clip.width * scale,
-                height=clip.height * scale
-            ),
-            functools.partial(
-                execute,
-                clip=clip
-            )
+        core.std.BlankClip(
+            clip=clip, width=clip.width * scale, height=clip.height * scale
+        ),
+        functools.partial(execute, clip=clip),
     )
 
+
 def frame_to_tensor(frame: vs.VideoFrame) -> torch.Tensor:
-    return np.stack([
-        np.asarray(frame[plane])
-        for plane in range(frame.format.num_planes)
-    ])
+    return np.stack(
+        [np.asarray(frame[plane]) for plane in range(frame.format.num_planes)]
+    )
+
 
 def tensor_to_frame(f: vs.VideoFrame, array) -> vs.VideoFrame:
     for plane in range(f.format.num_planes):
@@ -743,14 +919,9 @@ def tensor_to_frame(f: vs.VideoFrame, array) -> vs.VideoFrame:
         np.copyto(d, array[plane, :, :])
     return f
 
+
 def tensor_to_clip(clip: vs.VideoNode, image) -> vs.VideoNode:
-    clip = core.std.BlankClip(
-        clip=clip,
-        width=image.shape[-1],
-        height=image.shape[-2]
-    )
+    clip = core.std.BlankClip(clip=clip, width=image.shape[-1], height=image.shape[-2])
     return core.std.ModifyFrame(
-        clip=clip,
-        clips=clip,
-        selector=lambda n, f: tensor_to_frame(f.copy(), image)
+        clip=clip, clips=clip, selector=lambda n, f: tensor_to_frame(f.copy(), image)
     )

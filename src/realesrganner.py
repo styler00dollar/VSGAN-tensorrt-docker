@@ -3,9 +3,19 @@ import math
 import torch
 from torch.nn import functional as F
 
-class RealESRGANer():
 
-    def __init__(self, device, scale, model_path, model=None, tile_x=0, tile_y=0, tile_pad=10, pre_pad=10):
+class RealESRGANer:
+    def __init__(
+        self,
+        device,
+        scale,
+        model_path,
+        model=None,
+        tile_x=0,
+        tile_y=0,
+        tile_pad=10,
+        pre_pad=10,
+    ):
         self.device = device
         self.scale = scale
         self.tile_x = tile_x
@@ -20,7 +30,7 @@ class RealESRGANer():
 
         # pre_pad
         if self.pre_pad != 0:
-            self.img = F.pad(self.img, (0, self.pre_pad, 0, self.pre_pad), 'reflect')
+            self.img = F.pad(self.img, (0, self.pre_pad, 0, self.pre_pad), "reflect")
         # mod pad
         if self.scale == 2:
             self.mod_scale = 2
@@ -29,18 +39,19 @@ class RealESRGANer():
         if self.mod_scale is not None:
             self.mod_pad_h, self.mod_pad_w = 0, 0
             _, _, h, w = self.img.size()
-            if (h % self.mod_scale != 0):
-                self.mod_pad_h = (self.mod_scale - h % self.mod_scale)
-            if (w % self.mod_scale != 0):
-                self.mod_pad_w = (self.mod_scale - w % self.mod_scale)
-            self.img = F.pad(self.img, (0, self.mod_pad_w, 0, self.mod_pad_h), 'reflect')
+            if h % self.mod_scale != 0:
+                self.mod_pad_h = self.mod_scale - h % self.mod_scale
+            if w % self.mod_scale != 0:
+                self.mod_pad_w = self.mod_scale - w % self.mod_scale
+            self.img = F.pad(
+                self.img, (0, self.mod_pad_w, 0, self.mod_pad_h), "reflect"
+            )
 
     def process(self):
         self.output = self.model(self.img)
 
     def tile_process(self):
-        """Modified from: https://github.com/ata4/esrgan-launcher
-        """
+        """Modified from: https://github.com/ata4/esrgan-launcher"""
         batch, channel, height, width = self.img.shape
         output_height = height * self.scale
         output_width = width * self.scale
@@ -74,7 +85,12 @@ class RealESRGANer():
                 input_tile_width = input_end_x - input_start_x
                 input_tile_height = input_end_y - input_start_y
 
-                input_tile = self.img[:, :, input_start_y_pad:input_end_y_pad, input_start_x_pad:input_end_x_pad]
+                input_tile = self.img[
+                    :,
+                    :,
+                    input_start_y_pad:input_end_y_pad,
+                    input_start_x_pad:input_end_x_pad,
+                ]
 
                 # upscale tile
                 output_tile = self.model(input_tile)
@@ -92,19 +108,34 @@ class RealESRGANer():
                 output_end_y_tile = output_start_y_tile + input_tile_height * self.scale
 
                 # put tile into output image
-                self.output[:, :, output_start_y:output_end_y,
-                            output_start_x:output_end_x] = output_tile[:, :, output_start_y_tile:output_end_y_tile,
-                                                                       output_start_x_tile:output_end_x_tile]
+                self.output[
+                    :, :, output_start_y:output_end_y, output_start_x:output_end_x
+                ] = output_tile[
+                    :,
+                    :,
+                    output_start_y_tile:output_end_y_tile,
+                    output_start_x_tile:output_end_x_tile,
+                ]
 
     def post_process(self):
         # remove extra pad
         if self.mod_scale is not None:
             _, _, h, w = self.output.size()
-            self.output = self.output[:, :, 0:h - self.mod_pad_h * self.scale, 0:w - self.mod_pad_w * self.scale]
+            self.output = self.output[
+                :,
+                :,
+                0 : h - self.mod_pad_h * self.scale,
+                0 : w - self.mod_pad_w * self.scale,
+            ]
         # remove prepad
         if self.pre_pad != 0:
             _, _, h, w = self.output.size()
-            self.output = self.output[:, :, 0:h - self.pre_pad * self.scale, 0:w - self.pre_pad * self.scale]
+            self.output = self.output[
+                :,
+                :,
+                0 : h - self.pre_pad * self.scale,
+                0 : w - self.pre_pad * self.scale,
+            ]
         return self.output
 
     def enhance(self, img):
