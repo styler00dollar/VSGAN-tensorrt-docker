@@ -1,27 +1,29 @@
 # https://ngc.nvidia.com/catalog/containers/nvidia:tensorrt
-FROM nvcr.io/nvidia/tensorrt:22.04-py3
+FROM nvcr.io/nvidia/tensorrt:22.06-py3
 ARG DEBIAN_FRONTEND=noninteractive
 # if you have 404 problems when you build the docker, try to run the upgrade
 #RUN apt-get dist-upgrade -y
 RUN apt-get -y update
 
 # installing vapoursynth and torch
-RUN apt install p7zip-full x264 ffmpeg autoconf libtool yasm python3.9 python3.9-venv python3.9-dev ffmsindex libffms2-4 libffms2-dev -y && \
-    git clone https://github.com/sekrit-twc/zimg.git && cd zimg && ./autogen.sh && ./configure && make -j4 && make install && cd .. && rm -rf zimg && \
+RUN apt install libblas-dev liblapack-dev pkg-config p7zip-full x264 ffmpeg autoconf libtool yasm python3.9 python3.9-venv python3.9-dev ffmsindex libffms2-4 libffms2-dev -y && \
+    wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.zip && 7z x release-3.0.4.zip && \
+    cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j4 && make install && cd .. && rm -rf zimg-release-3.0.4 release-3.0.4.zip && \
     pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R59.zip && \
     7z x R59.zip && cd vapoursynth-R59 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.9/site-packages/vapoursynth.so /usr/lib/python3.9/lib-dynload/vapoursynth.so && \
-    pip install scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python onnx onnxruntime onnxruntime-gpu cupy-cuda115 pytorch-msssim \
-        https://download.pytorch.org/whl/cu115/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl \
-        https://download.pytorch.org/whl/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl \
-        https://github.com/pytorch/TensorRT/releases/download/v1.1.0/torch_tensorrt-1.1.0-cp38-cp38-linux_x86_64.whl \
-        mmcv-full==1.5.0 -f https://download.openmmlab.com/mmcv/dist/cu115/torch1.11.0/index.html && \
+    pip install scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python onnx onnxruntime onnxruntime-gpu cupy-cuda117 pytorch-msssim \
+        https://github.com/styler00dollar/pytorch/releases/download/1.13.0a0/torch-1.13.0a0+git164029f-cp38-cp38-linux_x86_64.whl \
+        https://github.com/styler00dollar/vision/releases/download/0.14.0a0/torchvision-0.14.0a0+c02d6ce-cp38-cp38-linux_x86_64.whl \
+        https://github.com/pytorch/TensorRT/releases/download/v1.1.0/torch_tensorrt-1.1.0-cp38-cp38-linux_x86_64.whl && \
+    # mmcv
+    git clone https://github.com/open-mmlab/mmcv.git && cd mmcv && MMCV_WITH_OPS=1 python3 -m pip install -e . && cd .. && rm -rf mmcv && \
     # not deleting vapoursynth-R59 since vs-mlrt needs it
     rm -rf R59.zip zimg && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip3 cache purge
 
-# upgrading ffmpeg manually (ffmpeg 20220526 from https://johnvansickle.com/ffmpeg/)
-RUN wget https://files.catbox.moe/cplts2 -O ffmpeg && \
+# upgrading ffmpeg manually (ffmpeg 20220622 from https://johnvansickle.com/ffmpeg/)
+RUN wget https://files.catbox.moe/s0gz60 -O ffmpeg && \
     chmod +x ./ffmpeg && mv ffmpeg /usr/bin/ffmpeg
 
 # installing tensorflow because of FILM
@@ -134,4 +136,4 @@ RUN git clone https://github.com/AOMediaCodec/SVT-AV1 && cd SVT-AV1/Build/linux/
     cd /workspace && rm -rf SVT-AV1
 
 # pycuda and numpy hotfix
-RUN pip install pycuda numpy==1.21 --force-reinstall && pip3 cache purge
+RUN pip install pycuda numpy numba -U --force-reinstall && pip3 cache purge
