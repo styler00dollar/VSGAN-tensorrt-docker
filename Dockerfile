@@ -13,8 +13,7 @@ RUN apt install libblas-dev liblapack-dev pkg-config p7zip-full x264 ffmpeg auto
     7z x R59.zip && cd vapoursynth-R59 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.9/site-packages/vapoursynth.so /usr/lib/python3.9/lib-dynload/vapoursynth.so && \
     pip install scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python onnx onnxruntime onnxruntime-gpu cupy-cuda117 pytorch-msssim \
-        https://github.com/styler00dollar/pytorch/releases/download/1.13.0a0/torch-1.13.0a0+git164029f-cp38-cp38-linux_x86_64.whl \
-        https://github.com/styler00dollar/vision/releases/download/0.14.0a0/torchvision-0.14.0a0+c02d6ce-cp38-cp38-linux_x86_64.whl \
+        torch==1.11.0 torchvision==0.12.0 --extra-index-url https://download.pytorch.org/whl/cu113 \
         https://github.com/pytorch/TensorRT/releases/download/v1.1.0/torch_tensorrt-1.1.0-cp38-cp38-linux_x86_64.whl && \
     # mmcv
     git clone https://github.com/open-mmlab/mmcv.git && cd mmcv && MMCV_WITH_OPS=1 python3 -m pip install -e . && cd .. && rm -rf mmcv && \
