@@ -110,7 +110,7 @@ av1an -e svt-av1 -i inference.py -o output.mkv
 If docker does not want to start, try this before you use docker:
 ```bash
 # fixing docker errors
-systemctl start docker
+sudo systemctl start docker
 sudo chmod 666 /var/run/docker.sock
 ```
 Windows is mostly similar, but the path needs to be changed slightly:
