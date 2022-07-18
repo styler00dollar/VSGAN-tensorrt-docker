@@ -162,7 +162,9 @@ Be aware that DPIR (color) needs 4 channels.
 ```
 trtexec --fp16 --onnx=dpir_drunet_color.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT
 ```
-and put that engine path into `inference.py`. Only do FP16 if your GPU does support it.
+and put that engine path into `inference.py`. Only do FP16 if your GPU does support it. 
+
+**Warning**: You need to use the FP32 onnx, even if you want FP16, specify `--fp16` for FP16.
 
 <div id='multi-gpu'/>
 
