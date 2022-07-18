@@ -21,6 +21,7 @@ from src.pan import PAN_inference
 from src.IFRNet import IFRNet
 from src.M2M import M2M
 from src.IFUNet import IFUNet
+from src.eisai import EISAI
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -169,6 +170,8 @@ clip = ESRGAN_inference(
 #clip = M2M(clip)
 # IFUnet
 #clip = IFUNet(clip)
+# EISAI (needs 960x540 for now)
+#clip = EISAI(clip)
 
 ###############################################
 # [ONLY IN DEV DOCKER] MODELS (NCNN)
