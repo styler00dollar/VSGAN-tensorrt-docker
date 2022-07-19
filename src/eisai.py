@@ -3,7 +3,6 @@ import numpy as np
 import vapoursynth as vs
 import functools
 from pytorch_msssim import ssim, ms_ssim, SSIM, MS_SSIM
-from .dedup import PSNR
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 def EISAI(
@@ -11,11 +10,6 @@ def EISAI(
     scale: float = 1.0,
     fastmode: bool = False,
     ensemble: bool = False,
-    psnr_dedup: bool = False,
-    psnr_value: float = 70,
-    ssim_dedup: bool = True,
-    ms_ssim_dedup: bool = False,
-    ssim_value: float = 0.999,
     skip_framelist=[],
 ) -> vs.VideoNode:
     if not isinstance(clip, vs.VideoNode):
@@ -49,10 +43,6 @@ def EISAI(
     dtm = dtm.to(device).eval()
     raft = RAFT().eval().to(device)
 
-    # interpolate
-    n = 2 + 1
-    ts = np.linspace(0, 1, n)[1:-1]
-
     w = clip.width
     h = clip.height
 
@@ -81,20 +71,17 @@ def EISAI(
         if (n % 2 == 0) or n == 0 or n in skip_framelist or n == clip.num_frames - 1:
             return clip
 
-        # if frame number odd
         I0 = frame_to_tensor(clip.get_frame(n - 1))
         I1 = frame_to_tensor(clip.get_frame(n + 1))
 
         I0 = torch.Tensor(I0).unsqueeze(0).to("cuda", non_blocking=True)
         I1 = torch.Tensor(I1).unsqueeze(0).to("cuda", non_blocking=True)
 
-        try:
-            for i, t in enumerate(ts):
-                middle = interpolate(raft, ssl, dtm, I0, I1, t=t)
-        except Exception as e:
-            f = open("e.txt", "w")
-            f.write(str(e))
-            f.close()
+        # clamping because vs does not give tensors in range 0-1, results in nan in output
+        I0 = torch.clamp(I0, min=0, max=1)
+        I1 = torch.clamp(I1, min=0, max=1)
+
+        middle = interpolate(raft, ssl, dtm, I0, I1)
 
         middle = middle.detach().cpu().numpy()
 
