@@ -462,7 +462,7 @@ Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p
 1070ti C++ NCNN | ? | ? | 34
 3060ti (TensorRT8+ffmpeg+ModifyFrame) | 135 | 66 | 33 |
 3090 (TensorRT8+ffmpeg+ModifyFrame) | ? | 119 | 58 | 
-3090 (TensorRT8+ffmpeg+FrameEval+Streams=22 | ? | ? | 62
+3090 (TensorRT8+ffmpeg+FrameEval+Streams=22) | ? | ? | 62
 V100 (Colab) (TensorRT8.2GA+ffmpeg+ModifyFrame) | 34 | 17 | 7.6
 V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | 64 | 43 | 25
 V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (8 threads)) | 136 | 65 | 29
