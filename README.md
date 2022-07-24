@@ -435,7 +435,7 @@ RealESRGAN (2x) (3b+dropout) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
 3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=2) | 15.93 | 5.69 | 2.64
 V100 (Colab High RAM / 8CPU) (vs+TensorRT8.4GA+ffmpeg+C++ TRT+num_streams=4+no tiling+opset15) | 10 | 9.4 | 4.2
-3090 (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=22) | ? | ? | 5.7
+3090 (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=6) | ? | ? | 5.7
 
 Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
