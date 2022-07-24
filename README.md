@@ -397,6 +397,11 @@ Compact (4x) | 480p | 720p | 1080p
 A100 (Colab) (vs+CUDA+FrameEval) | 12 | 5.6 | 2.9
 A100 (Colab) (jpg+CUDA) | ? | ?| 3 (4 Threads)
 
+MaxCompact (2x) | 480p | 720p | 1080p
+------  | ---  | ---- | ------
+3090 (TensorRT8+C++ TRT+vs threads=7+num_streams=35) | ? | ? | 39
+3090 (TensorRT8+C++ TRT+vs threads=7+num_streams=35+ultrafast preset) | ? | ? | 53
+
 ESRGAN 4x (64mb) (23b) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
 1070ti TensorRT8 docker (Torch-TensorRT+ffmpeg+FrameEval) | 0.5 | 0.2 | >0.1
@@ -430,6 +435,7 @@ RealESRGAN (2x) (3b+dropout) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
 3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=2) | 15.93 | 5.69 | 2.64
 V100 (Colab High RAM / 8CPU) (vs+TensorRT8.4GA+ffmpeg+C++ TRT+num_streams=4+no tiling+opset15) | 10 | 9.4 | 4.2
+3090 (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=22) | ? | ? | 5.7
 
 Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
@@ -456,6 +462,7 @@ Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p
 1070ti C++ NCNN | ? | ? | 34
 3060ti (TensorRT8+ffmpeg+ModifyFrame) | 135 | 66 | 33 |
 3090 (TensorRT8+ffmpeg+ModifyFrame) | ? | 119 | 58 | 
+3090 (TensorRT8+ffmpeg+FrameEval+Streams=22 | ? | ? | 62
 V100 (Colab) (TensorRT8.2GA+ffmpeg+ModifyFrame) | 34 | 17 | 7.6
 V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | 64 | 43 | 25
 V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (8 threads)) | 136 | 65 | 29
@@ -507,6 +514,10 @@ V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | 78 | 47 | 23
 IFRNet (large model) | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
 V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | ? | ? | 15
+
+DPIR | 480p | 720p | 1080p 
+-------- | ---- | ---- | ----
+3090 (TensorRT8+C++ TRT+ffmpeg+vs threads=7+num_streams=5) | ? | ? | 16
 
 ## Combined Benchmarks
 
