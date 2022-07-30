@@ -70,7 +70,7 @@ sup = core.mv.Super(clip, pel=1, levels=1)
 bw = core.mv.Analyse(sup, isb=True, levels=1, truemotion=False)
 clip = core.mv.SCDetection(clip, bw, thscd1=200, thscd2=85)
 clip = core.resize.Bicubic(clip, format=vs.RGBS, matrix_in=1)
-clip = core.rife.RIFE(clip, model=11, sc=True, skip=True, multiplier=8)
+clip = core.rife.RIFE(clip, model=11, sc=True, skip=False, multiplier=8)
 clip = core.resize.Bicubic(
     clip, format=vs.YUV420P10, matrix=1, dither_type="error_diffusion"
 )
