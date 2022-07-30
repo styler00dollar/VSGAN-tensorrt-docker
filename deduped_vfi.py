@@ -27,8 +27,6 @@ for f in files:
     )
 
     # delete cache file if exists
-    if os.path.exists(os.path.join(tmp_dir, "ffindex")) == True:
-        os.remove(os.path.join(tmp_dir, "ffindex"))
     if os.path.exists(os.path.join(tmp_dir, "infos_running.txt")) == True:
         os.remove(os.path.join(tmp_dir, "infos_running.txt"))
     if os.path.exists(os.path.join(tmp_dir, "tsv2nX8.txt")) == True:
@@ -39,8 +37,8 @@ for f in files:
         os.remove(subs_path)
     if os.path.exists(audio_path) == True:
         os.remove(audio_path)
-    if os.path.exists(os.path.join("/workspace/tensorrt/ffindex")) == True:
-        os.remove("/workspace/tensorrt/ffindex")
+    # deleting all ffindex
+    os.system(f"find . -name '*ffindex' -type f -delete")
         
     # writing filepath into temp txt
     # workaround to pass filename parameter
