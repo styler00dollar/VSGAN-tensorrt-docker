@@ -1,6 +1,8 @@
+import sys
+sys.path.append("/workspace/tensorrt/")
 import vapoursynth as vs
 import os
-
+from src.rife import RIFE
 core = vs.core
 
 core.std.LoadPlugin(path="/usr/lib/x86_64-linux-gnu/libffms2.so")
@@ -70,7 +72,26 @@ sup = core.mv.Super(clip, pel=1, levels=1)
 bw = core.mv.Analyse(sup, isb=True, levels=1, truemotion=False)
 clip = core.mv.SCDetection(clip, bw, thscd1=200, thscd2=85)
 clip = core.resize.Bicubic(clip, format=vs.RGBS, matrix_in=1)
-clip = core.rife.RIFE(clip, model=9, sc=True, skip=False, multiplier=8)
+
+#clip = core.misc.SCDetect(clip=clip, threshold=0.100)
+#clip = core.rife.RIFE(clip, model=9, sc=True, skip=False, multiplier=8)
+
+clip = RIFE(
+    clip,
+    multi=8,
+    scale=1.0,
+    fp16=False,
+    fastmode=False,
+    ensemble=True,
+    model_version="rife40",
+    psnr_dedup=False,
+    psnr_value=70,
+    ssim_dedup=False,
+    ms_ssim_dedup=False,
+    ssim_value=0.999,
+    backend_inference="cuda",
+ )
+
 clip = core.resize.Bicubic(
     clip, format=vs.YUV420P10, matrix=1, dither_type="error_diffusion"
 )
