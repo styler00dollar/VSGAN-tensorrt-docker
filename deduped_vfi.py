@@ -39,7 +39,9 @@ for f in files:
         os.remove(subs_path)
     if os.path.exists(audio_path) == True:
         os.remove(audio_path)
-
+    if os.path.exists(os.path.join("/workspace/tensorrt/ffindex")) == True:
+        os.remove("/workspace/tensorrt/ffindex")
+        
     # writing filepath into temp txt
     # workaround to pass filename parameter
     f_txt = open(txt_path, "w")
