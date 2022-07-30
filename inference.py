@@ -80,9 +80,9 @@ clip = vs.core.resize.Bicubic(
 #    backend_inference="cuda",
 # )
 # VFI example for jit models
-#clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
+# clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 # SwinIR
-#clip = SwinIR(clip, task="lightweight_sr", scale=2)
+# clip = SwinIR(clip, task="lightweight_sr", scale=2)
 # ESRGAN / RealESRGAN
 # tta_mode 1-7, means the amount of times the image gets processed while being mirrored
 clip = ESRGAN_inference(
@@ -95,7 +95,7 @@ clip = ESRGAN_inference(
     tta=False,
     tta_mode=1,
 )
-#clip = ESRGAN_inference(
+# clip = ESRGAN_inference(
 #    clip=clip,
 #    model_path="/workspace/RealESRGAN_x4plus_anime_6B.pth",
 #    tile_x=480,
@@ -104,15 +104,15 @@ clip = ESRGAN_inference(
 #    fp16=False,
 #    tta=False,
 #    tta_mode=1,
-#)
+# )
 # RealESRGAN Anime Video example
 # backends: tensorrt, cuda, onnx, quantized_onnx
-#clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference="tensorrt")
+# clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference="tensorrt")
 # EGVSR
-#clip = egvsr_model(clip, interval=15)
+# clip = egvsr_model(clip, interval=15)
 # BasicVSR++
 # 0 = REDS, 1 = Vimeo-90K (BI), 2 = Vimeo-90K (BD), 3 = NTIRE 2021 - Track 1, 4 = NTIRE 2021 - Track 2, 5 = NTIRE 2021 - Track 3
-#clip = BasicVSRPP(
+# clip = BasicVSRPP(
 #    clip,
 #    model=1,
 #    interval=30,
@@ -123,13 +123,13 @@ clip = ESRGAN_inference(
 #    device_index=0,
 #    fp16=False,
 #    cpu_cache=False,
-#)
+# )
 # RealBasicVSR
-#clip = realbasicvsr_model(clip, interval=15, fp16=True)
+# clip = realbasicvsr_model(clip, interval=15, fp16=True)
 # cugan
 # scales: 2 | 3 | 4, kind_model: no_denoise | denoise3x | conservative, backend_inference: cuda | onnx, pro: True/False (only available for 2x and 3x scale)
 # only cuda supports tiling
-#clip = cugan_inference(
+# clip = cugan_inference(
 #    clip,
 #    fp16=True,
 #    scale=2,
@@ -139,50 +139,50 @@ clip = ESRGAN_inference(
 #    tile_y=512,
 #    tile_pad=10,
 #    pre_pad=0,
-#)
+# )
 # FILM
 # models: l1 | vgg | style
-#clip = FILM_inference(clip, model_choise="vgg")
+# clip = FILM_inference(clip, model_choise="vgg")
 # vs-mlrt (you need to create the engine yourself)
-#clip = core.trt.Model(
+# clip = core.trt.Model(
 #    clip,
 #    engine_path="/workspace/tensorrt/real2x.engine",
 #    tilesize=[854, 480],
 #    num_streams=6,
-#)
+# )
 # vs-mlrt (DPIR)
 # DPIR does need an extra channel
-#sigma = 10.0
-#noise_level_map = core.std.BlankClip(clip, width=1280, height=720, format=vs.GRAYS)
-#clip = core.trt.Model(
+# sigma = 10.0
+# noise_level_map = core.std.BlankClip(clip, width=1280, height=720, format=vs.GRAYS)
+# clip = core.trt.Model(
 #    [clip, core.std.BlankClip(noise_level_map, color=sigma / 255.0)],
 #    engine_path="model.engine",
 #    tilesize=[1280, 720],
 #    num_streams=2,
-#)
+# )
 # PAN
 # scale = 2 | 3 | 4
-#clip = PAN_inference(clip, scale=2, fp16=True)
+# clip = PAN_inference(clip, scale=2, fp16=True)
 # IFRNet
 # model: small | large
-#clip = IFRNet(clip, model="small")
+# clip = IFRNet(clip, model="small")
 # M2M
-#clip = M2M(clip)
+# clip = M2M(clip)
 # IFUnet
-#clip = IFUNet(clip)
+# clip = IFUNet(clip)
 # EISAI (needs 960x540 for now)
-#clip = EISAI(clip)
+# clip = EISAI(clip)
 
 ###############################################
 # [ONLY IN DEV DOCKER] MODELS (NCNN)
 # Only recommended for AMD GPUS, further instructions in README
 ###############################################
-#from src.SRVGGNetCompact_ncnn import SRVGGNetCompactRealESRGAN_ncnn
+# from src.SRVGGNetCompact_ncnn import SRVGGNetCompactRealESRGAN_ncnn
 
 # Rife ncnn (C++)
 # https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan
-#clip = core.misc.SCDetect(clip=clip, threshold=0.100)
-#clip = core.rife.RIFE(
+# clip = core.misc.SCDetect(clip=clip, threshold=0.100)
+# clip = core.rife.RIFE(
 #    clip,
 #    model=9,
 #    multiplier=2,
@@ -192,10 +192,10 @@ clip = ESRGAN_inference(
 #    uhd=False,
 #    skip=True,
 #    sc=True,
-#)
+# )
 
 # Rife ncnn (python api)
-#clip = RIFE(
+# clip = RIFE(
 #    clip,
 #    multi=2,
 #    scale=1.0,
@@ -208,39 +208,39 @@ clip = ESRGAN_inference(
 #    ms_ssim_dedup=False,
 #    ssim_value=0.999,
 #    backend_inference="ncnn",
-#)
+# )
 # RealESRGAN example
-#clip = SRVGGNetCompactRealESRGAN(
+# clip = SRVGGNetCompactRealESRGAN(
 #    clip,
 #    scale=2,
 #    fp16=True,
 #    backend_inference="ncnn",
 #    param_path="test.param",
 #    bin_path="test.bin",
-#)
+# )
 # Waifu2x
 # 0 = upconv_7_anime_style_art_rgb, 1 = upconv_7_photo, 2 = cunet (For 2D artwork. Slow, but better quality.)
-#clip = core.w2xnvk.Waifu2x(
+# clip = core.w2xnvk.Waifu2x(
 #    clip, noise=0, scale=2, model=0, tile_size=0, gpu_id=0, gpu_thread=0, precision=16
-#)
+# )
 
 ###############################################
 # Deduplicated inference for faster inference
 # only use this for upscaling
 ###############################################
-#from src.dedup import return_frames
+# from src.dedup import return_frames
 
-#frames_duplicated, frames_duplicating = return_frames(video_path, psnr_value=50)
-#clip = core.std.DeleteFrames(clip, frames_duplicated)
+# frames_duplicated, frames_duplicating = return_frames(video_path, psnr_value=50)
+# clip = core.std.DeleteFrames(clip, frames_duplicated)
 # do upscaling here
-#clip = core.std.DuplicateFrames(clip, frames_duplicating)
+# clip = core.std.DuplicateFrames(clip, frames_duplicating)
 ###############################################
 # Inference with scene detection
 # only use this for frame interpolation
 ###############################################
 # from src.scene_detect import find_scenes
-#skip_framelist = find_scenes(video_path, threshold=30)
-#clip = RIFE(
+# skip_framelist = find_scenes(video_path, threshold=30)
+# clip = RIFE(
 #    clip,
 #    multi=2,
 #    scale=1.0,
@@ -253,7 +253,7 @@ clip = ESRGAN_inference(
 #    ms_ssim_dedup=False,
 #    ssim_value=0.999,
 #    skip_framelist=skip_framelist,
-#)
+# )
 ###############################################
 # OUTPUT
 ###############################################

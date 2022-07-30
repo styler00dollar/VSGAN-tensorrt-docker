@@ -1,7 +1,5 @@
-import os 
-import glob 
-
-#subprocess.run(["vspipe", "parse.vpy", "-p", "."])
+import os
+import glob
 
 input_dir = "/workspace/tensorrt/input/"
 tmp_dir = "tmp/"
@@ -39,7 +37,7 @@ for f in files:
         os.remove(audio_path)
     # deleting all ffindex
     os.system(f"find . -name '*ffindex' -type f -delete")
-        
+
     # writing filepath into temp txt
     # workaround to pass filename parameter
     f_txt = open(txt_path, "w")
@@ -59,7 +57,7 @@ for f in files:
     # extract subtitles, -map 0:s:1 means second subtitle track
     os.system(f"ffmpeg -i {f} -map 0:s:0 {subs_path}")
 
-
-    os.system("vspipe parse.vpy -p .")
-    os.system(f"vspipe -c y4m ddfi.py - | ffmpeg -i {subs_path} -c:s mov_text -i pipe: -preset slow {out_path} -i {audio_path} -c copy")
-    
+    os.system("vspipe parse.py -p .")
+    os.system(
+        f"vspipe -c y4m ddfi.py - | ffmpeg -i {subs_path} -c:s mov_text -i pipe: -preset slow {out_path} -i {audio_path} -c copy"
+    )
