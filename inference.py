@@ -64,6 +64,7 @@ clip = vs.core.resize.Bicubic(
 # RIFE4
 # rife4 can do cuda and ncnn, but only cuda is supported in docker
 # models: rife40 | rife41 | sudo_rife4
+# only use sudo_rife4 for 2x
 # clip = RIFE(
 #    clip,
 #    multi=2,
@@ -167,7 +168,7 @@ clip = ESRGAN_inference(
 # model: small | large
 # clip = IFRNet(clip, model="small")
 # M2M
-# clip = M2M(clip)
+# clip = M2M(clip, multi=4)
 # IFUnet
 # clip = IFUNet(clip)
 # EISAI (needs 960x540 for now)

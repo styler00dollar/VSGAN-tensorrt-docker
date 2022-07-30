@@ -50,14 +50,12 @@ for f in files:
     # -map 0:2 means second audio track
 
     # copy audio without reencoding
-    os.system(f"ffmpeg -i {f} -vn -acodec copy {audio_path}")
+    # os.system(f"ffmpeg -i {f} -vn -acodec copy {audio_path}")
     # reencode if extract fails
     # os.system(f"ffmpeg -i {f} -vn {audio_path}")
     ###############################################
     # extract subtitles, -map 0:s:1 means second subtitle track
-    os.system(f"ffmpeg -i {f} -map 0:s:0 {subs_path}")
+    # os.system(f"ffmpeg -i {f} -map 0:s:0 {subs_path}")
 
     os.system("vspipe parse.py -p .")
-    os.system(
-        f"vspipe -c y4m ddfi.py - | ffmpeg -i {subs_path} -c:s mov_text -i pipe: -preset slow {out_path} -i {audio_path} -c copy"
-    )
+    os.system(f"vspipe -c y4m ddfi.py - | ffmpeg -i pipe: -preset medium {out_path}")

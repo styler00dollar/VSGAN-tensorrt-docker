@@ -8,7 +8,7 @@ from .dedup import PSNR
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 def RIFE(
     clip: vs.VideoNode,
-    multi: int = 2,
+    multi: int = 4,
     scale: float = 4.0,
     fp16: bool = True,
     fastmode: bool = False,
@@ -20,7 +20,7 @@ def RIFE(
     ssim_value: float = 0.999,
     skip_framelist=[],
     backend_inference: str = "cuda",
-    model_version: str = "rife41",
+    model_version: str = "rife40",
 ) -> vs.VideoNode:
     """
     RIFE: Real-Time Intermediate Flow Estimation for Video Frame Interpolation
@@ -168,27 +168,9 @@ def RIFE(
         )
 
     else:
-
-        def frame_to_tensor(f: vs.VideoFrame) -> torch.Tensor:
-            arr = np.stack(
-                [np.asarray(f[plane]) for plane in range(f.format.num_planes)]
-            )
-            return torch.from_numpy(arr).unsqueeze(0)
-
-        def tensor_to_frame(t: torch.Tensor, f: vs.VideoFrame) -> vs.VideoFrame:
-            arr = t.squeeze(0).detach().cpu().numpy()
-            for plane in range(f.format.num_planes):
-                np.copyto(np.asarray(f[plane]), arr[plane, :, :])
-            return f
-
         @torch.inference_mode()
         def rife(n: int, f: vs.VideoFrame) -> vs.VideoFrame:
-            if (
-                (n % multi == 0)
-                or (n // multi == clip.num_frames - 1)
-                or f[0].props.get("_SceneChangeNext")
-                or n == clip.num_frames - 1
-            ):
+            if (n % multi == 0) or (n // multi == clip.num_frames - 1) or f[0].props.get('_SceneChangeNext'):
                 return f[0]
 
             I0 = frame_to_tensor(f[0]).to("cuda", non_blocking=True)
@@ -198,19 +180,25 @@ def RIFE(
                 I0 = I0.half()
                 I1 = I1.half()
 
+            
             output = model(
-                I0,
-                I1,
-                (n % multi) / multi,
-                scale_list,
-                fastmode=fastmode,
-                ensemble=ensemble,
+                I0, I1, timestep=(n % multi) / multi, scale_list=scale_list, fastmode=fastmode, ensemble=ensemble
             )
+
             return tensor_to_frame(output, f[0].copy())
 
+        def frame_to_tensor(f: vs.VideoFrame) -> torch.Tensor:
+            arr = np.stack([np.asarray(f[plane]) for plane in range(f.format.num_planes)])
+            return torch.from_numpy(arr).unsqueeze(0)
+
+
+        def tensor_to_frame(t: torch.Tensor, f: vs.VideoFrame) -> vs.VideoFrame:
+            arr = t.squeeze(0).detach().cpu().numpy()
+            for plane in range(f.format.num_planes):
+                np.copyto(np.asarray(f[plane]), arr[plane, :, :])
+            return f
+
         clip0 = vs.core.std.Interleave([clip] * multi)
-        clip1 = clip.std.DuplicateFrames(frames=clip.num_frames - 1).std.DeleteFrames(
-            frames=0
-        )
+        clip1 = clip.std.DuplicateFrames(frames=clip.num_frames - 1).std.DeleteFrames(frames=0)
         clip1 = vs.core.std.Interleave([clip1] * multi)
         return clip0.std.ModifyFrame(clips=[clip0, clip1], selector=rife)
