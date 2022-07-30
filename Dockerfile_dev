@@ -75,18 +75,18 @@ ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR workspace
 
 # wget
-RUN apt-get -y update && apt install wget python3 python3.8 python3.8-venv python3.8-dev python3-pip python-is-python3 -y && \
+RUN apt-get -y update && apt install wget fftw3-dev python3 python3.8 python3.8-venv python3.8-dev python3-pip python-is-python3 -y && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 RUN pip3 install --upgrade pip
 
 # download it from nvidias website and put it into the same folder
-COPY nv-tensorrt-repo-ubuntu2004-cuda11.6-trt8.4.1.5-ga-20220604_1-1_amd64.deb nv-tensorrt-repo-ubuntu2004-cuda11.6-trt8.4.1.5-ga-20220604_1-1_amd64.deb
+COPY nv-tensorrt-repo-ubuntu2004-cuda11.6-trt8.4.2.4-ga-20220720_1-1_amd64.deb nv-tensorrt-repo-ubuntu2004-cuda11.6-trt8.4.2.4-ga-20220720_1-1_amd64.deb
 ENV os1="ubuntu2004"
-ENV tag="cuda11.6-trt8.4.1.5-ga-20220604"
-ENV version="8.4.1-1+cuda11.6"
-ENV trt_version="8.4.1.5-1+cuda11.6"
+ENV tag="cuda11.6-trt8.4.2.4-ga-20220720"
+ENV version="8.4.2-1+cuda11.6"
+ENV trt_version="8.4.2.4-1+cuda11.6"
 RUN dpkg -i nv-tensorrt-repo-${os1}-${tag}_1-1_amd64.deb
-RUN apt-key add /var/nv-tensorrt-repo-${os1}-${tag}/9a60d8bf.pub
+RUN apt-key add /var/nv-tensorrt-repo-${os1}-${tag}/7fd57a00.pub
 RUN apt-get update -y
 
 # check available apt versions
@@ -103,8 +103,8 @@ RUN apt-get install libnvinfer8=${version} libnvonnxparsers8=${version} libnvpar
     apt-get install tensorrt=${trt_version} -y && apt-get install python3-libnvinfer-dev=${version} -y && \
     rm -rf nv-tensorrt-repo-ubuntu2004-cuda11.6-trt8.4.1.5-ga-20220604_1-1_amd64.deb && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 # download it from nvidias website
-COPY tensorrt-8.4.1.5-cp38-none-linux_x86_64.whl tensorrt-8.4.1.5-cp38-none-linux_x86_64.whl
-RUN pip install tensorrt-8.4.1.5-cp38-none-linux_x86_64.whl && rm -rf tensorrt-8.4.1.5-cp38-none-linux_x86_64.whl && pip cache purge
+COPY tensorrt-8.4.2.4-cp38-none-linux_x86_64.whl tensorrt-8.4.2.4-cp38-none-linux_x86_64.whl
+RUN pip install tensorrt-8.4.2.4-cp38-none-linux_x86_64.whl && rm -rf tensorrt-8.4.2.4-cp38-none-linux_x86_64.whl && pip cache purge
 
 # cmake
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.23.0-rc1-linux-x86_64.sh && \
@@ -120,7 +120,8 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.
 RUN apt update -y && \
     #apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa -y && \
     apt install pkg-config wget python3-pip git p7zip-full x264 ffmpeg autoconf libtool yasm ffmsindex libffms2-4 libffms2-dev -y && \
-    git clone https://github.com/sekrit-twc/zimg.git && cd zimg && ./autogen.sh && ./configure && make -j4 && make install && cd .. && rm -rf zimg && \
+    wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.zip && 7z x release-3.0.4.zip && \
+    cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j4 && make install && cd .. && rm -rf zimg-release-3.0.4 release-3.0.4.zip && \
     pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R59.zip && \
     7z x R59.zip && cd vapoursynth-R59 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.8/lib-dynload/vapoursynth.so && \
@@ -131,7 +132,7 @@ RUN apt update -y && \
         mmcv-full==1.5.0 -f https://download.openmmlab.com/mmcv/dist/cu115/torch1.11.0/index.html \
         onnx onnxruntime onnxruntime-gpu && \
     # not deleting vapoursynth-R59 since vs-mlrt needs it
-    rm -rf R59.zip zimg && \
+    rm -rf R59.zip && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip cache purge
 
 # color transfer
@@ -285,6 +286,21 @@ RUN wget https://github.com/Netflix/vmaf/archive/refs/tags/v2.3.1.tar.gz && \
 RUN git clone https://github.com/Nlzy/vapoursynth-waifu2x-ncnn-vulkan.git && cd vapoursynth-waifu2x-ncnn-vulkan && \
     git submodule update --init --recursive && mkdir build && cd build && cmake .. -DVAPOURSYNTH_HEADER_DIR=/workspace/vapoursynth-R59/include/ && \
     cmake --build . -j16 && make install && cd /workspace && rm -rf vapoursynth-waifu2x-ncnn-vulkan
+
+########################
+# vs plugins 
+
+# Vapoursynth-VFRToCFR
+RUN git clone https://github.com/Irrational-Encoding-Wizardry/Vapoursynth-VFRToCFR && cd Vapoursynth-VFRToCFR && \
+    mkdir build && cd build && meson --buildtype release .. && ninja && ninja install && cd /workspace && rm -rf Vapoursynth-VFRToCFR
+
+# vapoursynth-mvtools
+RUN git clone https://github.com/dubhater/vapoursynth-mvtools && cd vapoursynth-mvtools && ./autogen.sh && ./configure && make && make install && \
+    cd /workspace && rm -rf vapoursynth-mvtools
+
+# fmtconv
+RUN git clone https://github.com/EleonoreMizo/fmtconv && cd fmtconv/build/unix/ && ./autogen.sh && ./configure && make && make install && \
+    cd /workspace && rm -rf fmtconv
 
 # deleting files
 RUN rm -rf 1.3.211.0 cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth-R59
