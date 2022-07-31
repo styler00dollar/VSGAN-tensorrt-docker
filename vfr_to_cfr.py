@@ -26,7 +26,7 @@ for f in files:
     # extract audio and subs, specify your own tracks ids
     # ffprobe -i video.mkv
     #os.system(f"ffmpeg -i {f} -map 0:0 -acodec copy {audio_path}")
-    os.system(f"ffmpeg -i {f} {audio_path}")
+    os.system(f"ffmpeg -i {f} -vn {audio_path}")
 
     #os.system(f"ffmpeg -i {f} -map 0:0 {subs_path}")
     os.system(f"ffmpeg -i {f} {subs_path}")
