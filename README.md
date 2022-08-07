@@ -53,7 +53,7 @@ Currently working:
 Model | ESRGAN | SRVGGNetCompact | Rife | SwinIR | Sepconv | EGVSR | BasicVSR++ | Waifu2x | RealBasicVSR | RealCUGAN | FILM | DPIR | PAN | IFRNet | M2M | IFUNet | eisai
 ---  | ------- | --------------- | ---- | ------ | ------- | ----- | ---------- | ------- | ------------ | --------- | ---- | ---- | --- | ------ | --- | ------ | ---
 CUDA | - | [yes](https://github.com/xinntao/Real-ESRGAN/releases/tag/v0.2.3.0) | yes ([rife40](https://drive.google.com/file/d/1mUK9iON6Es14oK46-cCflRoPTeGiI_A9/view), [rife41](https://drive.google.com/file/d/1CPJOzo2CHr8AN3GQCGKOKMVXIdt1RBR1/view)) | [yes](https://github.com/HolyWu/vs-swinir/tree/master/vsswinir) | [yes](http://content.sniklaus.com/resepconv/network-paper.pytorch) | [yes](https://github.com/Thmen/EGVSR/raw/master/pretrained_models/EGVSR_iter420000.pth) | [yes](https://github.com/HolyWu/vs-basicvsrpp/releases/tag/model) | - | [yes](https://drive.google.com/file/d/1OYR1J2GXE90Zu2gVU5xc0t0P_UmKH7ID/view) | [yes](https://drive.google.com/drive/folders/1jAJyBf2qKe2povySwsGXsVMnzVyQzqDD) | [yes](https://drive.google.com/drive/folders/1q8110-qp225asX3DQvZnfLfJPkCHmDpy) | - | [yes](https://github.com/zhaohengyuan1/PAN/tree/master/experiments/pretrained_models) | [yes](https://www.dropbox.com/sh/hrewbpedd2cgdp3/AADbEivu0-CKDQcHtKdMNJPJa?dl=0) | [yes](https://drive.google.com/file/d/1dO-ArTLJ4cMZuN6dttIFFMLtp4I2LnSG/view) | [yes](https://drive.google.com/file/d/1psrM4PkPhuM2iCwwVngT0NCtx6xyiqXa/view) | [yes](https://drive.google.com/drive/folders/1AiZVgGej7Tpn95ats6967neIEPdShxWy)
-TensoRT | yes (torch_tensorrt / C++ TRT) | yes (onnx_tensorrt / C++ TRT) [v2](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/RealESRGANv2_v1.7z), [v3](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/RealESRGANv3_v1.7z) | - | - | - | - | - | [yes (C++ TRT)](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/waifu2x_v3.7z) | - | unstable, breaks on higher res (C++ TRT) [cugan](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/cugan_v2.7z), [pro](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/cugan-pro_v1.7z) | - | [yes (C++ TRT)](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/dpir_v3.7z) | - | - | - | - | -
+TensoRT | yes (torch_tensorrt / C++ TRT) | yes (onnx_tensorrt / C++ TRT) [v2](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/RealESRGANv2_v1.7z), [v3](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/RealESRGANv3_v1.7z) | - | - | - | - | - | [yes (C++ TRT)](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/waifu2x_v3.7z) | - | [yes (C++ TRT)](https://github.com/AmusementClub/vs-mlrt/releases/download/v9.2/models.v9.2.7z) | - | [yes (C++ TRT)](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/dpir_v3.7z) | - | - | - | - | -
 ncnn | yes ([realsr ncnn models](https://github.com/nihui/realsr-ncnn-vulkan/tree/master/models)) | yes ([2x](https://files.catbox.moe/u62vpw.tar)) | yes ([Python with all nihui models](https://github.com/nihui/rife-ncnn-vulkan/tree/master/models) / [C++](https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan/tree/master/models)) | - | - | - | - | [yes](https://github.com/Nlzy/vapoursynth-waifu2x-ncnn-vulkan/releases/download/r0.1/models.7z) | - | - | - | - | - | - | -
 onnx | - | yes | - | - | - | - | - | - | - | yes | - | - | - | - | - | - | -
 
@@ -401,10 +401,11 @@ Compact (4x) | 480p | 720p | 1080p
 A100 (Colab) (vs+CUDA+FrameEval) | 12 | 5.6 | 2.9
 A100 (Colab) (jpg+CUDA) | ? | ?| 3 (4 Threads)
 
-MaxCompact (2x)ⓘ | 480p | 720p | 1080p
-------  | ---  | ---- | ------
-3090 (TensorRT8+C++ TRT+vs threads=7+num_streams=35) | ? | ? | 39
-3090 (TensorRT8+C++ TRT+vs threads=7+num_streams=35+ultrafast preset) | ? | ? | 53
+cugan 2x | 480p | 720p | 1080p 
+-------- | ---- | ---- | ----
+1070ti (vs+TensorRT8.4+ffmpeg+C++ TRT+num_streams=2) | 6 | 2.7 | OOM
+V100 (Colab) (vs+CUDA+ffmpeg+FrameEval) | 7 | 3.1 | ?
+V100 (Colab High RAM) (vs+CUDA+ffmpeg+FrameEval) | 21 | 9.7 | 4
 
 ESRGAN 4x (64mb) (23b) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
@@ -440,14 +441,6 @@ RealESRGAN (2x) (3b+64nf+dropout)ⓘ | 480p | 720p | 1080p
 3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=2) | 15.93 | 5.69 | 2.64
 V100 (Colab High RAM / 8CPU) (vs+TensorRT8.4GA+ffmpeg+C++ TRT+num_streams=4+no tiling+opset15) | 10 | 9.4 | 4.2
 3090 (vs+TensorRT8+ffmpeg+C++ TRT+vs threads=7+num_streams=6) | ? | ? | 5.7
-
-RealESRGAN (2x) (3b+16nf+dropout)ⓘ | 480p | 720p | 1080p
-------------  | ---  | ---- | ------
-V100 (Colab High RAM / 8CPU) (vs+TensorRT8.4GA+ffmpeg+C++ TRT+num_streams=4+no tiling+opset16) | ? | ? | 6.5
-
-RealESRGAN (2x) (2b+16nf+dropout)ⓘ | 480p | 720p | 1080p
-------------  | ---  | ---- | ------
-V100 (Colab High RAM / 8CPU) (vs+TensorRT8.4GA+ffmpeg+C++ TRT+num_streams=4+no tiling+opset16) | ? | ? | 10
 
 Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
@@ -506,15 +499,6 @@ CAIN (2 groups) | 480p | 720p | 1080p
 -----------  | ---- | ---- | ----
 A100 (Colab) | 76 | 47 | 25
 
-cugan 2x | 480p | 720p | 1080p 
--------- | ---- | ---- | ----
-V100 (Colab) (vs+CUDA+ffmpeg+FrameEval) | 7 | 3.1 | ?
-V100 (Colab High RAM) (vs+CUDA+ffmpeg+FrameEval) | 21 | 9.7 | 4
-
-cugan 4x | 480p | 720p | 1080p 
--------- | ---- | ---- | ----
-3090 | 26 | ? | ?
-
 FILM | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
 V100 (Colab High RAM) (vs+CUDA) | 9.8 | 4.7 | 2.1
@@ -531,29 +515,10 @@ DPIR | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
 3090 (TensorRT8+C++ TRT+ffmpeg+vs threads=7+num_streams=5) | ? | ? | 16
 
-## Combined Benchmarks
-
-Rife4 (fastmode False, ensemble True) + Compact 2x | 480p | 720p | 1080p 
----  | -------  | ------- | ------- 
-1070ti (ONNX-TensorRT8+ffmpeg+ModifyFrame) | 9.3 | 4.6 | 2.2
-1070ti (C++ TensorRT8+ffmpeg+ModifyFrame) | ? | ? | 2.7
-V100 (Colab High RAM) (vs+CUDA+ffmpeg+ModifyFrame) | ? | ? | 5.1
-V100 (Colab High RAM) (vs+CUDA+x264+ModifyFrame) | ? | ? | 5.2
-V100 (Colab High RAM) (vs+CUDA+x264+FrameEval) | ? | ? | 5.1
-V100 (Colab High RAM) (vs+ONNX-TensorRT8.2GA+x264+ModifyFrame) (rife fp16=False) | ? | ? | 4.2
-A100 (Colab) (vs+CUDA+ffmpeg+ModifyFrame) | 23 | 13 | 6.6
-A100 (Colab) (vs+ONNX-TensorRT8.2GA+ffmpeg+ModifyFrame) (rife fp16=False) | 27 | 15 | 7.4
-A100 (Colab) (vs+ONNX-TensorRT8.2GA+ffmpeg+ModifyFrame) (rife fp16=False) | 27 | 15 | 7.4
-A100 (Colab) (vs+C++ TensorRT8.2GA+ffmpeg+FrameEval) (num_streams=49) | ~29 | ~18 | 9.96
-A100 (Colab) (vs+C++ TensorRT8.2GA+x264 (--opencl)+FrameEval) (num_streams=49) | 30.10 | 19.81 | 10.6
-
-Rife4 (fastmode False, ensemble True) + RealESRGAN (4x) | 480p | 720p | 1080p 
----  | -------  | ------- | ------- 
-A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=2+no tiling) | 14.46 | 7.39 | 3.18
-
-Rife4 + cugan 2x | 480p | 720p | 1080p 
--------- | ---- | ---- | ----
-A100 (vs+CUDA+ffmpeg+FrameEval) | 19 | 10 | 5
+MaxCompact (2x)ⓘ | 480p | 720p | 1080p
+------  | ---  | ---- | ------
+3090 (TensorRT8+C++ TRT+vs threads=7+num_streams=35) | ? | ? | 39
+3090 (TensorRT8+C++ TRT+vs threads=7+num_streams=35+ultrafast preset) | ? | ? | 53
 
 <div id='license'/>
 
