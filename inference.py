@@ -45,11 +45,11 @@ clip = core.ffms2.Source(source=video_path)
 # COLORSPACE
 ###############################################
 # convert colorspace
-# clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
+clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
 # convert colorspace + resizing
-clip = vs.core.resize.Bicubic(
-    clip, width=848, height=480, format=vs.RGBS, matrix_in_s="709"
-)
+# clip = vs.core.resize.Bicubic(
+#    clip, width=848, height=480, format=vs.RGBS, matrix_in_s="709"
+# )
 
 ###############################################
 
@@ -63,39 +63,39 @@ clip = vs.core.resize.Bicubic(
 # clip = sepconv_model(clip)
 # RIFE4
 # rife4 can do cuda and ncnn, but only cuda is supported in docker
-# models: rife40 | rife41 | sudo_rife4
+# models: rife40 | rife41 | rife42 | sudo_rife4
 # only use sudo_rife4 for 2x
-# clip = RIFE(
-#    clip,
-#    multi=2,
-#    scale=1.0,
-#    fp16=False,
-#    fastmode=False,
-#    ensemble=True,
-#    model_version="sudo_rife4",
-#    psnr_dedup=False,
-#    psnr_value=70,
-#    ssim_dedup=False,
-#    ms_ssim_dedup=False,
-#    ssim_value=0.999,
-#    backend_inference="cuda",
-# )
+clip = RIFE(
+    clip,
+    multi=2,
+    scale=1.0,
+    fp16=False,
+    fastmode=False,
+    ensemble=True,
+    model_version="rife42",
+    psnr_dedup=False,
+    psnr_value=70,
+    ssim_dedup=False,
+    ms_ssim_dedup=False,
+    ssim_value=0.999,
+    backend_inference="cuda",
+)
 # VFI example for jit models
 # clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 # SwinIR
 # clip = SwinIR(clip, task="lightweight_sr", scale=2)
 # ESRGAN / RealESRGAN
 # tta_mode 1-7, means the amount of times the image gets processed while being mirrored
-clip = ESRGAN_inference(
-    clip=clip,
-    model_path="/workspace/4x_fatal_Anime_500000_G.pth",
-    tile_x=400,
-    tile_y=400,
-    tile_pad=10,
-    fp16=False,
-    tta=False,
-    tta_mode=1,
-)
+# clip = ESRGAN_inference(
+#    clip=clip,
+#    model_path="/workspace/4x_fatal_Anime_500000_G.pth",
+#    tile_x=400,
+#    tile_y=400,
+#    tile_pad=10,
+#    fp16=False,
+#    tta=False,
+#    tta_mode=1,
+# )
 # clip = ESRGAN_inference(
 #    clip=clip,
 #    model_path="/workspace/RealESRGAN_x4plus_anime_6B.pth",

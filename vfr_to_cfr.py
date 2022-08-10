@@ -25,12 +25,12 @@ for f in files:
 
     # extract audio and subs, specify your own tracks ids
     # ffprobe -i video.mkv
-    #os.system(f"ffmpeg -i {f} -map 0:0 -acodec copy {audio_path}")
+    # os.system(f"ffmpeg -i {f} -map 0:0 -acodec copy {audio_path}")
     os.system(f"ffmpeg -i {f} -vn {audio_path}")
 
-    #os.system(f"ffmpeg -i {f} -map 0:0 {subs_path}")
+    # os.system(f"ffmpeg -i {f} -map 0:0 {subs_path}")
     os.system(f"ffmpeg -i {f} {subs_path}")
-    
+
     # render video without audio and subtitles
     os.system(
         f"ffmpeg -i {f} -an -sn -vsync cfr -crf 15 -preset slow {tmp_render_path}"

@@ -90,12 +90,17 @@ def M2M(clip: vs.VideoNode, fp16: bool = False, multi=4) -> vs.VideoNode:
 
     else:
         cache = {}
+
         @torch.inference_mode()
         def m2m(n: int, f: vs.VideoFrame) -> vs.VideoFrame:
             if str(n) not in cache:
                 cache.clear()
 
-                if (n % multi == 0) or (n // multi == clip.num_frames - 1) or f[0].props.get('_SceneChangeNext'):
+                if (
+                    (n % multi == 0)
+                    or (n // multi == clip.num_frames - 1)
+                    or f[0].props.get("_SceneChangeNext")
+                ):
                     return f[0]
 
                 I0 = frame_to_tensor(f[0]).to("cuda", non_blocking=True)
@@ -106,8 +111,11 @@ def M2M(clip: vs.VideoNode, fp16: bool = False, multi=4) -> vs.VideoNode:
                     I1 = I1.half()
 
                 intRatio = multi
-                intStep = multi-1
-                tenSteps = [torch.FloatTensor([st / intStep*1]).view(1, 1, 1, 1).cuda() for  st in range(0,intStep)] 
+                intStep = multi - 1
+                tenSteps = [
+                    torch.FloatTensor([st / intStep * 1]).view(1, 1, 1, 1).cuda()
+                    for st in range(0, intStep)
+                ]
 
                 output = model(I0, I1, tenSteps, intRatio)
                 output = torch.cat(output)
@@ -121,9 +129,10 @@ def M2M(clip: vs.VideoNode, fp16: bool = False, multi=4) -> vs.VideoNode:
             return tensor_to_frame(cache[str(n)], f[0].copy())
 
         def frame_to_tensor(f: vs.VideoFrame) -> torch.Tensor:
-            arr = np.stack([np.asarray(f[plane]) for plane in range(f.format.num_planes)])
+            arr = np.stack(
+                [np.asarray(f[plane]) for plane in range(f.format.num_planes)]
+            )
             return torch.from_numpy(arr).unsqueeze(0)
-
 
         def tensor_to_frame(t: torch.Tensor, f: vs.VideoFrame) -> vs.VideoFrame:
             arr = t.detach().cpu().numpy()
@@ -132,6 +141,8 @@ def M2M(clip: vs.VideoNode, fp16: bool = False, multi=4) -> vs.VideoNode:
             return f
 
         clip0 = vs.core.std.Interleave([clip] * multi)
-        clip1 = clip.std.DuplicateFrames(frames=clip.num_frames - 1).std.DeleteFrames(frames=0)
+        clip1 = clip.std.DuplicateFrames(frames=clip.num_frames - 1).std.DeleteFrames(
+            frames=0
+        )
         clip1 = vs.core.std.Interleave([clip1] * multi)
         return clip0.std.ModifyFrame(clips=[clip0, clip1], selector=m2m)
