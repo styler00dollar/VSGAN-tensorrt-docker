@@ -401,11 +401,12 @@ Compact (4x) | 480p | 720p | 1080p
 A100 (Colab) (vs+CUDA+FrameEval) | 12 | 5.6 | 2.9
 A100 (Colab) (jpg+CUDA) | ? | ?| 3 (4 Threads)
 
-cugan 2x | 480p | 720p | 1080p 
+cugan (2x) | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
-1070ti (vs+TensorRT8.4+ffmpeg+C++ TRT+num_streams=2+no tiling) | 6 | 2.7 | OOM
+1070ti (vs+TensorRT8.4+ffmpeg+C++ TRT+num_streams=2+no tiling+opset13) | 6 | 2.7 | OOM
 V100 (Colab) (vs+CUDA+ffmpeg+FrameEval) | 7 | 3.1 | ?
 V100 (Colab High RAM) (vs+CUDA+ffmpeg+FrameEval) | 21 | 9.7 | 4
+V100 (Colab High RAM)  (vs+TensorRT8.4+ffmpeg+C++ TRT+num_streams=3+no tiling+opset13) | 26 | 14 | 6
 
 ESRGAN 4x (64mb) (23b) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
