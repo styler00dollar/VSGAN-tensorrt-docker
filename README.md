@@ -351,13 +351,14 @@ python color_transfer.py -s input -t target -o output -algo mkl -threads 8
 
 Warnings: 
 - Keep in mind that these benchmarks can get outdated very fast due to rapid code development and configurations.
-- The 3090¹ benches were done with a low powerlimit and throttled the GPU.
 - The default is ffmpeg.
 - ModifyFrame is depricated. Trying to use FrameEval everywhere and is used by default.
 - ncnn did a lot of performance enhancements lately, so results may be a bit better.
 - TensorRT docker version and ONNX opset seem to influence speed but that wasn't known for quite some time. I have a hard time pinpointing which TensorRT and ONNX opset was used. Take benchmark as a rough indicator.
 - Colab may change hardware like CPU at any point.
 - Sometimes it takes a very long time to reach the final speed. It can happen that not enough time was waited.
+- 3090¹ (+12900k) benches most likely were affected by power lowered power limit.
+- 3090² (+5950x) system provided by Piotr Rencławowicz for benchmarking purposes.
 
 ⓘ means that model not public yet
 
@@ -390,7 +391,6 @@ A100 (Colab) (vs+onnx+FrameEval) | 26 | 12 | 4.9
 A100 (Colab) (vs+quantized onnx+FrameEval) | 26 | 12 | 5.7
 A100 (Colab) (jpg+CUDA) | 28.2 (9 Threads) | 28.2 (7 Threads) | 9.96 (4 Threads)
 
-
 Compact (4x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
 1070ti TensorRT8 docker (ONNX-TensorRT+FrameEval) | 11 | 5.6 | X
@@ -408,8 +408,8 @@ cugan (2x) | 480p | 720p | 1080p
 V100 (Colab) (vs+CUDA+ffmpeg+FrameEval) | 7 | 3.1 | ?
 V100 (Colab High RAM) (vs+CUDA+ffmpeg+FrameEval) | 21 | 9.7 | 4
 V100 (Colab High RAM)  (vs+TensorRT8.4+ffmpeg+C++ TRT+num_streams=3+no tiling+opset13) | 26 | 14 | 6
-3090 (vs+TensorRT8.4+ffmpeg+C++ TRT+vs_threads=8+num_streams=5+no tiling+opset13) | 79 | 35 | 15
-2x3090 (vs+TensorRT8.4+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13) | 131 | 53 | 23
+3090² (vs+TensorRT8.4+ffmpeg+C++ TRT+vs_threads=8+num_streams=5+no tiling+opset13) | 79 | 35 | 15
+2x3090² (vs+TensorRT8.4+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13) | 131 | 53 | 23
 
 ESRGAN 4x (64mb) (23b) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
@@ -422,8 +422,8 @@ V100 (Colab) (Torch-TensorRT8.2GA+ffmpeg+FrameEval) | 1.8 | 0.8 | ?
 V100 (Colab High VRAM) (C++ TensorRT8.2GA+x264 (--opencl)+FrameEval+no tiling) | 2.46 | OOM (OpenCL) | OOM (OpenCL)
 V100 (Colab High VRAM) (C++ TensorRT8.2GA+x264+FrameEval+no tiling) | 2.49 | 1.14 | 0.47
 A100 (Colab) (Torch-TensorRT8.2GA+ffmpeg+FrameEval) | 5.6 | 2.6 | 1.1
-3090 (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 3.4 | 1.5 | 0.7
-2x3090 (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 7.0 | 3.2 | 1.5
+3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 3.4 | 1.5 | 0.7
+2x3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 7.0 | 3.2 | 1.5
 
 Note: The offical RealESRGAN repository uses 6b (6 blocks) for the anime model.
 
@@ -433,8 +433,8 @@ RealESRGAN (4x) (6b+64nf) | 480p | 720p | 1080p
 V100 (Colab High RAM) (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=1+no tiling) | 6.82 | 3.15 | OOM (OpenCL) 
 V100 (Colab High RAM) (vs+TensorRT8.2GA+x264+C++ TRT+num_streams=1+no tiling) | ? | ? | 1.39
 A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 | 6.74 | 2.76
-3090 (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 11 | 4.8 | 2.3
-2x3090 (C++ TRT+vs_threads=10+num_threads=2+no tiling+opset14) | 22 | 9.5 | 4.2
+3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 11 | 4.8 | 2.3
+2x3090² (C++ TRT+vs_threads=10+num_threads=2+no tiling+opset14) | 22 | 9.5 | 4.2
 
 RealESRGAN (2x) (6b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
@@ -442,14 +442,14 @@ RealESRGAN (2x) (6b+64nf) | 480p | 720p | 1080p
 3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=1) | 8.14 | 3.12 | 1.4
 V100 (Colab High RAM / 8CPU) (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling+opset15) | 5.09 | 4.56 | 2.02
 V100 (Colab High RAM / 8CPU) (vs+TensorRT8.2GA+ffmpeg+C++ TRT+num_streams=3+no tiling+opset15) | 5.4 | 4.8 | 2.2
-3090 (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset16) (+dropout) | 13 | 5.8 | 2.7
-2x3090 (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset16) (+dropout) | 26 | 11 | 5.3
+3090² (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset16) (+dropout) | 13 | 5.8 | 2.7
+2x3090² (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset16) (+dropout) | 26 | 11 | 5.3
 
 RealESRGAN (2x) (3b+64nf+dropout)ⓘ | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
 3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=2) | 15.93 | 5.69 | 2.64
 V100 (Colab High RAM / 8CPU) (vs+TensorRT8.4GA+ffmpeg+C++ TRT+num_streams=4+no tiling+opset15) | 10 | 9.4 | 4.2
-3090 (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset15) | 24 | 11 | 5.2
+3090² (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset15) | 24 | 11 | 5.2
 2x3090 (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset15) | 51 | 23 | 10
 
 Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
@@ -462,8 +462,8 @@ Rife4+vs (fastmode False, ensemble True) | 480p | 720p | 1080p
 1070ti Python (vs+ffmpeg+ModifyFrame) | 27 | 13 | 9.6
 1070ti C++ NCNN | ? | ? | 10
 3060ti (vs+ffmpeg+ModifyFrame) | ? | 36 | 20 |
-3090 (CUDA+vs_threads=20) | 70 | 52 | 27
-3090 (C++ NCNN+vs_threads=20+ncnn_threads=8) | 137 | 65 | 31
+3090² (CUDA+vs_threads=20) | 70 | 52 | 27
+3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 137 | 65 | 31
 V100 (Colab) (vs+ffmpeg+ModifyFrame) | 30 | 16 | 7.3
 V100 (Colab High RAM) (vs+x264+ModifyFrame) | 48.5 | 33 | 19.2
 V100 (Colab High RAM) (vs+x264+FrameEval) | 48.2 | 35.5 | 20.6
@@ -477,9 +477,9 @@ Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p
 1070ti Python (TensorRT8+ffmpeg+ModifyFrame) | 62 | 31 | 14
 1070ti C++ NCNN | ? | ? | 34
 3060ti (CUDA+ffmpeg+ModifyFrame) | 135 | 66 | 33 |
-3090 (CUDA+ffmpeg+FrameEval+vs_threads=20) | 121 | 80 | 38
-3090 (C++ NCNN+vs_threads=20+ncnn_threads=8) | 341 | 142 | 63
-2x3090 (C++ NCNN+vs_threads=20+ncnn_threads=8) | 340 | 140 | 63
+3090² (CUDA+ffmpeg+FrameEval+vs_threads=20) | 121 | 80 | 38
+3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 341 | 142 | 63
+2x3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 340 | 140 | 63
 V100 (Colab) (TensorRT8.2GA+ffmpeg+ModifyFrame) | 34 | 17 | 7.6
 V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | 64 | 43 | 25
 V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (8 threads)) | 136 | 65 | 29
@@ -490,7 +490,7 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 1070ti (TensorRT8+ffmpeg+ModifyFrame) | 41 | 20 | 9.8 
 1070ti C++ NCNN | ? | ? | 17
 3060ti (TensorRT8+ffmpeg+ModifyFrame) | 86 | 49 | 24 | 
-3090 (TensorRT8+ffmpeg+ModifyFrame) | ? | 90.3 | 45
+3090¹ (TensorRT8+ffmpeg+ModifyFrame) | ? | 90.3 | 45
 
 EGVSR | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
@@ -506,11 +506,12 @@ A100 (Colab) | 1.2 | ? | ?
 Sepconv | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
 V100 (Colab) | 22 | 11 | 4.9
-3090 (vs+CUDA) | 30 | 14 | 6.2
+3090² (vs+CUDA) | 30 | 14 | 6.2
 
 CAIN (2 groups) | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
 A100 (Colab) | 76 | 47 | 25
+3090² (vs+CUDA) | 120 | 65 | 31
 
 FILM | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
@@ -526,7 +527,7 @@ V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | ? | ? | 15
 
 DPIR | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
-3090 (TensorRT8+C++ TRT+ffmpeg+vs threads=7+num_streams=5) | ? | ? | 16
+3090¹ (TensorRT8+C++ TRT+ffmpeg+vs threads=7+num_streams=5) | ? | ? | 16
 
 MaxCompact (2x)ⓘ | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
