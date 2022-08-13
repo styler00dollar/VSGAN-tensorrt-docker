@@ -476,8 +476,8 @@ Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p
 ---  | -------  | ------- | ------- 
 1070ti Python (TensorRT8+ffmpeg+ModifyFrame) | 62 | 31 | 14
 1070ti C++ NCNN | ? | ? | 34
-3060ti (TensorRT8+ffmpeg+ModifyFrame) | 135 | 66 | 33 |
-3090 (CUDA+vs_threads=20) | 121 | 80 | 38
+3060ti (CUDA+ffmpeg+ModifyFrame) | 135 | 66 | 33 |
+3090 (CUDA+ffmpeg+FrameEval+vs_threads=20) | 121 | 80 | 38
 3090 (C++ NCNN+vs_threads=20+ncnn_threads=8) | 341 | 142 | 63
 2x3090 (C++ NCNN+vs_threads=20+ncnn_threads=8) | 340 | 140 | 63
 V100 (Colab) (TensorRT8.2GA+ffmpeg+ModifyFrame) | 34 | 17 | 7.6
