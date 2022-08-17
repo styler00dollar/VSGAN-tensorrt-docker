@@ -73,7 +73,7 @@ def conv(
             ),
             nn.PReLU(out_planes),
         )
-    if arch_ver == "4.2":
+    if arch_ver == "4.2" or arch_ver == "4.3":
         return nn.Sequential(
             nn.Conv2d(
                 in_planes,
@@ -145,7 +145,7 @@ def deconv(in_planes, out_planes, kernel_size=4, stride=2, padding=1, arch_ver="
             ),
             nn.PReLU(out_planes),
         )
-    if arch_ver == "4.2":
+    if arch_ver == "4.2" or arch_ver == "4.3":
         return nn.Sequential(
             torch.nn.ConvTranspose2d(
                 in_channels=in_planes,
@@ -207,7 +207,7 @@ class IFBlock(nn.Module):
         feat = self.conv0(x)
         if self.arch_ver == "4.0":
             feat = self.convblock(feat) + feat
-        if self.arch_ver == "4.2":
+        if self.arch_ver == "4.2" or self.arch_ver == "4.3":
             feat = self.convblock(feat)
 
         tmp = self.lastconv(feat)
@@ -289,6 +289,7 @@ class Unet(nn.Module):
 class IFNet(nn.Module):
     def __init__(self, arch_ver="4.0"):
         super(IFNet, self).__init__()
+        self.arch_ver = arch_ver
         self.block0 = IFBlock(7, c=192, arch_ver=arch_ver)
         self.block1 = IFBlock(8 + 4, c=128, arch_ver=arch_ver)
         self.block2 = IFBlock(8 + 4, c=96, arch_ver=arch_ver)
@@ -354,28 +355,29 @@ class IFNet(nn.Module):
                     flow,
                     scale=scale_list[i],
                 )
-                if (
-                    i == 1
-                    and f0[:, :2].abs().max() > 32
-                    and f0[:, 2:4].abs().max() > 32
-                    and not training
-                ):
-                    for k in range(4):
-                        scale_list[k] *= 2
-                    flow, mask = block[0](
-                        torch.cat((img0[:, :3], img1[:, :3], timestep), 1),
-                        None,
-                        scale=scale_list[0],
-                    )
-                    warped_img0 = warp(img0, flow[:, :2])
-                    warped_img1 = warp(img1, flow[:, 2:4])
-                    f0, m0 = block[i](
-                        torch.cat(
-                            (warped_img0[:, :3], warped_img1[:, :3], timestep, mask), 1
-                        ),
-                        flow,
-                        scale=scale_list[i],
-                    )
+                if self.arch_ver != "4.3":
+                    if (
+                        i == 1
+                        and f0[:, :2].abs().max() > 32
+                        and f0[:, 2:4].abs().max() > 32
+                        and not training
+                    ):
+                        for k in range(4):
+                            scale_list[k] *= 2
+                        flow, mask = block[0](
+                            torch.cat((img0[:, :3], img1[:, :3], timestep), 1),
+                            None,
+                            scale=scale_list[0],
+                        )
+                        warped_img0 = warp(img0, flow[:, :2])
+                        warped_img1 = warp(img1, flow[:, 2:4])
+                        f0, m0 = block[i](
+                            torch.cat(
+                                (warped_img0[:, :3], warped_img1[:, :3], timestep, mask), 1
+                            ),
+                            flow,
+                            scale=scale_list[i],
+                        )
                 if ensemble:
                     f1, m1 = block[i](
                         torch.cat(
