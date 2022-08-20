@@ -103,11 +103,11 @@ RUN apt update -y && \
     pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R59.zip && \
     7z x R59.zip && cd vapoursynth-R59 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.8/lib-dynload/vapoursynth.so && \
-    pip install cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python cupy-cuda115 pytorch-msssim \
-        https://download.pytorch.org/whl/cu115/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl \
-        https://download.pytorch.org/whl/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl \
-        mmcv-full==1.5.0 -f https://download.openmmlab.com/mmcv/dist/cu115/torch1.11.0/index.html \
-        torch-tensorrt -f https://github.com/NVIDIA/Torch-TensorRT/releases \
+    pip install cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python cupy-cuda116 pytorch-msssim \
+        https://download.pytorch.org/whl/cu116/torch-1.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl \
+        https://download.pytorch.org/whl/cpu/torchvision-0.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl \
+        mmcv-full==1.6.0 -f https://download.openmmlab.com/mmcv/dist/cu116/torch1.12.0/index.html \
+        #https://github.com/styler00dollar/TensorRT/releases/download/v1.2a/torch_tensorrt-1.2.0a0+10325f14-cp38-cp38-linux_x86_64.whl \
         onnx onnxruntime onnxruntime-gpu && \
     # not deleting vapoursynth-R59 since vs-mlrt needs it
     rm -rf R59.zip && \
