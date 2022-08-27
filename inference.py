@@ -63,7 +63,7 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
 # clip = sepconv_model(clip)
 # RIFE4
 # rife4 can do cuda and ncnn, but only cuda is supported in docker
-# models: rife40 | rife41 | rife42 | rife43 | sudo_rife4
+# models: rife40 | rife41 | rife42 | rife43 | rife44 | sudo_rife4
 # only use sudo_rife4 for 2x
 clip = RIFE(
     clip,

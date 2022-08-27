@@ -80,6 +80,9 @@ def RIFE(
         elif model_version == "rife43":
             model = IFNet(arch_ver="4.3")
             model.load_state_dict(torch.load("/workspace/rife43.pth"), False)
+        elif model_version == "rife44":
+            model = IFNet(arch_ver="4.3")
+            model.load_state_dict(torch.load("/workspace/rife44.pth"), False)
         elif model_version == "sudo_rife4":
             model.load_state_dict(
                 torch.load("/workspace/sudo_rife4_269.662_testV1_scale1.pth"), False
