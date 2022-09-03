@@ -166,7 +166,11 @@ trtexec --fp16 --onnx=dpir_drunet_color.onnx --minShapes=input:1x4x8x8 --optShap
 ```
 and put that engine path into `inference.py`. Only do FP16 if your GPU does support it. 
 
-**Warning**: You need to use the FP32 onnx, even if you want FP16, specify `--fp16` for FP16.
+**Warnings**: 
+- You need to use the FP32 onnx, even if you want FP16, specify `--fp16` for FP16.
+- Engines are system specific, don't use across multiple systems
+- Don't use reuse engines for different GPUs.
+- If you run out of memory, then you need to adjust the resolutions in that command. If your video is bigger than what you can input in the command, use tiling.
 
 <div id='multi-gpu'/>
 
