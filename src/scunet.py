@@ -448,7 +448,6 @@ def scunet_inference(
 
     model = (
         SCUNet(in_nc=3, config=[4, 4, 4, 4, 4, 4, 4], dim=64, input_resolution=tile_x)
-        .half()
         .cuda()
     )
     model_path = "/content/SCUNet/model_zoo/scunet_color_real_gan.pth"
