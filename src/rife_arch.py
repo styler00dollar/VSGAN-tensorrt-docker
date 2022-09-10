@@ -373,7 +373,13 @@ class IFNet(nn.Module):
                         warped_img1 = warp(img1, flow[:, 2:4])
                         f0, m0 = block[i](
                             torch.cat(
-                                (warped_img0[:, :3], warped_img1[:, :3], timestep, mask), 1
+                                (
+                                    warped_img0[:, :3],
+                                    warped_img1[:, :3],
+                                    timestep,
+                                    mask,
+                                ),
+                                1,
                             ),
                             flow,
                             scale=scale_list[i],

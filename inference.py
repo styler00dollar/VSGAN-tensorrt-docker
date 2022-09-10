@@ -22,6 +22,7 @@ from src.IFRNet import IFRNet
 from src.M2M import M2M
 from src.IFUNet import IFUNet
 from src.eisai import EISAI
+from src.scunet import scunet_inference
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -173,7 +174,15 @@ clip = RIFE(
 # clip = IFUNet(clip)
 # EISAI (needs 960x540 for now)
 # clip = EISAI(clip)
-
+# SCUNet
+# clip = scunet_inference(
+#    clip = clip,
+#    fp16 = True,
+#    tile_x = 384,
+#    tile_y = 384,
+#    tile_pad = 10,
+#    pre_pad = 0,
+# )
 ###############################################
 # [ONLY IN DEV DOCKER] MODELS (NCNN)
 # Only recommended for AMD GPUS, further instructions in README
