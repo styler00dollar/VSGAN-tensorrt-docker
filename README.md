@@ -59,6 +59,7 @@ ncnn | yes ([realsr ncnn models](https://github.com/nihui/realsr-ncnn-vulkan/tre
 onnx | - | yes | - | - | - | - | - | - | - | yes | - | - | - | - | - | - | - | -
 
 Some important things:
+- If you are on Windows, install all the latest updates first, otherwise wsl won't work properly. 21H2 minimum.
 - Do not use `webm` video, webm is often broken. It can work, but don't complain about broken output afterwards.
 - Processing variable framerate (vfr) video is dangerous, but you can try to use fpsnum and fpsden. I would recommend to just render the input video into constant framerate (crf).
 - `x264` can be faster than `ffmpeg`, use that instead.
