@@ -3151,7 +3151,7 @@ class DTM(nn.Module):
 
 
 class RAFT(nn.Module):
-    def __init__(self, path="./checkpoints/anime_interp_full.ckpt"):
+    def __init__(self, path="/workspace/tensorrt/models/anime_interp_full.ckpt"):
         super().__init__()
         self.raft = RFR(
             Namespace(

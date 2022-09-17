@@ -27,7 +27,7 @@ def M2M(clip: vs.VideoNode, fp16: bool = False, multi=4) -> vs.VideoNode:
     from .M2M_arch import M2M_PWC
 
     model = M2M_PWC()
-    model.load_state_dict(torch.load("/workspace/tensorrt/M2M.pth"))
+    model.load_state_dict(torch.load("/workspace/tensorrt/models/M2M.pth"))
 
     model.eval().cuda()
 

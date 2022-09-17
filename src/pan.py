@@ -288,13 +288,13 @@ def PAN_inference(
 
     # load network
     if scale == 2:
-        model_path = f"/workspace/PANx2_DF2K.pth"
+        model_path = f"/workspace/tensorrt/models/PANx2_DF2K.pth"
         model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=2)
     elif scale == 3:
-        model_path = f"/workspace/PANx3_DF2K.pth"
+        model_path = f"/workspace/tensorrt/models/PANx3_DF2K.pth"
         model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=3)
     elif scale == 4:
-        model_path = f"/workspace/PANx4_DF2K.pth"
+        model_path = f"/workspace/tensorrt/models/PANx4_DF2K.pth"
         model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=4)
     model.load_state_dict(torch.load(model_path, map_location="cpu"))
     model.eval()

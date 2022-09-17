@@ -30,13 +30,13 @@ def IFRNet(
         from .IFRNet_S_arch import IRFNet_S
 
         model = IRFNet_S()
-        model.load_state_dict(torch.load("/workspace/IFRNet_S_Vimeo90K.pth"))
+        model.load_state_dict(torch.load("/workspace/tensorrt/models/IFRNet_S_Vimeo90K.pth"))
 
     elif model == "large":
         from .IFRNet_L_arch import IRFNet_L
 
         model = IRFNet_L()
-        model.load_state_dict(torch.load("/workspace/IFRNet_L_Vimeo90K.pth"))
+        model.load_state_dict(torch.load("/workspace/tensorrt/models/IFRNet_L_Vimeo90K.pth"))
     model.eval().cuda()
 
     w = clip.width

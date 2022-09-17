@@ -76,9 +76,6 @@ yay -S docker nvidia-docker nvidia-container-toolkit docker-compose
 
 # Download prebuild image from dockerhub (recommended)
 docker pull styler00dollar/vsgan_tensorrt:latest
-# I also created a development docker, which is more experimental and bigger in size. 
-# It has ncnn support and has more features.
-docker pull styler00dollar/vsgan_tensorrt_dev:latest
 
 # Build docker manually
 # Put the dockerfile in a directory and run that inside that directory
@@ -87,10 +84,8 @@ docker build -t styler00dollar/vsgan_tensorrt:latest .
 # If you want to rebuild from scratch or have errors, try to build without cache
 # If you still have problems, try to uncomment "RUN apt-get dist-upgrade -y" in the Dockerfile and try again
 docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest . 
-# If you encounter 401 unauthorized error, use this command before running docker build
+# If you encounter 401 unauthorized error, pull an image manually, for example
 docker pull nvcr.io/nvidia/tensorrt:21.12-py3
-# The dev docker has more requirements and requires that you get files manually prior to building
-# Look into the docker file for more information
 
 # run the docker with docker-compose
 # go into the vsgan folder, inside that folder should be compose.yaml, run this command
@@ -109,6 +104,10 @@ vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv
 # Warning: Currently frame interpolation does not properly work, but upscaling does
 # Torch-TensorRT backend seems to break, C++ TRT seems to work. Either use engine or CUDA.
 av1an -e svt-av1 -i inference.py -o output.mkv
+
+# models are outside of docker image to minimize download size, if you want specific models you can look in
+# https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models or use the download scripts
+# to get all of them. Models are expected to be placed under models/
 ```
 
 If docker does not want to start, try this before you use docker:

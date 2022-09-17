@@ -37,11 +37,11 @@ def EISAI(
 
     ssl = SoftsplatLite()
     dtm = DTM()
-    ssl.load_state_dict(torch.load("./checkpoints/ssl.pt"))
-    dtm.load_state_dict(torch.load("./checkpoints/dtm.pt"))
+    ssl.load_state_dict(torch.load("/workspace/tensorrt/models//ssl.pt"))
+    dtm.load_state_dict(torch.load("./workspace/tensorrt/models/dtm.pt"))
     ssl = ssl.to(device).eval()
     dtm = dtm.to(device).eval()
-    raft = RAFT().eval().to(device)
+    raft = RAFT(path="/workspace/tensorrt/models/anime_interp_full.ckpt").eval().to(device)
 
     w = clip.width
     h = clip.height

@@ -70,25 +70,25 @@ def RIFE(
 
         if model_version == "rife40":
             model = IFNet(arch_ver="4.0")
-            model.load_state_dict(torch.load("/workspace/rife40.pth"), False)
+            model.load_state_dict(torch.load("/workspace/tensorrt/models/rife40.pth"), False)
         elif model_version == "rife41":
             model = IFNet(arch_ver="4.0")
-            model.load_state_dict(torch.load("/workspace/rife41.pth"), False)
+            model.load_state_dict(torch.load("/workspace/tensorrt/models/rife41.pth"), False)
         elif model_version == "rife42":
             model = IFNet(arch_ver="4.2")
-            model.load_state_dict(torch.load("/workspace/rife42.pth"), False)
+            model.load_state_dict(torch.load("/workspace/tensorrt/models/rife42.pth"), False)
         elif model_version == "rife43":
             model = IFNet(arch_ver="4.3")
-            model.load_state_dict(torch.load("/workspace/rife43.pth"), False)
+            model.load_state_dict(torch.load("/workspace/tensorrt/models/rife43.pth"), False)
         elif model_version == "rife44":
             model = IFNet(arch_ver="4.3")
-            model.load_state_dict(torch.load("/workspace/tensorrt/rife44.pth"), False)
+            model.load_state_dict(torch.load("/workspace/tensorrt/models/rife44.pth"), False)
         elif model_version == "rife45":
             model = IFNet(arch_ver="4.5")
-            model.load_state_dict(torch.load("/workspace/tensorrt/rife45.pth"), False)
+            model.load_state_dict(torch.load("/workspace/tensorrt/models/rife45.pth"), False)
         elif model_version == "sudo_rife4":
             model.load_state_dict(
-                torch.load("/workspace/sudo_rife4_269.662_testV1_scale1.pth"), False
+                torch.load("/workspace/tensorrt/models/sudo_rife4_269.662_testV1_scale1.pth"), False
             )
 
         model.eval().cuda()

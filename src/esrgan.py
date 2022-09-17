@@ -647,7 +647,7 @@ vs_api_below4 = vs.__api_version__.api_major < 4
 
 def ESRGAN_inference(
     clip: vs.VideoNode,
-    model_path: str = "/workspace/4x_fatal_Anime_500000_G.pth",
+    model_path: str = "/workspace/tensorrt/models/4x_fatal_Anime_500000_G.pth",
     tile_x: int = 0,
     tile_y: int = 0,
     tile_pad: int = 10,

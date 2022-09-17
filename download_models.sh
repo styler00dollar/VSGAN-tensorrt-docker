@@ -1,0 +1,53 @@
+mkdir models
+cd models
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/4x_fatal_Anime_500000_G.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-conservative-up3x.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-denoise3x-up2x.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_pro-denoise3x-up3x.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-conservative.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-denoise1x.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-denoise2x.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-denoise3x.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up2x-latest-no-denoise.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up3x-latest-conservative.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up3x-latest-denoise3x.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up3x-latest-no-denoise.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up4x-latest-conservative.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up4x-latest-denoise3x.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/cugan_up4x-latest-no-denoise.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/EGVSR_iter420000.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/eisai_anime_interp_full.ckpt
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/eisai_dtm.pt
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/eisai_ssl.pt
+
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/FILM.tar.gz
+mkdir FILM
+tar -zxvf FILM.tar.gz -C FILM
+rm -rf FILM.tar.gz
+
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/IFRNet_GoPro.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/IFRNet_L_GoPro.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/IFRNet_L_Vimeo90K.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/IFRNet_S_GoPro.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/IFRNet_S_Vimeo90K.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/IFRNet_Vimeo90K.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/IFUNet.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/M2M.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/RealBasicVSR_x4.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/RealESRGANv2-animevideo-xsx2.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/RealESRGANv2-animevideo-xsx4.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/RealESRGAN_x4plus_anime_6B.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/rife40.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/rife41.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/rife42.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/rife43.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/rife44.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/rife45.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/scunet_color_15.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/scunet_color_25.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/scunet_color_50.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/scunet_color_real_gan.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/scunet_color_real_psnr.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sepconv.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sudo_rife4_269.662_testV1_scale1.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sudo_UltraCompact_2x_1.121.175_G.pth

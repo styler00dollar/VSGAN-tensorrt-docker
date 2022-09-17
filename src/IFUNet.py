@@ -40,7 +40,7 @@ def IFUNet(
     model = IFUNetModel()
     model.cuda()
 
-    # model.load_state_dict(torch.load("/workspace/TODO"), False)
+    model.load_state_dict(torch.load("/workspace/tensorrt/models/IFUNet.pth"), False)
 
     w = clip.width
     h = clip.height

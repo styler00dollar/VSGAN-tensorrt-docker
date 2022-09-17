@@ -57,7 +57,7 @@ def SRVGGNetCompactRealESRGAN(
         if backend_inference != "ncnn":
             from .SRVGGNetCompact_arch import SRVGGNetCompact
 
-            model_path = f"/workspace/RealESRGANv2-animevideo-xsx{scale}.pth"
+            model_path = f"/workspace/tensorrt/models/RealESRGANv2-animevideo-xsx{scale}.pth"
             model = SRVGGNetCompact(
                 num_in_ch=3,
                 num_out_ch=3,
@@ -77,11 +77,11 @@ def SRVGGNetCompactRealESRGAN(
             torch.onnx.export(
                 model,
                 (torch.rand(1, 3, clip.height, clip.width)),
-                f"/workspace/test.onnx",
+                f"/workspace/tensorrt/models/test.onnx",
                 verbose=False,
                 opset_version=14,
             )
-            model = ox.load("/workspace/test.onnx")
+            model = ox.load("/workspace/tensorrt/models/test.onnx")
             model = backend.prepare(model, device="CUDA:0", fp16_mode=fp16)
         elif backend_inference == "onnx":
             import onnx as ox
@@ -90,15 +90,15 @@ def SRVGGNetCompactRealESRGAN(
             torch.onnx.export(
                 model,
                 (torch.rand(1, 3, clip.height, clip.width)),
-                f"/workspace/test.onnx",
+                f"/workspace/tensorrt/models/test.onnx",
                 verbose=False,
                 opset_version=14,
                 input_names=["input"],
                 output_names=["output"],
             )
-            model = ox.load("/workspace/test.onnx")
+            model = ox.load("/workspace/tensorrt/models/test.onnx")
             sess = ort.InferenceSession(
-                f"/workspace/test.onnx", providers=["CUDAExecutionProvider"]
+                f"/workspace/tensorrt/models/test.onnx", providers=["CUDAExecutionProvider"]
             )
         elif backend_inference == "quantized_onnx":
             import onnxruntime as ort
@@ -115,20 +115,20 @@ def SRVGGNetCompactRealESRGAN(
             torch.onnx.export(
                 model.cuda(),
                 (torch.rand(1, 3, clip.height, clip.width)).cuda(),
-                f"/workspace/test.onnx",
+                f"/workspace/tensorrt/models/test.onnx",
                 verbose=False,
                 opset_version=14,
                 input_names=["input"],
                 output_names=["output"],
             )
             quantized_model = quantize_dynamic(
-                "/workspace/test.onnx",
-                "/workspace/test_quant.onnx",
+                "/workspace/tensorrt/models/test.onnx",
+                "/workspace/tensorrt/models/test_quant.onnx",
                 weight_type=QuantType.QUInt8,
             )
-            model = ox.load("/workspace/test_quant.onnx")
+            model = ox.load("/workspace/tensorrt/models/test_quant.onnx")
             sess = ort.InferenceSession(
-                f"/workspace/test.onnx", providers=["CUDAExecutionProvider"]
+                f"/workspace/tensorrt/models/test.onnx", providers=["CUDAExecutionProvider"]
             )
         elif backend_inference == "cuda":
             if fp16:

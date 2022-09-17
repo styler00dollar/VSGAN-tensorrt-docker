@@ -96,7 +96,7 @@ def realbasicvsr_model(
     config.test_cfg.metrics = None
     model = build_model(config.model, test_cfg=config.test_cfg)
     model.load_state_dict(
-        torch.load("/workspace/RealBasicVSR_x4.pth")["state_dict"], strict=True
+        torch.load("/workspace/tensorrt/models/RealBasicVSR_x4.pth")["state_dict"], strict=True
     )
     model.cuda().eval()
 

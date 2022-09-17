@@ -1312,7 +1312,7 @@ def sepconv_model(clip: vs.VideoNode) -> vs.VideoNode:
     torch.backends.cudnn.benchmark = True
 
     model = Network()
-    model.load_state_dict(torch.load("/workspace/sepconv.pth"))
+    model.load_state_dict(torch.load("/workspace/tensorrt/models/sepconv.pth"))
     model.eval()
     model.cuda()
 

@@ -55,13 +55,15 @@ def FILM_inference(clip: vs.VideoNode, model_choise: str = "vgg") -> vs.VideoNod
             sys.argv.append("(C++)")
         os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
         import tensorflow as tf
-
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        print(gpus)
+        tf.config.experimental.set_memory_growth(gpus[0], True)
         if model_choise == "style":
-            model = tf.compat.v2.saved_model.load("/workspace/Style/")
+            model = tf.compat.v2.saved_model.load("/workspace/tensorrt/models/FILM/Style/")
         elif model_choise == "l1":
-            model = tf.compat.v2.saved_model.load("/workspace/L1/")
+            model = tf.compat.v2.saved_model.load("/workspace/tensorrt/models/FILM/L1/")
         elif model_choise == "vgg":
-            model = tf.compat.v2.saved_model.load("/workspace/VGG/")
+            model = tf.compat.v2.saved_model.load("/workspace/tensorrt/models/FILM/VGG/")
 
     batch_dt = np.full(shape=(1,), fill_value=0.5, dtype=np.float32)
     batch_dt = np.expand_dims(batch_dt, axis=0)
