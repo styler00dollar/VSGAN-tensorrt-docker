@@ -1,7 +1,6 @@
 # This is a cuda+vulkan docker
-# This docker requires you to download some files yourself and place them into the current directory
 
-# DOCKER_BUILDKIT=1 docker build -t styler00dollar/vsgan_tensorrt_dev:latest .
+# DOCKER_BUILDKIT=1 docker build -t styler00dollar/vsgan_tensorrt:latest .
 
 # 20.04 has python3.8, which is currently maximum for TensorRT 8.4 EA, 22.04 has 3.10
 
@@ -108,7 +107,7 @@ RUN apt update -y && \
         https://download.pytorch.org/whl/cpu/torchvision-0.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl \
         mmcv-full==1.6.0 -f https://download.openmmlab.com/mmcv/dist/cu116/torch1.12.0/index.html \
         https://github.com/pytorch/TensorRT/releases/download/v1.2.0/torch_tensorrt-1.2.0-cp38-cp38-linux_x86_64.whl \
-        onnx onnxruntime onnxruntime-gpu && \
+        onnx onnxruntime-gpu && \
     # not deleting vapoursynth-R60 since vs-mlrt needs it
     rm -rf R60.zip && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip cache purge
