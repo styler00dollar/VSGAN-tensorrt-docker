@@ -43,6 +43,7 @@ wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/m
 wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/rife43.pth
 wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/rife44.pth
 wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/rife45.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/rife46.pth
 wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/scunet_color_15.pth
 wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/scunet_color_25.pth
 wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/scunet_color_50.pth

@@ -86,6 +86,9 @@ def RIFE(
         elif model_version == "rife45":
             model = IFNet(arch_ver="4.5")
             model.load_state_dict(torch.load("/workspace/tensorrt/models/rife45.pth"), False)
+        elif model_version == "rife46":
+            model = IFNet(arch_ver="4.6")
+            model.load_state_dict(torch.load("/workspace/tensorrt/models/rife46.pth"), False)      
         elif model_version == "sudo_rife4":
             model.load_state_dict(
                 torch.load("/workspace/tensorrt/models/sudo_rife4_269.662_testV1_scale1.pth"), False

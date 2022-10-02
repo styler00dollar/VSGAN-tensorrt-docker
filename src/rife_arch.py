@@ -81,7 +81,7 @@ def conv(
             ),
             nn.PReLU(out_planes),
         )
-    if arch_ver in ["4.2", "4.3", "4.5"]:
+    if arch_ver in ["4.2", "4.3", "4.5", "4.6"]:
         return nn.Sequential(
             nn.Conv2d(
                 in_planes,
@@ -153,7 +153,7 @@ def deconv(in_planes, out_planes, kernel_size=4, stride=2, padding=1, arch_ver="
             ),
             nn.PReLU(out_planes),
         )
-    if arch_ver in ["4.2", "4.3", "4.5"]:
+    if arch_ver in ["4.2", "4.3", "4.5", "4.6"]:
         return nn.Sequential(
             torch.nn.ConvTranspose2d(
                 in_channels=in_planes,
@@ -202,7 +202,7 @@ class IFBlock(nn.Module):
             )
             self.lastconv = nn.ConvTranspose2d(c, 5, 4, 2, 1)
             
-        if arch_ver == "4.5":
+        if arch_ver in ["4.5", "4.6"]:
             self.convblock = nn.Sequential(
                 ResConv(c),
                 ResConv(c),
@@ -213,8 +213,13 @@ class IFBlock(nn.Module):
                 ResConv(c),
                 ResConv(c),
             )
+        if arch_ver == "4.5":
             self.lastconv = nn.Sequential(
                 nn.ConvTranspose2d(c, 4 * 5, 4, 2, 1), nn.PixelShuffle(2)
+            )
+        if arch_ver == "4.6":
+            self.lastconv = nn.Sequential(
+                nn.ConvTranspose2d(c, 4 * 6, 4, 2, 1), nn.PixelShuffle(2)
             )
 
     def forward(self, x, flow=None, scale=1):
@@ -233,7 +238,7 @@ class IFBlock(nn.Module):
         feat = self.conv0(x)
         if self.arch_ver == "4.0":
             feat = self.convblock(feat) + feat
-        if self.arch_ver in ["4.2", "4.3", "4.5"]:
+        if self.arch_ver in ["4.2", "4.3", "4.5", "4.6"]:
             feat = self.convblock(feat)
 
         tmp = self.lastconv(feat)
@@ -242,7 +247,7 @@ class IFBlock(nn.Module):
                 tmp, scale_factor=scale * 2, mode="bilinear", align_corners=False
             )
             flow = tmp[:, :4] * scale * 2
-        if self.arch_ver == "4.5":
+        if self.arch_ver in ["4.5", "4.6"]:
             tmp = F.interpolate(
                 tmp, scale_factor=scale, mode="bilinear", align_corners=False
             )
@@ -326,7 +331,7 @@ class IFNet(nn.Module):
         self.block1 = IFBlock(8 + 4, c=128, arch_ver=arch_ver)
         self.block2 = IFBlock(8 + 4, c=96, arch_ver=arch_ver)
         self.block3 = IFBlock(8 + 4, c=64, arch_ver=arch_ver)
-        if arch_ver != "4.5":
+        if arch_ver not in ["4.5", "4.6"]:
             self.contextnet = Contextnet(arch_ver=arch_ver)
             self.unet = Unet(arch_ver=arch_ver)
         self.arch_ver = arch_ver
@@ -389,7 +394,7 @@ class IFNet(nn.Module):
                     flow,
                     scale=scale_list[i],
                 )
-                if self.arch_ver != "4.3":
+                if self.arch_ver == "4.0":
                     if (
                         i == 1
                         and f0[:, :2].abs().max() > 32
@@ -437,7 +442,7 @@ class IFNet(nn.Module):
             merged.append((warped_img0, warped_img1))
         mask_list[3] = torch.sigmoid(mask_list[3])
         merged[3] = merged[3][0] * mask_list[3] + merged[3][1] * (1 - mask_list[3])
-        if not fastmode and self.arch_ver != "4.5":
+        if not fastmode and self.arch_ver not in ["4.5", "4.6"]:
             c0 = self.contextnet(img0, flow[:, :2])
             c1 = self.contextnet(img1, flow[:, 2:4])
             tmp = self.unet(img0, img1, warped_img0, warped_img1, mask, flow, c0, c1)
