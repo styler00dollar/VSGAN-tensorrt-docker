@@ -210,7 +210,7 @@ RUN wget https://github.com/Netflix/vmaf/archive/refs/tags/v2.3.1.tar.gz && \
     
     # RIFE
     git clone https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan && cd VapourSynth-RIFE-ncnn-Vulkan && \
-    git submodule update --init --recursive --depth 1 && meson build -Dbuildtype=debug -Db_lto=false && ninja -C build && ninja -C build install && \
+    git submodule update --init --recursive --depth 1 && meson build && ninja -C build && ninja -C build install && \
     cd /workspace && rm -rf VapourSynth-RIFE-ncnn-Vulkan
 
 ########################
