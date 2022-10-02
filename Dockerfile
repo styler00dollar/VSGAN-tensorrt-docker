@@ -24,7 +24,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     wget && \
     rm -rf /var/lib/apt/lists/*
 
-ARG VULKAN_VERSION=sdk-1.3.211
+ARG VULKAN_VERSION=sdk-1.3.216
 # Download and compile vulkan components
 RUN ln -s /usr/bin/python3 /usr/bin/python && \
     git clone https://github.com/KhronosGroup/Vulkan-ValidationLayers.git /opt/vulkan && \
