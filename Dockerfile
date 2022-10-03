@@ -1,6 +1,7 @@
 # This is a cuda+vulkan docker
 
 # DOCKER_BUILDKIT=1 docker build -t styler00dollar/vsgan_tensorrt:latest .
+# --progress=plain
 
 # 20.04 has python3.8, which is currently maximum for TensorRT 8.4 EA, 22.04 has 3.10
 
@@ -78,10 +79,45 @@ RUN apt-get -y update && apt install wget fftw3-dev python3 python3.8 python3.8-
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 RUN pip3 install --upgrade pip
 
+######################
 # TensorRT
+######################
 RUN apt-get update -y && apt-get install libnvinfer8 libnvonnxparsers8 libnvparsers8 libnvinfer-plugin8 libnvinfer-dev libnvonnxparsers-dev \
     libnvparsers-dev libnvinfer-plugin-dev python3-libnvinfer tensorrt python3-libnvinfer-dev -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 # RUN pip install nvidia-pyindex && pip install tensorrt nvidia-tensorrt
+
+######################
+# trt8.2.5.1-ga-20220505
+# nv-tensorrt-repo-ubuntu2004-cuda11.4-trt8.2.5.1-ga-20220505_1-1_amd64.deb
+
+# download it from nvidias website and put it into the same folder
+#COPY nv-tensorrt-repo-ubuntu2004-cuda11.4-trt8.2.5.1-ga-20220505_1-1_amd64.deb nv-tensorrt-repo-ubuntu2004-cuda11.4-trt8.2.5.1-ga-20220505_1-1_amd64.deb
+#ENV os1="ubuntu2004"
+#ENV tag="cuda11.4-trt8.2.5.1-ga-20220505"
+#ENV version="8.2.5-1+cuda11.4"
+#ENV trt_version="8.2.5.1-1+cuda11.4"
+#RUN dpkg -i nv-tensorrt-repo-${os1}-${tag}_1-1_amd64.deb
+#RUN apt-key add /var/nv-tensorrt-repo-${os1}-${tag}/82307095.pub
+#RUN apt-get update -y
+
+# check available apt versions
+#RUN apt-cache madison tensorrt
+
+# 22.04 does not have python-libnvinfer
+# libcudnn8=8.2.1.32-1+cuda11.3 libcudnn8-dev=
+#RUN apt-get install libnvinfer8=${version} libnvonnxparsers8=${version} libnvparsers8=${version} libnvinfer-plugin8=${version} \
+#    libnvinfer-dev=${version} libnvonnxparsers-dev=${version} libnvparsers-dev=${version} libnvinfer-plugin-dev=${version} \
+#    python3-libnvinfer=${version} libnvinfer-bin=${version} libnvinfer-samples=${version} -y && \
+    
+#    apt-mark hold libnvinfer8 libnvonnxparsers8 libnvparsers8 libnvinfer-plugin8 libnvinfer-dev libnvonnxparsers-dev libnvparsers-dev \
+#    libnvinfer-plugin-dev python3-libnvinfer && \
+
+#    apt-get install tensorrt=${trt_version} -y && apt-get install python3-libnvinfer-dev=${version} -y && \
+#    rm -rf nv-tensorrt-repo-ubuntu2004-cuda11.4-trt8.2.5.1-ga-20220505_1-1_amd64.deb && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
+# download it from nvidias website
+#COPY tensorrt-8.2.5.1-cp38-none-linux_x86_64.whl tensorrt-8.2.5.1-cp38-none-linux_x86_64.whl
+#RUN pip install tensorrt-8.2.5.1-cp38-none-linux_x86_64.whl && rm -rf tensorrt-8.2.5.1-cp38-none-linux_x86_64.whl && pip cache purge
+######################
 
 # cmake
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.23.0-rc1-linux-x86_64.sh && \
