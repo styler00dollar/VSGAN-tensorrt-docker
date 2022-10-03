@@ -16,14 +16,9 @@ from src.egvsr import egvsr_model  # currently not tensorrt
 from src.cugan import cugan_inference
 from vsbasicvsrpp import BasicVSRPP
 from src.realbasicvsr import realbasicvsr_model
-from src.film import FILM_inference
 from src.pan import PAN_inference
-from src.IFRNet import IFRNet
-from src.M2M import M2M
-from src.IFUNet import IFUNet
-from src.eisai import EISAI
 from src.scunet import scunet_inference
-from src.GMFupSS import GMFupSS
+from src.vfi_inference import vfi_inference
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -58,32 +53,31 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
 # these demos work out of the box because docker also downloads the needed models, if you want other models, just add them
 # you can combine everything however you want
 
+######
+# dedup tools
+######
+#from src.scene_detect import find_scenes
+#skip_framelist = find_scenes(video_path, threshold=30)
+
+#from src.dedup import get_duplicate_frames_with_vmaf
+#skip_framelist += get_duplicate_frames_with_vmaf(video_path)
+######
+
 ###############################################
 # MODELS (CUDA)
 ###############################################
-# sepconv
-# clip = sepconv_model(clip)
-# RIFE4
-# rife4 can do cuda and ncnn, but only cuda is supported in docker
-# models: rife40 | rife41 | rife42 | rife43 | rife44 | sudo_rife4
-# only use sudo_rife4 for 2x
-clip = RIFE(
-    clip,
-    multi=2,
-    scale=1.0,
-    fp16=False,
-    fastmode=False,
-    ensemble=True,
-    model_version="rife42",
-    psnr_dedup=False,
-    psnr_value=70,
-    ssim_dedup=False,
-    ms_ssim_dedup=False,
-    ssim_value=0.999,
-    backend_inference="cuda",
-)
+# VFI
+
 # VFI example for jit models
 # clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
+
+# contains RIFE, IFRNet, GMFupSS, EISAI, FILM, M2M, sepconv
+# look into src/vfi_inference.py for further customization
+# clip = vfi_inference(clip, skip_framelist=[])
+
+######
+# UPSCALING
+
 # SwinIR
 # clip = SwinIR(clip, task="lightweight_sr", scale=2)
 # ESRGAN / RealESRGAN
@@ -143,9 +137,6 @@ clip = RIFE(
 #    tile_pad=10,
 #    pre_pad=0,
 # )
-# FILM
-# models: l1 | vgg | style
-# clip = FILM_inference(clip, model_choise="vgg")
 # vs-mlrt (you need to create the engine yourself)
 # clip = core.trt.Model(
 #    clip,
@@ -166,15 +157,6 @@ clip = RIFE(
 # PAN
 # scale = 2 | 3 | 4
 # clip = PAN_inference(clip, scale=2, fp16=True)
-# IFRNet
-# model: small | large
-# clip = IFRNet(clip, model="small")
-# M2M
-# clip = M2M(clip, multi=4)
-# IFUnet
-# clip = IFUNet(clip)
-# EISAI (needs 960x540 for now)
-# clip = EISAI(clip)
 # SCUNet
 # clip = scunet_inference(
 #    clip = clip,
@@ -184,9 +166,6 @@ clip = RIFE(
 #    tile_pad = 10,
 #    pre_pad = 0,
 # )
-
-# GMFupSS
-# clip = GMFupSS(clip)
 
 ###############################################
 # ncnn
@@ -238,36 +217,6 @@ clip = RIFE(
 #    clip, noise=0, scale=2, model=0, tile_size=0, gpu_id=0, gpu_thread=0, precision=16
 # )
 
-###############################################
-# Deduplicated inference for faster inference
-# only use this for upscaling
-###############################################
-# from src.dedup import return_frames
-
-# frames_duplicated, frames_duplicating = return_frames(video_path, psnr_value=50)
-# clip = core.std.DeleteFrames(clip, frames_duplicated)
-# do upscaling here
-# clip = core.std.DuplicateFrames(clip, frames_duplicating)
-###############################################
-# Inference with scene detection
-# only use this for frame interpolation
-###############################################
-# from src.scene_detect import find_scenes
-# skip_framelist = find_scenes(video_path, threshold=30)
-# clip = RIFE(
-#    clip,
-#    multi=2,
-#    scale=1.0,
-#    fp16=True,
-#    fastmode=False,
-#    ensemble=True,
-#    psnr_dedup=False,
-#    psnr_value=70,
-#    ssim_dedup=True,
-#    ms_ssim_dedup=False,
-#    ssim_value=0.999,
-#    skip_framelist=skip_framelist,
-# )
 ###############################################
 # OUTPUT
 ###############################################

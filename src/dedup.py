@@ -5,6 +5,7 @@ import math
 import torch
 import numba
 from numba import prange
+import os 
 
 # forcing printing by printing to error, normal print gets piped
 # https://stackoverflow.com/questions/5574702/how-to-print-to-stderr-in-python
@@ -84,3 +85,47 @@ def return_frames(filepath, psnr_value=35):
     eprint("\n")
 
     return frames_duplicated, frames_duplicating
+
+
+def get_duplicate_frames_with_vmaf(file_path: str):
+    tmp_dir = "tmp/"
+    if not os.path.exists(tmp_dir):
+        os.mkdir(tmp_dir)
+
+    txt_path = os.path.join(tmp_dir, "tmp.txt")
+
+    if os.path.exists(txt_path):
+        os.remove(txt_path)
+
+    f_txt = open(txt_path, "w")
+    f_txt.write(str(file_path))
+    f_txt.close()
+
+    os.system("vspipe parse.py -p .")
+
+    ssimt = 0.999
+    pxdifft = 10240
+    consecutivet = 2
+
+    with open(os.path.join("infos_running.txt"), "r") as f:
+        lines = [i.split("\t") for i in f][1:]
+    for i in range(len(lines)):
+        lines[i][0] = int(lines[i][0])
+        lines[i][1] = int(float(lines[i][1]) * 1000)
+        lines[i][2] = float(lines[i][2])
+        lines[i][3] = int(lines[i][3])
+    lines.sort()
+    startpts = lines[0][1]
+    consecutive = 0
+
+    dels = []
+    tsv2o = []
+    for i in range(len(lines)):
+        l = lines[i]
+        if l[2] >= ssimt and l[3] <= pxdifft and consecutive < consecutivet:
+            consecutive += 1
+            dels.append(l[0])
+        else:
+            consecutive = 0
+            tsv2o.append(l[1] - startpts)
+    return dels
