@@ -52,3 +52,6 @@ wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/m
 wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sepconv.pth
 wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sudo_rife4_269.662_testV1_scale1.pth
 wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sudo_UltraCompact_2x_1.121.175_G.pth
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/GMFupSS_flownet.pkl
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/GMFupSS_fusionnet.pkl
+wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/GMFupSS_metric.pkl 
