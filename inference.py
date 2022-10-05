@@ -7,8 +7,6 @@ from src.SRVGGNetCompact import SRVGGNetCompactRealESRGAN  # realesrgan anime vi
 from src.vfi_model import (
     video_model,
 )  # any vfi model, in this case rvp1 as demonstration
-from src.sepconv_enhanced import sepconv_model  # uses cupy, no tensorrt
-from src.rife import RIFE  # tensorrt not possible
 from vsswinir import (
     SwinIR,
 )  # https://github.com/HolyWu/vs-swinir # currently not tensorrt, didn't try
@@ -19,6 +17,16 @@ from src.realbasicvsr import realbasicvsr_model
 from src.pan import PAN_inference
 from src.scunet import scunet_inference
 from src.vfi_inference import vfi_inference
+from src.pan import PAN_inference
+from src.scunet import scunet_inference
+from src.vfi_inference import vfi_inference
+from src.rife import RIFE
+from src.IFRNet import IFRNet
+from src.GMFupSS import GMFupSS
+from src.eisai import EISAI
+from src.film import FILM
+from src.M2M import M2M
+from src.sepconv_enhanced import sepconv
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -71,9 +79,15 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
 # VFI example for jit models
 # clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 
-# contains RIFE, IFRNet, GMFupSS, EISAI, FILM, M2M, sepconv
-# look into src/vfi_inference.py for further customization
-# clip = vfi_inference(clip, skip_framelist=[])
+# select desired model
+#model_inference = RIFE(scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=False)
+#model_inference = IFRNet(model="small", fp16=False)
+#model_inference = GMFupSS()
+#model_inference = EISAI() # 960x540
+#model_inference = FILM(model_choise="vgg")
+#model_inference = M2M()
+#model_inference = sepconv()
+#clip = vfi_inference(model_inference=model_inference, clip=clip, skip_framelist=[])
 
 ######
 # UPSCALING

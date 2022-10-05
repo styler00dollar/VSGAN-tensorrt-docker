@@ -4,17 +4,11 @@ import vapoursynth as vs
 import functools
 from pytorch_msssim import ssim, ms_ssim, SSIM, MS_SSIM
 from .dedup import PSNR
-from .rife import RIFE
-from .IFRNet import IFRNet
-from .GMFupSS import GMFupSS
-from .eisai import EISAI
-from .film import FILM
-from .M2M import M2M
-from .sepconv_enhanced import sepconv
 import torch 
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 def vfi_inference(
+    model_inference,
     clip: vs.VideoNode,
     skip_framelist=[],
 ) -> vs.VideoNode:
@@ -40,15 +34,6 @@ def vfi_inference(
             clips=clip,
             selector=lambda n, f: tensor_to_frame(f.copy(), image),
         )
-
-    # select desired model
-    model_inference = RIFE(scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=False)
-    #model_inference = IFRNet(model="small", fp16=False)
-    #model_inference = GMFupSS()
-    #model_inference = EISAI() # 960x540
-    #model_inference = FILM(model_choise="vgg")
-    #model_inference = M2M()
-    #model_inference = sepconv()
 
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
         if (
