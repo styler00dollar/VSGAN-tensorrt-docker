@@ -507,7 +507,9 @@ def egvsr_model(clip: vs.VideoNode, interval: int = 15) -> vs.VideoNode:
     torch.backends.cudnn.benchmark = True
 
     model = FRNet(in_nc=3, out_nc=3, nf=64, nb=10)
-    model.load_state_dict(torch.load("/workspace/tensorrt/models/EGVSR_iter420000.pth"), strict=False)
+    model.load_state_dict(
+        torch.load("/workspace/tensorrt/models/EGVSR_iter420000.pth"), strict=False
+    )
     model.cuda().eval()
 
     cache = {}

@@ -16,14 +16,17 @@ import torch.optim as optim
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 backwarp_tenGrid = {}
 
+
 class ResConv(nn.Module):
     def __init__(self, c, dilation=1):
         super(ResConv, self).__init__()
         self.conv = nn.Conv2d(c, c, 3, 1, dilation, dilation=dilation, groups=1)
         self.beta = nn.Parameter(torch.ones((1, c, 1, 1)), requires_grad=True)
         self.relu = nn.LeakyReLU(0.2, True)
+
     def forward(self, x):
         return self.relu(self.conv(x) * self.beta + x)
+
 
 def warp(tenInput, tenFlow):
     k = (str(tenFlow.device), str(tenFlow.size()))
@@ -201,7 +204,7 @@ class IFBlock(nn.Module):
                 conv(c, c, arch_ver=arch_ver),
             )
             self.lastconv = nn.ConvTranspose2d(c, 5, 4, 2, 1)
-            
+
         if arch_ver in ["4.5", "4.6"]:
             self.convblock = nn.Sequential(
                 ResConv(c),
@@ -412,7 +415,13 @@ class IFNet(nn.Module):
                         warped_img1 = warp(img1, flow[:, 2:4])
                         f0, m0 = block[i](
                             torch.cat(
-                                (warped_img0[:, :3], warped_img1[:, :3], timestep, mask), 1
+                                (
+                                    warped_img0[:, :3],
+                                    warped_img1[:, :3],
+                                    timestep,
+                                    mask,
+                                ),
+                                1,
                             ),
                             flow,
                             scale=scale_list[i],

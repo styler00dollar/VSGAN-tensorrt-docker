@@ -5,7 +5,7 @@ import math
 import torch
 import numba
 from numba import prange
-import os 
+import os
 
 # forcing printing by printing to error, normal print gets piped
 # https://stackoverflow.com/questions/5574702/how-to-print-to-stderr-in-python

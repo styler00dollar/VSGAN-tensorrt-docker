@@ -446,8 +446,8 @@ def scunet_inference(
     if clip.format.id != vs.RGBS:
         raise vs.Error("scunet: only RGBS format is supported")
 
-    model = (
-        SCUNet(in_nc=3, config=[4, 4, 4, 4, 4, 4, 4], dim=64, input_resolution=tile_x)
+    model = SCUNet(
+        in_nc=3, config=[4, 4, 4, 4, 4, 4, 4], dim=64, input_resolution=tile_x
     )
     model_path = "/workspace/tensorrt/models/scunet_color_real_gan.pth"
     state_dict = torch.load(model_path, map_location="cpu")

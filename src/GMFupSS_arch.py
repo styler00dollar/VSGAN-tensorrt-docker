@@ -2284,7 +2284,9 @@ class Model:
                 return param
 
         if rank <= 0:
-            self.flownet.load_state_dict(torch.load("{}/GMFupSS_flownet.pkl".format(path)))
+            self.flownet.load_state_dict(
+                torch.load("{}/GMFupSS_flownet.pkl".format(path))
+            )
             self.metricnet.load_state_dict(
                 convert(torch.load("{}/GMFupSS_metric.pkl".format(path)))
             )
@@ -2369,7 +2371,7 @@ class Model_inference(nn.Module):
 
         # padding frames
         n, c, h, w = I0.shape
-        #print(n, c, h, w)
+        # print(n, c, h, w)
         tmp = max(64, int(64 / scale))
         ph = ((h - 1) // tmp + 1) * tmp
         pw = ((w - 1) // tmp + 1) * tmp
@@ -2378,4 +2380,4 @@ class Model_inference(nn.Module):
         I1 = F.pad(I1, padding)
         flow01, flow10, metric0, metric1 = self.model.reuse(I0, I1, scale=1.0)
         output = self.model.inference(I0, I1, flow01, flow10, metric0, metric1)
-        return output[0][:,:h,:w]
+        return output[0][:, :h, :w]

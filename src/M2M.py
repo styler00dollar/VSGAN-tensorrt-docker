@@ -6,7 +6,7 @@ import torch
 from .M2M_arch import M2M_PWC
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
-class M2M():
+class M2M:
     def __init__(self):
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True

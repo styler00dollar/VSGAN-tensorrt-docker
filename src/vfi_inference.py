@@ -4,7 +4,7 @@ import vapoursynth as vs
 import functools
 from pytorch_msssim import ssim, ms_ssim, SSIM, MS_SSIM
 from .dedup import PSNR
-import torch 
+import torch
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 def vfi_inference(
@@ -36,17 +36,12 @@ def vfi_inference(
         )
 
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        if (
-            (n % 2 == 0)
-            or n == 0
-            or n in skip_framelist
-            or n == clip.num_frames - 1
-        ):
+        if (n % 2 == 0) or n == 0 or n in skip_framelist or n == clip.num_frames - 1:
             return clip
 
         I0 = frame_to_tensor(clip.get_frame(n - 1))
         I1 = frame_to_tensor(clip.get_frame(n + 1))
-        
+
         I0 = torch.Tensor(I0).unsqueeze(0).to("cuda", non_blocking=True)
         I1 = torch.Tensor(I1).unsqueeze(0).to("cuda", non_blocking=True)
 
@@ -73,9 +68,7 @@ def vfi_frame_merger(
     core = vs.core
 
     def execute(n: int, clip1: vs.VideoNode, clip2: vs.VideoNode) -> vs.VideoNode:
-        if (
-            n in skip_framelist
-        ):
+        if n in skip_framelist:
             return clip1
         return clip2
 

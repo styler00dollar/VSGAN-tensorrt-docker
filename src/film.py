@@ -5,6 +5,7 @@ import kornia
 import os
 import kornia
 import functools
+
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
@@ -33,7 +34,7 @@ def stdout_redirected(to=os.devnull):
             # CLOEXEC may be different
 
 
-class FILM():
+class FILM:
     def __init__(self, model_choise):
         import tensorflow as tf
 
@@ -44,15 +45,22 @@ class FILM():
                 sys.argv.append("(C++)")
             os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
             import tensorflow as tf
-            gpus = tf.config.experimental.list_physical_devices('GPU')
+
+            gpus = tf.config.experimental.list_physical_devices("GPU")
             print(gpus)
             tf.config.experimental.set_memory_growth(gpus[0], True)
             if model_choise == "style":
-                self.model = tf.compat.v2.saved_model.load("/workspace/tensorrt/models/FILM/Style/")
+                self.model = tf.compat.v2.saved_model.load(
+                    "/workspace/tensorrt/models/FILM/Style/"
+                )
             elif model_choise == "l1":
-                self.model = tf.compat.v2.saved_model.load("/workspace/tensorrt/models/FILM/L1/")
+                self.model = tf.compat.v2.saved_model.load(
+                    "/workspace/tensorrt/models/FILM/L1/"
+                )
             elif model_choise == "vgg":
-                self.model = tf.compat.v2.saved_model.load("/workspace/tensorrt/models/FILM/VGG/")
+                self.model = tf.compat.v2.saved_model.load(
+                    "/workspace/tensorrt/models/FILM/VGG/"
+                )
 
         self.batch_dt = np.full(shape=(1,), fill_value=0.5, dtype=np.float32)
         self.batch_dt = np.expand_dims(self.batch_dt, axis=0)

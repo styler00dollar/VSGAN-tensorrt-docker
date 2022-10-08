@@ -412,37 +412,57 @@ def cugan_inference(
         model = UpCunet2x(in_channels=3, out_channels=3)
         if kind_model == "no_denoise":
             if pro == True:
-                model_path = "/workspace/tensorrt/models/cugan_pro-no-denoise3x-up2x.pth"
+                model_path = (
+                    "/workspace/tensorrt/models/cugan_pro-no-denoise3x-up2x.pth"
+                )
             else:
-                model_path = "/workspace/tensorrt/models/cugan_up2x-latest-no-denoise.pth"
+                model_path = (
+                    "/workspace/tensorrt/models/cugan_up2x-latest-no-denoise.pth"
+                )
         elif kind_model == "conservative":
             if pro == True:
-                model_path = "/workspace/tensorrt/models/cugan_pro-conservative-up2x.pth"
+                model_path = (
+                    "/workspace/tensorrt/models/cugan_pro-conservative-up2x.pth"
+                )
             else:
-                model_path = "/workspace/tensorrt/models/cugan_up2x-latest-conservative.pth"
+                model_path = (
+                    "/workspace/tensorrt/models/cugan_up2x-latest-conservative.pth"
+                )
         elif kind_model == "denoise3x":
             if pro == True:
                 model_path = "cugan_pro-denoise3x-up2x.pth"
             else:
-                model_path = "/workspace/tensorrt/models/cugan_up2x-latest-denoise3x.pth"
+                model_path = (
+                    "/workspace/tensorrt/models/cugan_up2x-latest-denoise3x.pth"
+                )
 
     elif scale == 3:
         model = UpCunet3x(in_channels=3, out_channels=3)
         if kind_model == "no_denoise":
             if pro == True:
-                model_path = "/workspace/tensorrt/models/cugan_pro-no-denoise3x-up3x.pth"
+                model_path = (
+                    "/workspace/tensorrt/models/cugan_pro-no-denoise3x-up3x.pth"
+                )
             else:
-                model_path = "/workspace/tensorrt/models/cugan_up3x-latest-no-denoise.pth"
+                model_path = (
+                    "/workspace/tensorrt/models/cugan_up3x-latest-no-denoise.pth"
+                )
         elif kind_model == "conservative":
             if pro == True:
-                model_path = "/workspace/tensorrt/models/cugan_pro-conservative-up3x.pth"
+                model_path = (
+                    "/workspace/tensorrt/models/cugan_pro-conservative-up3x.pth"
+                )
             else:
-                model_path = "/workspace/tensorrt/models/cugan_up3x-latest-conservative.pth"
+                model_path = (
+                    "/workspace/tensorrt/models/cugan_up3x-latest-conservative.pth"
+                )
         elif kind_model == "denoise3x":
             if pro == True:
                 model_path = "/workspace/tensorrt/models/cugan_pro-denoise3x-up3x.pth"
             else:
-                model_path = "/workspace/tensorrt/models/cugan_up3x-latest-denoise3x.pth"
+                model_path = (
+                    "/workspace/tensorrt/models/cugan_up3x-latest-denoise3x.pth"
+                )
 
     elif scale == 4:
         model = UpCunet4x(in_channels=3, out_channels=3)
@@ -489,7 +509,8 @@ def cugan_inference(
             )
         model = ox.load("/workspace/tensorrt/models/cugan.onnx")
         sess = ort.InferenceSession(
-            f"/workspace/tensorrt/models/cugan.onnx", providers=["CUDAExecutionProvider"]
+            f"/workspace/tensorrt/models/cugan.onnx",
+            providers=["CUDAExecutionProvider"],
         )
 
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:

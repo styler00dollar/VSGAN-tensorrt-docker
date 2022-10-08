@@ -6,7 +6,7 @@ from .eisai_arch import SoftsplatLite, DTM, RAFT, interpolate
 import torch
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
-class EISAI():
+class EISAI:
     def __init__(self):
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
@@ -18,7 +18,11 @@ class EISAI():
         dtm = DTM()
         ssl.load_state_dict(torch.load("/workspace/tensorrt/models/eisai_ssl.pt"))
         dtm.load_state_dict(torch.load("/workspace/tensorrt/models/eisai_dtm.pt"))
-        self.raft = RAFT(path="/workspace/tensorrt/models/eisai_anime_interp_full.ckpt").eval().to(device)
+        self.raft = (
+            RAFT(path="/workspace/tensorrt/models/eisai_anime_interp_full.ckpt")
+            .eval()
+            .to(device)
+        )
         self.ssl = ssl.to(device).eval()
         self.dtm = dtm.to(device).eval()
 

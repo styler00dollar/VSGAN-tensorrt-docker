@@ -3,10 +3,10 @@ import numpy as np
 import vapoursynth as vs
 import functools
 from .GMFupSS_arch import Model_inference
-import torch 
+import torch
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
-class GMFupSS():
+class GMFupSS:
     def __init__(self):
         core = vs.core
 

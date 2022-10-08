@@ -57,7 +57,9 @@ def SRVGGNetCompactRealESRGAN(
         if backend_inference != "ncnn":
             from .SRVGGNetCompact_arch import SRVGGNetCompact
 
-            model_path = f"/workspace/tensorrt/models/RealESRGANv2-animevideo-xsx{scale}.pth"
+            model_path = (
+                f"/workspace/tensorrt/models/RealESRGANv2-animevideo-xsx{scale}.pth"
+            )
             model = SRVGGNetCompact(
                 num_in_ch=3,
                 num_out_ch=3,
@@ -98,7 +100,8 @@ def SRVGGNetCompactRealESRGAN(
             )
             model = ox.load("/workspace/tensorrt/models/test.onnx")
             sess = ort.InferenceSession(
-                f"/workspace/tensorrt/models/test.onnx", providers=["CUDAExecutionProvider"]
+                f"/workspace/tensorrt/models/test.onnx",
+                providers=["CUDAExecutionProvider"],
             )
         elif backend_inference == "quantized_onnx":
             import onnxruntime as ort
@@ -128,7 +131,8 @@ def SRVGGNetCompactRealESRGAN(
             )
             model = ox.load("/workspace/tensorrt/models/test_quant.onnx")
             sess = ort.InferenceSession(
-                f"/workspace/tensorrt/models/test.onnx", providers=["CUDAExecutionProvider"]
+                f"/workspace/tensorrt/models/test.onnx",
+                providers=["CUDAExecutionProvider"],
             )
         elif backend_inference == "cuda":
             if fp16:

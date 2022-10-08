@@ -1286,7 +1286,8 @@ def estimate(tenOne, tenTwo):
 
 # end
 
-class sepconv():
+
+class sepconv:
     def __init__(self):
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
