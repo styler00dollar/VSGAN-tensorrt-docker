@@ -535,10 +535,9 @@ DPIR | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
 3090¹ (TensorRT8+C++ TRT+ffmpeg+vs threads=7+num_streams=5) | ? | ? | 16
 
-MaxCompact (2x)ⓘ | 480p | 720p | 1080p
-------  | ---  | ---- | ------
-3090¹ (C++ TRT8.4+vs threads=7+num_streams=35) | ? | 	? |	39
-3090² (C++ TRT8.4+vs_threads=20+num_streams=20+opset16) | 134 | 58 | 25
+GMFupSS | 480p | 720p | 1080p 
+-------- | ---- | ---- | ----
+T4 (Colab / 8CPU) | 9.3 | 4.1 | 1.6
 
 <div id='license'/>
 
