@@ -2,6 +2,7 @@ import sys
 
 sys.path.append("/workspace/tensorrt/")
 import vapoursynth as vs
+from src.upscale_inference import upscale_frame_skip
 from src.esrgan import ESRGAN_inference  # esrgan and realesrgan
 from src.SRVGGNetCompact import SRVGGNetCompactRealESRGAN  # realesrgan anime video
 from src.vfi_model import (
@@ -69,6 +70,10 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
 
 #from src.dedup import get_duplicate_frames_with_vmaf
 #skip_frame_list += get_duplicate_frames_with_vmaf(video_path)
+
+# to use for upscaling, apply this after upscaling
+#clip = upscale_frame_skip(clip, skip_frame_list)
+
 ######
 
 ###############################################
