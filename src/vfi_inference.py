@@ -63,3 +63,23 @@ def vfi_inference(
         core.std.BlankClip(clip=clip, width=clip.width, height=clip.height),
         functools.partial(execute, clip=clip),
     )
+
+
+def vfi_frame_merger(
+    clip1: vs.VideoNode,
+    clip2: vs.VideoNode,
+    skip_framelist=[],
+) -> vs.VideoNode:
+    core = vs.core
+
+    def execute(n: int, clip1: vs.VideoNode, clip2: vs.VideoNode) -> vs.VideoNode:
+        if (
+            n in skip_framelist
+        ):
+            return clip1
+        return clip2
+
+    return core.std.FrameEval(
+        core.std.BlankClip(clip=clip1, width=clip1.width, height=clip1.height),
+        functools.partial(execute, clip1=clip1, clip2=clip2),
+    )

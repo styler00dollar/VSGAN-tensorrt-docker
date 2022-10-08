@@ -65,10 +65,10 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
 # dedup tools
 ######
 #from src.scene_detect import find_scenes
-#skip_framelist = find_scenes(video_path, threshold=30)
+#skip_frame_list = find_scenes(video_path, threshold=30)
 
 #from src.dedup import get_duplicate_frames_with_vmaf
-#skip_framelist += get_duplicate_frames_with_vmaf(video_path)
+#skip_frame_list += get_duplicate_frames_with_vmaf(video_path)
 ######
 
 ###############################################
@@ -87,7 +87,25 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
 #model_inference = FILM(model_choise="vgg")
 #model_inference = M2M()
 #model_inference = sepconv()
-#clip = vfi_inference(model_inference=model_inference, clip=clip, skip_framelist=[])
+#clip = vfi_inference(model_inference=model_inference, clip=clip, skip_frame_list=[])
+
+######
+# if you want to use dedup or scene change detect for external vs plugins like mlrt, use vfi_frame_merger
+
+# workaround to use mlrt for video interpolation
+#clip1 = core.std.DeleteFrames(clip, frames=0)
+#clip2 = core.std.StackHorizontal([clip1, clip])
+#clip2 = core.trt.Model(
+#    clip2,
+#    engine_path="/workspace/tensorrt/rife46_onnx16_1080_2input.engine",
+#    num_streams=6,
+#)
+#clip2=core.std.Crop(clip2,right=1920)
+#clip1 = core.std.Interleave([clip, clip])
+#clip2 = core.std.Interleave([clip, clip2])
+
+# skipping all duplicated / scene change frames
+#clip = vfi_frame_merger(clip1, clip2, skip_frame_list)
 
 ######
 # UPSCALING
