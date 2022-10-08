@@ -2,25 +2,11 @@ import sys
 
 sys.path.append("/workspace/tensorrt/")
 import vapoursynth as vs
-from src.upscale_inference import upscale_frame_skip
-from src.esrgan import ESRGAN_inference  # esrgan and realesrgan
-from src.SRVGGNetCompact import SRVGGNetCompactRealESRGAN  # realesrgan anime video
-from src.vfi_model import (
-    video_model,
-)  # any vfi model, in this case rvp1 as demonstration
-from vsswinir import (
-    SwinIR,
-)  # https://github.com/HolyWu/vs-swinir # currently not tensorrt, didn't try
-from src.egvsr import egvsr_model  # currently not tensorrt
-from src.cugan import cugan_inference
-from vsbasicvsrpp import BasicVSRPP
-from src.realbasicvsr import realbasicvsr_model
-from src.pan import PAN_inference
-from src.scunet import scunet_inference
+
+# video imports
 from src.vfi_inference import vfi_inference
-from src.pan import PAN_inference
-from src.scunet import scunet_inference
-from src.vfi_inference import vfi_inference
+from src.vfi_model import video_model
+
 from src.rife import RIFE
 from src.IFRNet import IFRNet
 from src.GMFupSS import GMFupSS
@@ -28,6 +14,20 @@ from src.eisai import EISAI
 from src.film import FILM
 from src.M2M import M2M
 from src.sepconv_enhanced import sepconv
+
+# upscale imports
+from src.upscale_inference import upscale_frame_skip
+from src.pan import PAN_inference
+from src.realbasicvsr import realbasicvsr_model
+from src.egvsr import egvsr_model
+from src.cugan import cugan_inference
+from vsbasicvsrpp import BasicVSRPP
+from vsswinir import SwinIR
+from src.SRVGGNetCompact import SRVGGNetCompactRealESRGAN 
+from src.esrgan import ESRGAN_inference
+
+# image processing imports
+from src.scunet import scunet_inference
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -115,65 +115,6 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
 ######
 # UPSCALING
 
-# SwinIR
-# clip = SwinIR(clip, task="lightweight_sr", scale=2)
-# ESRGAN / RealESRGAN
-# tta_mode 1-7, means the amount of times the image gets processed while being mirrored
-# clip = ESRGAN_inference(
-#    clip=clip,
-#    model_path="/workspace/4x_fatal_Anime_500000_G.pth",
-#    tile_x=400,
-#    tile_y=400,
-#    tile_pad=10,
-#    fp16=False,
-#    tta=False,
-#    tta_mode=1,
-# )
-# clip = ESRGAN_inference(
-#    clip=clip,
-#    model_path="/workspace/RealESRGAN_x4plus_anime_6B.pth",
-#    tile_x=480,
-#    tile_y=480,
-#    tile_pad=16,
-#    fp16=False,
-#    tta=False,
-#    tta_mode=1,
-# )
-# RealESRGAN Anime Video example
-# backends: tensorrt, cuda, onnx, quantized_onnx
-# clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference="tensorrt")
-# EGVSR
-# clip = egvsr_model(clip, interval=15)
-# BasicVSR++
-# 0 = REDS, 1 = Vimeo-90K (BI), 2 = Vimeo-90K (BD), 3 = NTIRE 2021 - Track 1, 4 = NTIRE 2021 - Track 2, 5 = NTIRE 2021 - Track 3
-# clip = BasicVSRPP(
-#    clip,
-#    model=1,
-#    interval=30,
-#    tile_x=0,
-#    tile_y=0,
-#    tile_pad=16,
-#    device_type="cuda",
-#    device_index=0,
-#    fp16=False,
-#    cpu_cache=False,
-# )
-# RealBasicVSR
-# clip = realbasicvsr_model(clip, interval=15, fp16=True)
-# cugan
-# scales: 2 | 3 | 4, kind_model: no_denoise | denoise3x | conservative, backend_inference: cuda | onnx, pro: True/False (only available for 2x and 3x scale)
-# only cuda supports tiling
-# clip = cugan_inference(
-#    clip,
-#    fp16=True,
-#    scale=2,
-#    kind_model="no_denoise",
-#    backend_inference="cuda",
-#    tile_x=512,
-#    tile_y=512,
-#    tile_pad=10,
-#    pre_pad=0,
-# )
 # vs-mlrt (you need to create the engine yourself)
 # clip = core.trt.Model(
 #    clip,
@@ -191,6 +132,63 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
 #    tilesize=[1280, 720],
 #    num_streams=2,
 # )
+
+# SwinIR
+# clip = SwinIR(clip, task="lightweight_sr", scale=2)
+
+# ESRGAN / RealESRGAN
+# tta_mode 1-7, means the amount of times the image gets processed while being mirrored
+# clip = ESRGAN_inference(
+#    clip=clip,
+#    model_path="/workspace/RealESRGAN_x4plus_anime_6B.pth",
+#    tile_x=480,
+#    tile_y=480,
+#    tile_pad=16,
+#    fp16=False,
+#    tta=False,
+#    tta_mode=1,
+# )
+
+# RealESRGAN Anime Video example
+# backends: tensorrt, cuda, onnx, quantized_onnx
+# clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference="tensorrt")
+
+# EGVSR
+# clip = egvsr_model(clip, interval=15)
+
+# BasicVSR++
+# 0 = REDS, 1 = Vimeo-90K (BI), 2 = Vimeo-90K (BD), 3 = NTIRE 2021 - Track 1, 4 = NTIRE 2021 - Track 2, 5 = NTIRE 2021 - Track 3
+# clip = BasicVSRPP(
+#    clip,
+#    model=1,
+#    interval=30,
+#    tile_x=0,
+#    tile_y=0,
+#    tile_pad=16,
+#    device_type="cuda",
+#    device_index=0,
+#    fp16=False,
+#    cpu_cache=False,
+# )
+
+# RealBasicVSR
+# clip = realbasicvsr_model(clip, interval=15, fp16=True)
+
+# cugan
+# scales: 2 | 3 | 4, kind_model: no_denoise | denoise3x | conservative, backend_inference: cuda | onnx, pro: True/False (only available for 2x and 3x scale)
+# only cuda supports tiling
+# clip = cugan_inference(
+#    clip,
+#    fp16=True,
+#    scale=2,
+#    kind_model="no_denoise",
+#    backend_inference="cuda",
+#    tile_x=512,
+#    tile_y=512,
+#    tile_pad=10,
+#    pre_pad=0,
+# )
+
 # PAN
 # scale = 2 | 3 | 4
 # clip = PAN_inference(clip, scale=2, fp16=True)
@@ -224,22 +222,7 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
 #    sc=True,
 # )
 
-# Rife ncnn (python api)
-# clip = RIFE(
-#    clip,
-#    multi=2,
-#    scale=1.0,
-#    fp16=True,
-#    fastmode=False,
-#    ensemble=True,
-#    psnr_dedup=False,
-#    psnr_value=70,
-#    ssim_dedup=True,
-#    ms_ssim_dedup=False,
-#    ssim_value=0.999,
-#    backend_inference="ncnn",
-# )
-# RealESRGAN example
+# compact example
 # clip = SRVGGNetCompactRealESRGAN(
 #    clip,
 #    scale=2,
@@ -248,6 +231,7 @@ clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
 #    param_path="test.param",
 #    bin_path="test.bin",
 # )
+
 # Waifu2x
 # 0 = upconv_7_anime_style_art_rgb, 1 = upconv_7_photo, 2 = cunet (For 2D artwork. Slow, but better quality.)
 # clip = core.w2xnvk.Waifu2x(
