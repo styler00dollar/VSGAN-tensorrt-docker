@@ -10,7 +10,7 @@ import torch
 def vfi_inference(
     model_inference,
     clip: vs.VideoNode,
-    skip_framelist=[],
+    skip_frame_list=[],
 ) -> vs.VideoNode:
     core = vs.core
 
