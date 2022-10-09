@@ -138,7 +138,7 @@ RUN apt update -y && \
     pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R60.zip && \
     7z x R60.zip && cd vapoursynth-R60 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.8/lib-dynload/vapoursynth.so && \
-    pip install cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python cupy-cuda116 pytorch-msssim thop einops \
+    pip install cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python opencv-contrib-python cupy-cuda116 pytorch-msssim thop einops \
         https://download.pytorch.org/whl/cu116/torch-1.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl \
         https://download.pytorch.org/whl/cpu/torchvision-0.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl \
         mmcv-full==1.6.0 -f https://download.openmmlab.com/mmcv/dist/cu116/torch1.12.0/index.html \
@@ -184,7 +184,9 @@ RUN apt install build-essential manpages-dev software-properties-common -y && ad
     apt update -y && apt install gcc-11 g++-11 -y && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11 && \
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11 && \
 # compiling
-    git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt/vstrt && mkdir build && \
+# new mlrt seems broken, going back to older commit
+    git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt && \
+    git checkout b82139afb4805504864ac6c516c6e3adad680cc8 && cd /workspace/vs-mlrt/vstrt && mkdir build && \
     cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R60/include && make && make install && \
     cd /workspace && rm -rf /workspace/vs-mlrt
 
@@ -219,8 +221,9 @@ RUN git clone https://gitlab.com/AOMediaCodec/SVT-AV1 && cd SVT-AV1/Build/linux/
     cd /workspace/SVT-AV1/Bin/Release/ && chmod +x ./SvtAv1EncApp && mv SvtAv1EncApp /usr/bin && \
     mv libSvtAv1Enc.so* /usr/local/lib && cd /workspace && rm -rf SVT-AV1
 
-# pycuda and numpy hotfix (pycuda needs cuda which isnt in the current container, skipping)
-RUN pip install pycuda numpy==1.21 --force-reinstall && pip cache purge
+# pycuda and numpy hotfix
+RUN pip install numpy==1.21 --force-reinstall && pip cache purge
+RUN pip install pycuda --force-reinstall && pip cache purge
 
 ########################
 # vulkan
