@@ -538,6 +538,7 @@ DPIR | 480p | 720p | 1080p
 GMFupSS | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
 T4 (Colab / 8CPU) | 9.3 | 4.1 | 1.6
+A100 (Colab / 12CPU) | 23 | 14 | 6.2
 
 <div id='license'/>
 
