@@ -421,9 +421,9 @@ V100 (Colab High RAM) (vs+TensorRT8.4+ffmpeg+C++ TRT+num_streams=3+no tiling+ops
 A100 (Colab High RAM) (vs+TensorRT8.4+x264 (--opencl)+C++ TRT+vs threads=8+num_streams=8+no tiling+opset13) | 53.8 | 24.4 | 10.9
 3090² (vs+TensorRT8.4+ffmpeg+C++ TRT+vs_threads=8+num_streams=5+no tiling+opset13) | 79 | 35 | 15
 2x3090² (vs+TensorRT8.4+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13) | 131 | 53 | 23
-4090 (vs+TensorRT8.4+ffmpeg+C++ TRT+vs_threads=12+num_streams=6+no tiling+opset13) | 117 | 53 | 24
-4090 (vs+TensorRT8.4+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13+int8) | ? | ? | 17
-4090 (vs+TensorRT8.4+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13+int8+ffv1) | 132 | 61 | 29
+4090 (vs+TensorRT8.4GA+ffmpeg+C++ TRT+vs_threads=12+num_streams=6+no tiling+opset13) | 117 | 53 | 24
+4090 (vs+TensorRT8.4GA+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13+int8) | ? | ? | 17
+4090 (vs+TensorRT8.4GA+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13+int8+ffv1) | 132 | 61 | 29
 
 ESRGAN 4x (64mb) (23b) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
@@ -441,8 +441,8 @@ A100 (Colab) (Torch-TensorRT8.2GA+ffmpeg+FrameEval) | 5.6 | 2.6 | 1.1
 
 ESRGAN 2x (64mb) (23b) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
-4090 (C++ TensorRT8.2GA++ffmpeg+int8+12 vs threads+1 num_streams) | 5.9 | ? | ?
-4090 (C++ TensorRT8.2GA++ffmpeg+int8+12 vs threads+1 num_streams+int8) | 15 | ? | ?
+4090 (C++ TensorRT8.4GA++ffmpeg+int8+12 vs threads+1 num_streams) | 5.9 | ? | ?
+4090 (C++ TensorRT8.4GA++ffmpeg+int8+12 vs threads+1 num_streams+int8) | 15 | ? | ?
 
 Note: The offical RealESRGAN repository uses 6b (6 blocks) for the anime model.
 
@@ -454,8 +454,8 @@ V100 (Colab High RAM) (vs+TensorRT8.2GA+x264+C++ TRT+num_streams=1+no tiling) | 
 A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 | 6.74 | 2.76
 3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 11 | 4.8 | 2.3
 2x3090² (C++ TRT+vs_threads=10+num_threads=2+no tiling+opset14) | 22 | 9.5 | 4.2
-4090 (C++ TensorRT8.2GA++ffmpeg+int8+12 vs threads+1 num_streams) | 9.5 | ? | ?
-4090 (C++ TensorRT8.2GA++ffmpeg+int8+12 vs threads+1 num_streams+ffv1) | 29 | ? | ?
+4090 (C++ TensorRT8.4GA++ffmpeg+int8+12 vs threads+1 num_streams) | 9.5 | ? | ?
+4090 (C++ TensorRT8.4GA++ffmpeg+int8+12 vs threads+1 num_streams+ffv1) | 29 | ? | ?
 
 RealESRGAN (2x) (6b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
