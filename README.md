@@ -365,7 +365,7 @@ Warnings:
 - 3090¹ (+11900k) benches most likely were affected by power lowered power limit.
 - 3090² (+5950x) system provided by Piotr Rencławowicz for benchmarking purposes.
 - `int8` does not automatically mean usable model. It can differ from normal inference quite a lot without adjusting the model.
-- `thread_queue_size` means `-thread_queue_size 2488320.
+- `thread_queue_size` means `-thread_queue_size 2488320`.
 
 ⓘ means that model not public yet
 
@@ -399,7 +399,7 @@ A100 (Colab) (vs+quantized onnx+FrameEval) | 26 | 12 | 5.7
 A100 (Colab) (jpg+CUDA) | 28.2 (9 Threads) | 28.2 (7 Threads) | 9.96 (4 Threads)
 4090 (vs+TesnorRT8.4GA+opset16)| 135 | 59 | 25
 4090 (vs+TesnorRT8.4GA+opset16+ffv1) | 155 | 72 | 35
-4090 (vs+TensorRT8.4GA+opset16+thread_queuesize+12 vs threads) | 200 | 91 | X
+4090 (vs+TensorRT8.4GA+opset16+thread_queuesize+12 vs threads+thread_queue_size) | 200 | 91 | X
 
 Compact (4x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
