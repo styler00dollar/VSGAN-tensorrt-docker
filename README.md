@@ -397,9 +397,9 @@ A100 (Colab) (vs+TensorRT8.2GA) (C++ TRT+x264 (--opencl)+FrameEval+num_streams=5
 A100 (Colab) (vs+onnx+FrameEval) | 26 | 12 | 4.9
 A100 (Colab) (vs+quantized onnx+FrameEval) | 26 | 12 | 5.7
 A100 (Colab) (jpg+CUDA) | 28.2 (9 Threads) | 28.2 (7 Threads) | 9.96 (4 Threads)
-4090 (vs+TesnorRT8.4GA+opset16)| 135 | 59 | 25
-4090 (vs+TesnorRT8.4GA+opset16+ffv1) | 155 | 72 | 35
-4090 (vs+TensorRT8.4GA+opset16+thread_queuesize+12 vs threads+thread_queue_size) | 200 | 91 | X
+4090 (vs+TesnorRT8.4GA+opset16+12 vs threads)| 135 | 59 | 25
+4090 (vs+TesnorRT8.4GA+opset16+12 vs threads+ffv1) | 155 | 72 | 35
+4090 (vs+TensorRT8.4GA+opset16+12 vs threads+thread_queue_size) | 200 | 91 | X
 
 Compact (4x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
@@ -494,8 +494,8 @@ V100 (Colab High RAM) (vs+x265+FrameEval) | 15.2 | 9.7 | 4.6
 V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (7 threads)) | 70 | 35 | 17
 A100 (Colab) (vs+CUDA+ffmpeg+ModifyFrame) | 54 | 39 | 23
 A100 (Colab) (jpg+CUDA+ffmpeg+ModifyFrame) | ? | ? | 19.92 (14 Threads)
-4090 (vs+CUDA+ffmpeg+FrameEval) (rife40) | 61 | 61 | 36
-4090 (ncnn+8 threads) (rife4.0) | 254 | 130 | 60
+4090 (vs+CUDA+ffmpeg+FrameEval+12 vs threads) (rife40) | 61 | 61 | 36
+4090 (ncnn+8 threads+12 vs threads) (rife4.0) | 254 | 130 | 60
 
 Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
@@ -505,10 +505,10 @@ Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p
 3090² (CUDA+ffmpeg+FrameEval+vs_threads=20) | 121 | 80 | 38
 3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 341 | 142 | 63
 2x3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 340 | 140 | 63
-4090 (ncnn+8 threads) (rife4.0) | 470 | 198 | 98
-4090 (ncnn+8 threads) (rife4.4) | - | - | 98
-4090 (ncnn+8 threads) (rife4.6) | 455 | 215 | 100
-4090 (ncnn+8 threads+ffv1) (rife4.4) | - | - | 129
+4090 (ncnn+8 threads+12 vs threads) (rife4.0) | 470 | 198 | 98
+4090 (ncnn+8 threads+12 vs threads) (rife4.4) | - | - | 98
+4090 (ncnn+8 threads+12 vs threads) (rife4.6) | 455 | 215 | 100
+4090 (ncnn+8 threads+12 vs threads+ffv1) (rife4.4) | - | - | 129
 V100 (Colab) (ffmpeg+ModifyFrame) | 34 | 17 | 7.6
 V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | 64 | 43 | 25
 V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (8 threads)) | 136 | 65 | 29
@@ -523,8 +523,8 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 3060ti (ffmpeg+ModifyFrame) | 86 | 49 | 24 
 3090¹ (ffmpeg+ModifyFrame) | ? | 90.3 | 45
 4090 (vs+CUDA+ffmpeg+FrameEval) (rife46) | 84 | 80 | 41
-4090 (ncnn+8 threads) (rife4.6) | 280 | 165 | 76
-4090 (ncnn+8 threads) (rife4.6+ffv1) | 222 | 162 | 80
+4090 (ncnn+8 threads+12 vs threads) (rife4.6) | 280 | 165 | 76
+4090 (ncnn+8 threads+12 vs threads) (rife4.6+ffv1) | 222 | 162 | 80
 A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads) (rife46) | 154 | 86 | 43
 A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads+ffv1) (rife46) | 86 | 86 | 43
 
@@ -571,9 +571,9 @@ V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | ? | ? | 15
 DPIR | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
 3090¹ (TensorRT8+C++ TRT+ffmpeg+vs threads=7+num_streams=5) | ? | ? | 16
-4090 (num_streams=13) | 121 | 52 | 23
-4090 (num_streams=13+thread_queue_size) | 121 | 54 | 23
-4090 (num_streams=13+ffv1+thread_queue_size) | 121 | 55 | 25
+4090 (num_streams=13+12 vs threads) | 121 | 52 | 23
+4090 (num_streams=13+12 vs threads+thread_queue_size) | 121 | 54 | 23
+4090 (num_streams=13+12 vs threads+ffv1+thread_queue_size) | 121 | 55 | 25
 
 SCUNet | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
