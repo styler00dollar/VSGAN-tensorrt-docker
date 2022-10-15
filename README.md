@@ -438,8 +438,6 @@ V100 (Colab High VRAM) (C++ TensorRT8.2GA+x264+FrameEval+no tiling) | 2.49 | 1.1
 A100 (Colab) (Torch-TensorRT8.2GA+ffmpeg+FrameEval) | 5.6 | 2.6 | 1.1
 3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 3.4 | 1.5 | 0.7
 2x3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 7.0 | 3.2 | 1.5
-4090 (C++ TensorRT8.2GA++ffmpeg+int8+12 vs threads+1 num_streams) | 9.5 | ? | ?
-4090 (C++ TensorRT8.2GA++ffmpeg+int8+12 vs threads+1 num_streams+ffv1) | 29 | ? | ?
 
 ESRGAN 2x (64mb) (23b) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
@@ -456,6 +454,8 @@ V100 (Colab High RAM) (vs+TensorRT8.2GA+x264+C++ TRT+num_streams=1+no tiling) | 
 A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 | 6.74 | 2.76
 3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 11 | 4.8 | 2.3
 2x3090² (C++ TRT+vs_threads=10+num_threads=2+no tiling+opset14) | 22 | 9.5 | 4.2
+4090 (C++ TensorRT8.2GA++ffmpeg+int8+12 vs threads+1 num_streams) | 9.5 | ? | ?
+4090 (C++ TensorRT8.2GA++ffmpeg+int8+12 vs threads+1 num_streams+ffv1) | 29 | ? | ?
 
 RealESRGAN (2x) (6b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
