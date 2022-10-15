@@ -236,12 +236,6 @@ clip = vfi_inference(
 #    bin_path="test.bin",
 # )
 
-# Waifu2x
-# 0 = upconv_7_anime_style_art_rgb, 1 = upconv_7_photo, 2 = cunet (For 2D artwork. Slow, but better quality.)
-# clip = core.w2xnvk.Waifu2x(
-#    clip, noise=0, scale=2, model=0, tile_size=0, gpu_id=0, gpu_thread=0, precision=16
-# )
-
 ###############################################
 # OUTPUT
 ###############################################
