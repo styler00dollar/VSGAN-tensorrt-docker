@@ -473,6 +473,8 @@ V100 (Colab High RAM / 8CPU) (vs+TensorRT8.4GA+ffmpeg+C++ TRT+num_streams=4+no t
 3090² (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset15) | 24 | 11 | 5.2
 2x3090 (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset15) | 51 | 23 | 10
 
+Rife4.6 technically is fastmode=True, since contextnet/unet was removed.
+
 Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
 1070ti (vs+ffmpeg+ModifyFrame) | 61 | 30 | 15
@@ -493,10 +495,7 @@ V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (7 threads)) | 70 | 35 | 17
 A100 (Colab) (vs+CUDA+ffmpeg+ModifyFrame) | 54 | 39 | 23
 A100 (Colab) (jpg+CUDA+ffmpeg+ModifyFrame) | ? | ? | 19.92 (14 Threads)
 4090 (vs+CUDA+ffmpeg+FrameEval) (rife40) | 61 | 61 | 36
-4090 (vs+CUDA+ffmpeg+FrameEval) (rife46) | 84 | 80 | 41
 4090 (ncnn+8 threads) (rife4.0) | 254 | 130 | 60
-4090 (ncnn+8 threads) (rife4.6) | 280 | 165 | 76
-4090 (ncnn+8 threads) (rife4.6+ffv1) | 222 | 162 | 80
 
 Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
@@ -506,14 +505,16 @@ Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p
 3090² (CUDA+ffmpeg+FrameEval+vs_threads=20) | 121 | 80 | 38
 3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 341 | 142 | 63
 2x3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 340 | 140 | 63
+4090 (ncnn+8 threads) (rife4.0) | 470 | 198 | 98
+4090 (ncnn+8 threads) (rife4.4) | - | - | 98
+4090 (ncnn+8 threads) (rife4.6) | 455 | 215 | 100
+4090 (ncnn+8 threads+ffv1) (rife4.4) | - | - | 129
 V100 (Colab) (TensorRT8.2GA+ffmpeg+ModifyFrame) | 34 | 17 | 7.6
 V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | 64 | 43 | 25
 V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (8 threads)) | 136 | 65 | 29
 A100 (Colab) (TensorRT8.2GA+ffmpeg+ModifyFrame) | 92 | 56 | 29
-4090 (ncnn+8 threads) (rife4.0) | 470 | 198 | 98
-4090 (ncnn+8 threads) (rife4.4) | - | - | 98
-4090 (ncnn+8 threads+ffv1) (rife4.4) | - | - | 129
-4090 (ncnn+8 threads) (rife4.6) | 455 | 215 | 100
+A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads) (rife40) | 208 | 103 | 46
+A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads+ffv1) (rife40) | 87 | 97 | 48
 
 Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
@@ -521,6 +522,11 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 1070ti C++ NCNN | ? | ? | 17
 3060ti (TensorRT8+ffmpeg+ModifyFrame) | 86 | 49 | 24 
 3090¹ (TensorRT8+ffmpeg+ModifyFrame) | ? | 90.3 | 45
+4090 (vs+CUDA+ffmpeg+FrameEval) (rife46) | 84 | 80 | 41
+4090 (ncnn+8 threads) (rife4.6) | 280 | 165 | 76
+4090 (ncnn+8 threads) (rife4.6+ffv1) | 222 | 162 | 80
+A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads) (rife46) | 154 | 86 | 43
+A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads+ffv1) (rife46) | 86 | 86 | 43
 
 GMFupSS | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
