@@ -38,6 +38,8 @@ class FILM:
     def __init__(self, model_choise):
         import tensorflow as tf
 
+        global tf
+
         with stdout_redirected(to=os.devnull):
             import sys
 
@@ -47,7 +49,7 @@ class FILM:
             import tensorflow as tf
 
             gpus = tf.config.experimental.list_physical_devices("GPU")
-            print(gpus)
+            # print(gpus)
             tf.config.experimental.set_memory_growth(gpus[0], True)
             if model_choise == "style":
                 self.model = tf.compat.v2.saved_model.load(
@@ -62,11 +64,7 @@ class FILM:
                     "/workspace/tensorrt/models/FILM/VGG/"
                 )
 
-        self.batch_dt = np.full(shape=(1,), fill_value=0.5, dtype=np.float32)
-        self.batch_dt = np.expand_dims(self.batch_dt, axis=0)
-        self.batch_dt = tf.convert_to_tensor(self.batch_dt)
-
-    def execute(self, I0, I1):
+    def execute(self, I0, I1, timestep):
         I0 = I0.cpu().detach().numpy()
         I1 = I1.cpu().detach().numpy()
 
@@ -78,7 +76,11 @@ class FILM:
         I0 = tf.convert_to_tensor(I0)
         I1 = tf.convert_to_tensor(I1)
 
-        inputs = {"x0": I0, "x1": I1, "time": self.batch_dt}
+        batch_dt = np.full(shape=(1,), fill_value=timestep, dtype=np.float32)
+        batch_dt = np.expand_dims(batch_dt, axis=0)
+        batch_dt = tf.convert_to_tensor(batch_dt)
+        inputs = {"x0": I0, "x1": I1, "time": batch_dt}
+
         middle = self.model(inputs, training=False)["image"].numpy()
 
         middle = np.squeeze(middle, 0)

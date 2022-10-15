@@ -16,7 +16,7 @@ class M2M:
 
         self.model.eval().cuda()
 
-    def execute(self, I0, I1):
+    def execute(self, I0, I1, timestep):
         with torch.inference_mode():
             intRatio = None
             intStep = 0.5

@@ -18,7 +18,7 @@ class GMFupSS:
         self.model = Model_inference()
         self.model.eval()
 
-    def execute(self, I0, I1):
+    def execute(self, I0, I1, timestep):
         with torch.inference_mode():
-            middle = self.model(I0, I1).cpu()
+            middle = self.model(I0, I1, timestep).cpu()
         return middle

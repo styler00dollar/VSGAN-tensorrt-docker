@@ -8,9 +8,7 @@ import torch
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 def vfi_inference(
-    model_inference,
-    clip: vs.VideoNode,
-    skip_frame_list=[],
+    model_inference, clip: vs.VideoNode, skip_frame_list=[], multi=4
 ) -> vs.VideoNode:
     core = vs.core
 
@@ -35,12 +33,17 @@ def vfi_inference(
             selector=lambda n, f: tensor_to_frame(f.copy(), image),
         )
 
-    def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        if (n % 2 == 0) or n == 0 or n in skip_frame_list or n == clip.num_frames - 1:
-            return clip
+    def execute(n: int, clip0: vs.VideoNode, clip1: vs.VideoNode) -> vs.VideoNode:
+        if (
+            (n % multi == 0)
+            or n == 0
+            or n in skip_frame_list
+            or n // multi == clip.num_frames - 1
+        ):
+            return clip0
 
-        I0 = frame_to_tensor(clip.get_frame(n - 1))
-        I1 = frame_to_tensor(clip.get_frame(n + 1))
+        I0 = frame_to_tensor(clip0.get_frame(n))
+        I1 = frame_to_tensor(clip1.get_frame(n))
 
         I0 = torch.Tensor(I0).unsqueeze(0).to("cuda", non_blocking=True)
         I1 = torch.Tensor(I1).unsqueeze(0).to("cuda", non_blocking=True)
@@ -49,14 +52,19 @@ def vfi_inference(
         I0 = torch.clamp(I0, min=0, max=1)
         I1 = torch.clamp(I1, min=0, max=1)
 
-        middle = model_inference.execute(I0, I1)
+        middle = model_inference.execute(I0, I1, (n % multi) / multi)
 
-        return tensor_to_clip(clip=clip, image=middle)
+        return tensor_to_clip(clip=clip0, image=middle)
 
-    clip = core.std.Interleave([clip, clip])
+    clip0 = vs.core.std.Interleave([clip] * multi)
+    clip1 = clip.std.DuplicateFrames(frames=clip.num_frames - 1).std.DeleteFrames(
+        frames=0
+    )
+    clip1 = vs.core.std.Interleave([clip1] * multi)
+
     return core.std.FrameEval(
-        core.std.BlankClip(clip=clip, width=clip.width, height=clip.height),
-        functools.partial(execute, clip=clip),
+        core.std.BlankClip(clip=clip0, width=clip.width, height=clip.height),
+        functools.partial(execute, clip0=clip0, clip1=clip1),
     )
 
 

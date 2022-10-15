@@ -1297,7 +1297,7 @@ class sepconv:
         self.model.eval()
         self.model.cuda()
 
-    def execute(self, I0, I1):
+    def execute(self, I0, I1, timestep):
         n, c, h, w = I0.shape
         with torch.inference_mode():
             middle = self.model(I0, I1)

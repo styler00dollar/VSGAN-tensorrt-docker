@@ -70,7 +70,7 @@ class RIFE:
             torch.set_default_tensor_type(torch.cuda.HalfTensor)
             self.model.half()
 
-    def execute(self, I0, I1):
+    def execute(self, I0, I1, timestep):
         scale_list = [8 / self.scale, 4 / self.scale, 2 / self.scale, 1 / self.scale]
 
         if self.fp16:
@@ -84,6 +84,7 @@ class RIFE:
                 scale_list=scale_list,
                 fastmode=self.fastmode,
                 ensemble=self.ensemble,
+                timestep=timestep,
             )
 
         middle = middle.detach().squeeze(0).cpu().numpy()

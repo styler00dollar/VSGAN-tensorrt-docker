@@ -32,12 +32,12 @@ class IFRNet:
         if fp16:
             torch.set_default_tensor_type(torch.cuda.HalfTensor)
 
-    def execute(self, I0, I1):
+    def execute(self, I0, I1, timestep):
         if self.fp16:
             I0 = I0.half()
             I1 = I1.half()
 
         with torch.inference_mode():
-            middle = self.model(I0, I1)
+            middle = self.model(I0, I1, timestep)
 
         return middle.detach().squeeze(0).cpu().numpy()

@@ -222,7 +222,7 @@ class IRFNet_L(nn.Module):
         self.decoder2 = Decoder2()
         self.decoder1 = Decoder1()
 
-    def forward(self, img0, img1, scale_factor=1.0):
+    def forward(self, img0, img1, scale_factor=1.0, timestep=0.5):
         # emb1 = torch.tensor(1/2).view(1, 1, 1, 1).float()
         # emb2 = torch.tensor(2/2).view(1, 1, 1, 1).float()
         # embt = torch.cat([emb1, emb2], 0)
@@ -234,7 +234,9 @@ class IRFNet_L(nn.Module):
         img0 = F.pad(img0, padding)
         img1 = F.pad(img1, padding)
 
-        embt = torch.tensor(1 / 2).view(1, 1, 1, 1).float().cuda().half()
+        embt = torch.tensor(timestep).view(1, 1, 1, 1).float().cuda()
+        if img0.type() == "torch.cuda.HalfTensor":
+            embt = embt.half()
 
         mean_ = (
             torch.cat([img0, img1], 2)

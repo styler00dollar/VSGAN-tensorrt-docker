@@ -2364,11 +2364,7 @@ class Model_inference(nn.Module):
         self.model.device()
         self.model.load_model("/workspace/tensorrt/models/", -1)
 
-    def forward(self, I0, I1):
-        n_frames = 1
-        scale = 1.0  # flow scale
-        timesteps = [i / (n_frames + 1) for i in range(1, n_frames + 1)]
-
+    def forward(self, I0, I1, timestep, scale=1.0):
         # padding frames
         n, c, h, w = I0.shape
         # print(n, c, h, w)
@@ -2379,5 +2375,7 @@ class Model_inference(nn.Module):
         I0 = F.pad(I0, padding)
         I1 = F.pad(I1, padding)
         flow01, flow10, metric0, metric1 = self.model.reuse(I0, I1, scale=1.0)
-        output = self.model.inference(I0, I1, flow01, flow10, metric0, metric1)
+        output = self.model.inference(
+            I0, I1, flow01, flow10, metric0, metric1, timestep
+        )
         return output[0][:, :h, :w]

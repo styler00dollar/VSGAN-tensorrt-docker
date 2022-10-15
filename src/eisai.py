@@ -26,8 +26,8 @@ class EISAI:
         self.ssl = ssl.to(device).eval()
         self.dtm = dtm.to(device).eval()
 
-    def execute(self, I0, I1):
+    def execute(self, I0, I1, timestep):
         with torch.inference_mode():
-            middle = interpolate(self.raft, self.ssl, self.dtm, I0, I1)
+            middle = interpolate(self.raft, self.ssl, self.dtm, I0, I1, t=timestep)
             middle = middle.detach().cpu().numpy()
         return middle
