@@ -426,7 +426,7 @@ A100 (Colab High RAM) (vs+TensorRT8.4+x264 (--opencl)+C++ TRT+vs threads=8+num_s
 4090 (vs+TensorRT8.4GA+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13+int8) | ? | ? | 17
 4090 (vs+TensorRT8.4GA+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13+int8+ffv1) | 132 | 61 | 29
 
-ESRGAN 4x (64mb) (23b) | 480p | 720p | 1080p
+ESRGAN 4x (64mb) (23b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
 1070ti TensorRT8 docker (Torch-TensorRT+ffmpeg+FrameEval) | 0.5 | 0.2 | >0.1
 3060ti TensorRT8 docker (Torch-TensorRT+ffmpeg+FrameEval) | 2 | 0.7 | 0.29
@@ -440,7 +440,7 @@ A100 (Colab) (Torch-TensorRT8.2GA+ffmpeg+FrameEval) | 5.6 | 2.6 | 1.1
 3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 3.4 | 1.5 | 0.7
 2x3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 7.0 | 3.2 | 1.5
 
-ESRGAN 2x (64mb) (23b) | 480p | 720p | 1080p
+ESRGAN 2x (64mb) (23b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
 4090 (C++ TensorRT8.4GA+ffmpeg+int8+12 vs threads+1 num_streams) | 5.9 | ? | ?
 4090 (C++ TensorRT8.4GA+ffmpeg+int8+12 vs threads+1 num_streams+int8) | 15 | ? | ?
