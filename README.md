@@ -366,6 +366,7 @@ Warnings:
 - 3090² (+5950x) system provided by Piotr Rencławowicz for benchmarking purposes.
 - `int8` does not automatically mean usable model. It can differ from normal inference quite a lot without adjusting the model.
 - `thread_queue_size` means `-thread_queue_size 2488320`.
+- * indicates benchmarks which were done with `vspipe file.py -p .` instead of piping into ffmpeg and rendering to avoid cpu bottleneck.
 
 ⓘ means that model not public yet
 
@@ -454,8 +455,8 @@ V100 (Colab High RAM) (vs+TensorRT8.2GA+x264+C++ TRT+num_streams=1+no tiling) | 
 A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 | 6.74 | 2.76
 3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 11 | 4.8 | 2.3
 2x3090² (C++ TRT+vs_threads=10+num_threads=2+no tiling+opset14) | 22 | 9.5 | 4.2
-4090 (C++ TensorRT8.4GA+ffmpeg+int8+12 vs threads+1 num_streams) | 9.5 | ? | ?
-4090 (C++ TensorRT8.4GA+ffmpeg+int8+12 vs threads+1 num_streams+ffv1) | 29 | ? | ?
+4090 (C++ TensorRT8.4GA+ffmpeg+12 vs threads+1 num_streams+ffv1+opset16+fp16) | 15 (1 stream) | ? | ?
+4090 (C++ TensorRT8.4GA+ffmpeg+12 vs threads+1 num_streams+ffv1+opset16+int8) | 34 (4 streams) / 28 (1 stream) | ? | ? 
 
 RealESRGAN (2x) (6b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
@@ -507,8 +508,10 @@ Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p
 2x3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 340 | 140 | 63
 4090 (ncnn+8 threads+12 vs threads) (rife4.0) | 470 | 198 | 98
 4090 (ncnn+8 threads+12 vs threads) (rife4.4) | - | - | 98
-4090 (ncnn+8 threads+12 vs threads) (rife4.6) | 455 | 215 | 100
-4090 (ncnn+8 threads+12 vs threads+ffv1) (rife4.4) | - | - | 129
+4090 (ncnn+8 threads+12 vs threads) (rife4.6) | 455 | 215 | 100 / 126*
+4090 (TensorRT8.5+num_streams 40+num_threads=4) (rife46) | ? | ? | ? / 146*
+4090 (TensorRT8.5+num_streams 8+num_threads=6+int8+ffv1) (rife46)| ? | ? | 123 / 149*
+4090 (ncnn+8 threads+12 vs threads+ffv1) (rife4.4) | - | - | 129 / 128*
 V100 (Colab) (ffmpeg+ModifyFrame) | 34 | 17 | 7.6
 V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | 64 | 43 | 25
 V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (8 threads)) | 136 | 65 | 29
@@ -574,6 +577,8 @@ DPIR | 480p | 720p | 1080p
 4090 (num_streams=13+12 vs threads) | 121 | 52 | 23
 4090 (num_streams=13+12 vs threads+thread_queue_size) | 121 | 54 | 23
 4090 (num_streams=13+12 vs threads+ffv1+thread_queue_size) | 121 | 55 | 25
+4090 (num_streams=13+12 vs threads+ffv1+int8) | ? | ? | 52
+4090 (num_streams=13+12 vs threads+ffv1+int8+thread_queue_size) | ? | ? | 44
 
 SCUNet | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
