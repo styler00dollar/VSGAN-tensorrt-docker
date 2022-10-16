@@ -366,7 +366,7 @@ Warnings:
 - 3090² (+5950x) system provided by Piotr Rencławowicz for benchmarking purposes.
 - `int8` does not automatically mean usable model. It can differ from normal inference quite a lot without adjusting the model.
 - `thread_queue_size` means `-thread_queue_size 2488320`.
-- * indicates benchmarks which were done with `vspipe file.py -p .` instead of piping into ffmpeg and rendering to avoid cpu bottleneck.
+- "*" indicates benchmarks which were done with `vspipe file.py -p .` instead of piping into ffmpeg and rendering to avoid cpu bottleneck.
 
 ⓘ means that model not public yet
 
