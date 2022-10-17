@@ -367,7 +367,8 @@ Warnings:
 - `int8` does not automatically mean usable model. It can differ from normal inference quite a lot without adjusting the model.
 - `thread_queue_size` means `-thread_queue_size 2488320`.
 - "*" indicates benchmarks which were done with `vspipe file.py -p .` instead of piping into ffmpeg and rendering to avoid cpu bottleneck.
-- 4090 data fluctuating due to teamviewer cpu load.
+- 4090 data fluctuating due to teamviewer cpu load and uses 11900k.
+- 4090² uses 5950x.
 
 ⓘ means that model not public yet
 
@@ -511,6 +512,7 @@ Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p
 4090 (ncnn+8 threads+12 vs threads) (rife4.4) | - | - | 98
 4090 (ncnn+8 threads+12 vs threads+ffv1) (rife4.4) |- |	- |	129 / 128*
 4090 (ncnn+8 threads+12 vs threads) (rife4.6) | 455 | 215 | 100 / 136*
+4090² (ncnn+2 threads+4 vs threads+ffmpeg (ultrafast)) (rife4.6) | ? | ? | 164
 4090 (TensorRT8.5+num_streams 8+num_threads=6) (rife46) | ? | ? | ? / 146*
 4090 (TensorRT8.5+num_streams 8+num_threads=6+int8+ffv1) (rife46)| ? | ? | 123 / 156*
 V100 (Colab) (ffmpeg+ModifyFrame) | 34 | 17 | 7.6
