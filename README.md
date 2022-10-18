@@ -541,11 +541,9 @@ A100 (Colab / 12CPU) | 23 | 14 | 6.2
 4090 (12 vs threads) | 27 | 22 | 8.6
 4090 (12 vs threads + thread_queue_size) | 32 | 21 | 8.6
 
-EGVSR | 480p | 720p | 1080p 
+EGVSR (4x, interval=5) | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
-1070ti | 3.1 | OOM | OOM
-V100 (Colab) | 2 | ? | ?
-A100 (Colab) | 5.7 | 2.3 | 1.4
+1070ti | 4.4 | Ram OOM / 2.2* | VRAM OOM
 
 RealBasicVSR | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
