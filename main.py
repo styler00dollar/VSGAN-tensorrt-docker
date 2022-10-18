@@ -6,12 +6,11 @@
 import glob
 import os
 
-input_dir = "/workspace/tensorrt/data/input/"
+input_dir = "/workspace/tensorrt/input/"
 tmp_dir = "tmp/"
-output_dir = "/workspace/tensorrt/data/output/"
-files = glob.glob(input_dir + "/**/*.mkv", recursive=True)
+output_dir = "/workspace/tensorrt/output/"
+files = glob.glob(input_dir + "/**/*.webm", recursive=True)
 files.sort()
-
 
 for f in files:
     # creating folders if they dont exist
@@ -22,9 +21,10 @@ for f in files:
 
     # paths
     txt_path = os.path.join(tmp_dir, "tmp.txt")
-    subs_path = os.path.join(tmp_dir, "subs.ass")  # srt, ass
-    audio_path = os.path.join(tmp_dir, "audio.ogg")  # ogg, aac, flac, ac3
-    out_path = os.path.join(
+    out_render_path = os.path.join(
+        output_dir, os.path.splitext(os.path.basename(f))[0] + "_rendered.mkv"
+    )
+    mux_path = os.path.join(
         output_dir, os.path.splitext(os.path.basename(f))[0] + "_mux.mkv"
     )
 
@@ -34,23 +34,12 @@ for f in files:
     f_txt.write(str(f))
     f_txt.close()
 
-    # calling vspipe and piping into ffmpeg
-    ###############################################
-    # AUDIO
-    # -map 0:2 means second audio track
-
-    # copy audio without reencoding
-    os.system(f"ffmpeg -i {f} -vn -acodec copy {audio_path}")
-    # reencode if extract fails
-    # os.system(f"ffmpeg -i {f} -vn {audio_path}")
-    ###############################################
-    # extract subtitles, -map 0:s:1 means second subtitle track
-    os.system(f"ffmpeg -i {f} -map 0:s:0 {subs_path}")
     os.system(
-        f"vspipe -c y4m inference_batch.py - | ffmpeg -i {subs_path} -c:s mov_text -i pipe: -preset slow {out_path} -i {audio_path} -c copy"
+        f"vspipe -c y4m inference_batch.py - | ffmpeg -i pipe: -preset slow {out_render_path}"
+    )
+    os.system(
+        f"ffmpeg -y -loglevel error -i {f} -i {out_render_path}  -map 1 -map 0 -map -0:v -codec copy -max_interleave_delta 0 {mux_path}"
     )
 
     # deleting temp files
     os.remove(txt_path)
-    os.remove(subs_path)
-    os.remove(audio_path)
