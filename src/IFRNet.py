@@ -8,6 +8,7 @@ import torch
 class IFRNet:
     def __init__(self, model, fp16):
         self.fp16 = fp16
+        self.cache = False
 
         if model == "small":
             from .IFRNet_S_arch import IRFNet_S

@@ -16,6 +16,7 @@ class RIFE:
         self.ensemble = ensemble
         self.model_version = model_version
         self.fp16 = fp16
+        self.cache = False
 
         core = vs.core
         torch.backends.cudnn.enabled = True

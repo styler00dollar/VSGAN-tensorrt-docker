@@ -13,14 +13,23 @@ class M2M:
 
         self.model = M2M_PWC()
         self.model.load_state_dict(torch.load("/workspace/tensorrt/models/M2M.pth"))
-
         self.model.eval().cuda()
+        self.cache = True
 
-    def execute(self, I0, I1, timestep):
+    def execute(self, I0, I1, multi):
+        tenSteps = [
+            torch.FloatTensor([st / (multi) * 1]).view(1, 1, 1, 1).cuda()
+            for st in range(1, (multi))
+        ]
+
         with torch.inference_mode():
-            intRatio = None
-            intStep = 0.5
-            tenSteps = torch.FloatTensor([0.5]).view(1, 1, 1, 1).cuda()
-            middle = self.model(I0, I1, tenSteps, intRatio)[0]
+            output = self.model(I0, I1, tenSteps, multi)
+            output = torch.cat(output)
 
-        return middle.detach().squeeze(0).cpu().numpy()
+            with open('shape.txt', 'w') as f:
+                f.write(str(output.shape))
+
+            with open('tenSteps.txt', 'w') as f:
+                f.write(str(tenSteps))
+
+        return output

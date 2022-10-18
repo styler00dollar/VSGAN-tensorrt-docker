@@ -56,12 +56,50 @@ def vfi_inference(
 
         return tensor_to_clip(clip=clip0, image=middle)
 
+    cache = {}
+
+    def execute_cache(n: int, clip0: vs.VideoNode, clip1: vs.VideoNode) -> vs.VideoNode:
+        if (
+            (n % multi == 0)
+            or n == 0
+            or n in skip_frame_list
+            or n // multi == clip.num_frames - 1
+        ):
+            return clip0
+
+        if str(n) not in cache:
+            cache.clear()
+
+            I0 = frame_to_tensor(clip0.get_frame(n))
+            I1 = frame_to_tensor(clip1.get_frame(n))
+
+            I0 = torch.Tensor(I0).unsqueeze(0).to("cuda", non_blocking=True)
+            I1 = torch.Tensor(I1).unsqueeze(0).to("cuda", non_blocking=True)
+
+            # clamping because vs does not give tensors in range 0-1, results in nan in output
+            I0 = torch.clamp(I0, min=0, max=1)
+            I1 = torch.clamp(I1, min=0, max=1)
+
+            output = model_inference.execute(I0, I1, multi)
+
+            for i in range(output.shape[0]):
+                cache[str(n + i)] = output[i, :, :, :].cpu().numpy()
+
+            del output
+            torch.cuda.empty_cache()
+        return tensor_to_clip(clip=clip0, image=cache[str(n)])
+
     clip0 = vs.core.std.Interleave([clip] * multi)
     clip1 = clip.std.DuplicateFrames(frames=clip.num_frames - 1).std.DeleteFrames(
         frames=0
     )
     clip1 = vs.core.std.Interleave([clip1] * multi)
 
+    if model_inference.cache:
+        return core.std.FrameEval(
+            core.std.BlankClip(clip=clip0, width=clip.width, height=clip.height),
+            functools.partial(execute_cache, clip0=clip0, clip1=clip1),
+        )
     return core.std.FrameEval(
         core.std.BlankClip(clip=clip0, width=clip.width, height=clip.height),
         functools.partial(execute, clip0=clip0, clip1=clip1),

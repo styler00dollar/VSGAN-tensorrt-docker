@@ -17,6 +17,7 @@ class GMFupSS:
 
         self.model = Model_inference()
         self.model.eval()
+        self.cache = False
 
     def execute(self, I0, I1, timestep):
         with torch.inference_mode():

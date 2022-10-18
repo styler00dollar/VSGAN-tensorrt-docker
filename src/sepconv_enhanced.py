@@ -1296,6 +1296,7 @@ class sepconv:
         self.model.load_state_dict(torch.load("/workspace/tensorrt/models/sepconv.pth"))
         self.model.eval()
         self.model.cuda()
+        self.cache = False
 
     def execute(self, I0, I1, timestep):
         n, c, h, w = I0.shape

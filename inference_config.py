@@ -87,16 +87,16 @@ def inference_clip(video_path):
 
     # select desired model
     model_inference = RIFE(
-        scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=False
+       scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=False
     )
     # model_inference = IFRNet(model="small", fp16=False)
     # model_inference = GMFupSS()
     # model_inference = EISAI() # 960x540
     # model_inference = FILM(model_choise="vgg")
-    # model_inference = M2M() # only 2x supported, will always be 2x
-    # model_inference = sepconv() # only 2x supported, will always be 2x
+    # model_inference = M2M()  # only 2x supported
+    # model_inference = sepconv() # only 2x supported
     clip = vfi_inference(
-        model_inference=model_inference, clip=clip, skip_frame_list=[], multi=2
+        model_inference=model_inference, clip=clip, skip_frame_list=[], multi=4
     )
 
     ######

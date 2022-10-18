@@ -36,6 +36,8 @@ def stdout_redirected(to=os.devnull):
 
 class FILM:
     def __init__(self, model_choise):
+        self.cache = False
+
         import tensorflow as tf
 
         global tf
