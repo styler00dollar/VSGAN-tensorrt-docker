@@ -274,70 +274,33 @@ core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
 
-def PAN_inference(
-    clip: vs.VideoNode, scale: int = 2, fp16: bool = True
-) -> vs.VideoNode:
-    if not isinstance(clip, vs.VideoNode):
-        raise vs.Error("PAN: this is not a clip")
+class PAN_inference:
+    def __init__(self, scale, fp16):
+        self.cache = False
+        self.fp16 = fp16
+        self.scale = scale
 
-    if clip.format.id != vs.RGBS:
-        raise vs.Error("PAN: only RGBS format is supported")
+        # load network
+        if scale == 2:
+            model_path = f"/workspace/tensorrt/models/PANx2_DF2K.pth"
+            self.model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=2)
+        elif scale == 3:
+            model_path = f"/workspace/tensorrt/models/PANx3_DF2K.pth"
+            self.model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=3)
+        elif scale == 4:
+            model_path = f"/workspace/tensorrt/models/PANx4_DF2K.pth"
+            self.model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=4)
+        self.model.load_state_dict(torch.load(model_path, map_location="cpu"))
+        self.model.eval()
 
-    if scale not in [2, 3, 4]:
-        raise vs.Error("PAN: scale must be 2 or 4")
-
-    # load network
-    if scale == 2:
-        model_path = f"/workspace/tensorrt/models/PANx2_DF2K.pth"
-        model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=2)
-    elif scale == 3:
-        model_path = f"/workspace/tensorrt/models/PANx3_DF2K.pth"
-        model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=3)
-    elif scale == 4:
-        model_path = f"/workspace/tensorrt/models/PANx4_DF2K.pth"
-        model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=4)
-    model.load_state_dict(torch.load(model_path, map_location="cpu"))
-    model.eval()
-
-    if fp16:
-        model = model.half()
-    model.cuda()
-
-    def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        img = frame_to_tensor(clip.get_frame(n))
-        img = np.expand_dims(img, 0)
-        img = torch.Tensor(img).to("cuda", non_blocking=True)
         if fp16:
-            img = img.half()
-        output = model(img)
-        output = output.detach().cpu().numpy()
+            self.model = self.model.half()
+        self.model.cuda()
 
-        output = np.squeeze(output, 0)
-        return tensor_to_clip(clip=clip, image=output)
-
-    return core.std.FrameEval(
-        core.std.BlankClip(
-            clip=clip, width=clip.width * scale, height=clip.height * scale
-        ),
-        functools.partial(execute, clip=clip),
-    )
-
-
-def frame_to_tensor(frame: vs.VideoFrame) -> torch.Tensor:
-    return np.stack(
-        [np.asarray(frame[plane]) for plane in range(frame.format.num_planes)]
-    )
-
-
-def tensor_to_frame(f: vs.VideoFrame, array) -> vs.VideoFrame:
-    for plane in range(f.format.num_planes):
-        d = np.asarray(f[plane])
-        np.copyto(d, array[plane, :, :])
-    return f
-
-
-def tensor_to_clip(clip: vs.VideoNode, image) -> vs.VideoNode:
-    clip = core.std.BlankClip(clip=clip, width=image.shape[-1], height=image.shape[-2])
-    return core.std.ModifyFrame(
-        clip=clip, clips=clip, selector=lambda n, f: tensor_to_frame(f.copy(), image)
-    )
+    def execute(self, I0):
+        if self.fp16:
+            I0 = I0.half()
+        output = self.model(I0)
+        # output = output.detach().cpu().numpy()
+        # output = np.squeeze(output, 0)
+        return output

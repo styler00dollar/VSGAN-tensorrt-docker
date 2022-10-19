@@ -389,172 +389,100 @@ core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
 
-def cugan_inference(
-    clip: vs.VideoNode,
-    fp16: bool = True,
-    scale: int = 2,
-    kind_model: str = "no_denoise",
-    backend_inference: str = "cuda",
-    tile_x: int = 512,
-    tile_y: int = 512,
-    tile_pad: int = 10,
-    pre_pad: int = 0,
-    pro: bool = False,
-) -> vs.VideoNode:
-    if not isinstance(clip, vs.VideoNode):
-        raise vs.Error("cugan: This is not a clip")
+class cugan_inference:
+    def __init__(
+        self,
+        scale=2,
+        fp16=True,
+        kind_model: str = "no_denoise",
+        backend_inference: str = "cuda",
+        pro: bool = False,
+    ):
+        self.scale = scale
+        self.cache = False
+        self.backend_inference = backend_inference
+        self.fp16 = fp16
 
-    if clip.format.id != vs.RGBS:
-        raise vs.Error("cugan: only RGBS format is supported")
+        if scale == 2:
+            self.model = UpCunet2x(in_channels=3, out_channels=3)
+            if kind_model == "no_denoise":
+                if pro == True:
+                    model_path = (
+                        "/workspace/tensorrt/models/cugan_pro-no-denoise3x-up2x.pth"
+                    )
+                else:
+                    model_path = (
+                        "/workspace/tensorrt/models/cugan_up2x-latest-no-denoise.pth"
+                    )
+            elif kind_model == "conservative":
+                if pro == True:
+                    model_path = (
+                        "/workspace/tensorrt/models/cugan_pro-conservative-up2x.pth"
+                    )
+                else:
+                    model_path = (
+                        "/workspace/tensorrt/models/cugan_up2x-latest-conservative.pth"
+                    )
+            elif kind_model == "denoise3x":
+                if pro == True:
+                    model_path = "cugan_pro-denoise3x-up2x.pth"
+                else:
+                    model_path = (
+                        "/workspace/tensorrt/models/cugan_up2x-latest-denoise3x.pth"
+                    )
 
-    # normal
-    if scale == 2:
-        model = UpCunet2x(in_channels=3, out_channels=3)
-        if kind_model == "no_denoise":
-            if pro == True:
+        elif scale == 3:
+            model = UpCunet3x(in_channels=3, out_channels=3)
+            if kind_model == "no_denoise":
+                if pro == True:
+                    model_path = (
+                        "/workspace/tensorrt/models/cugan_pro-no-denoise3x-up3x.pth"
+                    )
+                else:
+                    model_path = (
+                        "/workspace/tensorrt/models/cugan_up3x-latest-no-denoise.pth"
+                    )
+            elif kind_model == "conservative":
+                if pro == True:
+                    model_path = (
+                        "/workspace/tensorrt/models/cugan_pro-conservative-up3x.pth"
+                    )
+                else:
+                    model_path = (
+                        "/workspace/tensorrt/models/cugan_up3x-latest-conservative.pth"
+                    )
+            elif kind_model == "denoise3x":
+                if pro == True:
+                    model_path = (
+                        "/workspace/tensorrt/models/cugan_pro-denoise3x-up3x.pth"
+                    )
+                else:
+                    model_path = (
+                        "/workspace/tensorrt/models/cugan_up3x-latest-denoise3x.pth"
+                    )
+
+        elif scale == 4:
+            model = UpCunet4x(in_channels=3, out_channels=3)
+            if kind_model == "no_denoise":
                 model_path = (
-                    "/workspace/tensorrt/models/cugan_pro-no-denoise3x-up2x.pth"
+                    "/workspace/tensorrt/models/cugan_up4x-latest-no-denoise.pth"
                 )
-            else:
+            elif kind_model == "conservative":
                 model_path = (
-                    "/workspace/tensorrt/models/cugan_up2x-latest-no-denoise.pth"
+                    "/workspace/tensorrt/models/cugan_up4x-latest-conservative.pth"
                 )
-        elif kind_model == "conservative":
-            if pro == True:
+            elif kind_model == "denoise3x":
                 model_path = (
-                    "/workspace/tensorrt/models/cugan_pro-conservative-up2x.pth"
-                )
-            else:
-                model_path = (
-                    "/workspace/tensorrt/models/cugan_up2x-latest-conservative.pth"
-                )
-        elif kind_model == "denoise3x":
-            if pro == True:
-                model_path = "cugan_pro-denoise3x-up2x.pth"
-            else:
-                model_path = (
-                    "/workspace/tensorrt/models/cugan_up2x-latest-denoise3x.pth"
+                    "/workspace/tensorrt/models/cugan_up4x-latest-denoise3x.pth"
                 )
 
-    elif scale == 3:
-        model = UpCunet3x(in_channels=3, out_channels=3)
-        if kind_model == "no_denoise":
-            if pro == True:
-                model_path = (
-                    "/workspace/tensorrt/models/cugan_pro-no-denoise3x-up3x.pth"
-                )
-            else:
-                model_path = (
-                    "/workspace/tensorrt/models/cugan_up3x-latest-no-denoise.pth"
-                )
-        elif kind_model == "conservative":
-            if pro == True:
-                model_path = (
-                    "/workspace/tensorrt/models/cugan_pro-conservative-up3x.pth"
-                )
-            else:
-                model_path = (
-                    "/workspace/tensorrt/models/cugan_up3x-latest-conservative.pth"
-                )
-        elif kind_model == "denoise3x":
-            if pro == True:
-                model_path = "/workspace/tensorrt/models/cugan_pro-denoise3x-up3x.pth"
-            else:
-                model_path = (
-                    "/workspace/tensorrt/models/cugan_up3x-latest-denoise3x.pth"
-                )
+        self.model.load_state_dict(torch.load(model_path, map_location="cpu"))
 
-    elif scale == 4:
-        model = UpCunet4x(in_channels=3, out_channels=3)
-        if kind_model == "no_denoise":
-            model_path = "/workspace/tensorrt/models/cugan_up4x-latest-no-denoise.pth"
-        elif kind_model == "conservative":
-            model_path = "/workspace/tensorrt/models/cugan_up4x-latest-conservative.pth"
-        elif kind_model == "denoise3x":
-            model_path = "/workspace/tensorrt/models/cugan_up4x-latest-denoise3x.pth"
-
-    model.load_state_dict(torch.load(model_path, map_location="cpu"))
-
-    if backend_inference == "cuda":
-        model.eval().cuda()
+        self.model.eval().cuda()
         if fp16:
-            model = model.half()
-        upsampler = RealESRGANer(
-            "cuda", scale, model_path, model, tile_x, tile_y, tile_pad, pre_pad
-        )
+            self.model = self.model.half()
 
-    elif backend_inference == "onnx":
-        import onnx as ox
-        import onnxruntime as ort
-
-        if fp16:
-            torch.onnx.export(
-                model.eval().half().cuda(),
-                torch.rand(1, 3, clip.height, clip.width).half().cuda(),
-                "/workspace/tensorrt/models/cugan.onnx",
-                verbose=False,
-                input_names=["input"],
-                output_names=["output"],
-                opset_version=14,
-            )
-        else:
-            torch.onnx.export(
-                model.eval().cuda(),
-                torch.rand(1, 3, clip.height, clip.width).cuda(),
-                "/workspace/tensorrt/models/cugan.onnx",
-                verbose=False,
-                input_names=["input"],
-                output_names=["output"],
-                opset_version=14,
-            )
-        model = ox.load("/workspace/tensorrt/models/cugan.onnx")
-        sess = ort.InferenceSession(
-            f"/workspace/tensorrt/models/cugan.onnx",
-            providers=["CUDAExecutionProvider"],
-        )
-
-    def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        img = frame_to_tensor(clip.get_frame(n))
-
-        if backend_inference == "cuda":
-            img = torch.Tensor(img).unsqueeze(0).to("cuda", non_blocking=True)
-            if fp16:
-                img = img.half()
-            # output = model(img)
-            output = upsampler.enhance(img)
-            output = output.detach().squeeze(0).cpu().numpy()
-        elif backend_inference == "onnx":
-            img = np.expand_dims(img, 0)
-            if fp16:
-                img = img.astype(np.float16)
-            output = sess.run(None, {"input": img})[0]
-            output = np.squeeze(output, 0)
-
-        return tensor_to_clip(clip=clip, image=output)
-
-    return core.std.FrameEval(
-        core.std.BlankClip(
-            clip=clip, width=clip.width * scale, height=clip.height * scale
-        ),
-        functools.partial(execute, clip=clip),
-    )
-
-
-def frame_to_tensor(frame: vs.VideoFrame):
-    return np.stack(
-        [np.asarray(frame[plane]) for plane in range(frame.format.num_planes)]
-    )
-
-
-def tensor_to_frame(f: vs.VideoFrame, array) -> vs.VideoFrame:
-    for plane in range(f.format.num_planes):
-        d = np.asarray(f[plane])
-        np.copyto(d, array[plane, :, :])
-    return f
-
-
-def tensor_to_clip(clip: vs.VideoNode, image) -> vs.VideoNode:
-    clip = core.std.BlankClip(clip=clip, width=image.shape[-1], height=image.shape[-2])
-    return core.std.ModifyFrame(
-        clip=clip, clips=clip, selector=lambda n, f: tensor_to_frame(f.copy(), image)
-    )
+    def execute(self, img):
+        if self.fp16:
+            img = img.half()
+        return self.model(img)

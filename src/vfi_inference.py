@@ -52,7 +52,8 @@ def vfi_inference(
         I0 = torch.clamp(I0, min=0, max=1)
         I1 = torch.clamp(I1, min=0, max=1)
 
-        middle = model_inference.execute(I0, I1, (n % multi) / multi)
+        with torch.inference_mode():
+            middle = model_inference.execute(I0, I1, (n % multi) / multi)
 
         return tensor_to_clip(clip=clip0, image=middle)
 
@@ -80,7 +81,8 @@ def vfi_inference(
             I0 = torch.clamp(I0, min=0, max=1)
             I1 = torch.clamp(I1, min=0, max=1)
 
-            output = model_inference.execute(I0, I1, multi)
+            with torch.inference_mode():
+                output = model_inference.execute(I0, I1, multi)
 
             for i in range(output.shape[0]):
                 cache[str(n + i)] = output[i, :, :, :].cpu().numpy()

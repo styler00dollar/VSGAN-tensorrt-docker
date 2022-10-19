@@ -16,14 +16,14 @@ from src.M2M import M2M
 from src.sepconv_enhanced import sepconv
 
 # upscale imports
-from src.upscale_inference import upscale_frame_skip
+from src.upscale_inference import upscale_frame_skip, upscale_inference
 from src.pan import PAN_inference
-from src.realbasicvsr import realbasicvsr_model
-from src.egvsr import egvsr_model
+from src.realbasicvsr import realbasicvsr_inference
+from src.egvsr import egvsr_inference
 from src.cugan import cugan_inference
 from vsbasicvsrpp import BasicVSRPP
 from vsswinir import SwinIR
-from src.SRVGGNetCompact import SRVGGNetCompactRealESRGAN
+from src.SRVGGNetCompact import compact_inference
 from src.esrgan import ESRGAN_inference
 
 # image processing imports
@@ -52,11 +52,11 @@ def inference_clip(video_path):
     # COLORSPACE
     ###############################################
     # convert colorspace
-    clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
+    # clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
     # convert colorspace + resizing
-    # clip = vs.core.resize.Bicubic(
-    #    clip, width=848, height=480, format=vs.RGBS, matrix_in_s="709"
-    # )
+    clip = vs.core.resize.Bicubic(
+        clip, width=512, height=512, format=vs.RGBS, matrix_in_s="709"
+    )
 
     ###############################################
 
@@ -87,7 +87,7 @@ def inference_clip(video_path):
 
     # select desired model
     model_inference = RIFE(
-       scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=False
+        scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=False
     )
     # model_inference = IFRNet(model="small", fp16=False)
     # model_inference = GMFupSS()
@@ -138,28 +138,14 @@ def inference_clip(video_path):
     #    num_streams=2,
     # )
 
-    # SwinIR
-    # clip = SwinIR(clip, task="lightweight_sr", scale=2)
-
-    # ESRGAN / RealESRGAN
-    # tta_mode 1-7, means the amount of times the image gets processed while being mirrored
-    # clip = ESRGAN_inference(
-    #    clip=clip,
-    #    model_path="/workspace/RealESRGAN_x4plus_anime_6B.pth",
-    #    tile_x=480,
-    #    tile_y=480,
-    #    tile_pad=16,
-    #    fp16=False,
-    #    tta=False,
-    #    tta_mode=1,
-    # )
-
-    # RealESRGAN Anime Video example
-    # backends: tensorrt, cuda, onnx, quantized_onnx
-    # clip = SRVGGNetCompactRealESRGAN(clip, scale=2, fp16=True, backend_inference="tensorrt")
-
-    # EGVSR
-    # clip = egvsr_model(clip, interval=15)
+    # upscale_model_inference = PAN_inference(scale = 2, fp16 = True)
+    # upscale_model_inference = egvsr_inference(scale=4)
+    # upscale_model_inference = cugan_inference(fp16=True,scale=2,kind_model="no_denoise",backend_inference="cuda")
+    # upscale_model_inference = scunet_inference(fp16 = True)
+    # upscale_model_inference = ESRGAN_inference(model_path="/workspace/tensorrt/models/RealESRGAN_x4plus_anime_6B.pth", fp16=False, tta=False, tta_mode=1)
+    # upscale_model_inference = compact_inference(scale=2, fp16=True, clip=clip) # no tiling allowed, use mlrt instead though
+    # upscale_model_inference = realbasicvsr_inference(fp16=True)
+    # clip = upscale_inference(upscale_model_inference, clip, skip_frame_list=[])
 
     # BasicVSR++
     # 0 = REDS, 1 = Vimeo-90K (BI), 2 = Vimeo-90K (BD), 3 = NTIRE 2021 - Track 1, 4 = NTIRE 2021 - Track 2, 5 = NTIRE 2021 - Track 3
@@ -176,36 +162,8 @@ def inference_clip(video_path):
     #    cpu_cache=False,
     # )
 
-    # RealBasicVSR
-    # clip = realbasicvsr_model(clip, interval=15, fp16=True)
-
-    # cugan
-    # scales: 2 | 3 | 4, kind_model: no_denoise | denoise3x | conservative, backend_inference: cuda | onnx, pro: True/False (only available for 2x and 3x scale)
-    # only cuda supports tiling
-    # clip = cugan_inference(
-    #    clip,
-    #    fp16=True,
-    #    scale=2,
-    #    kind_model="no_denoise",
-    #    backend_inference="cuda",
-    #    tile_x=512,
-    #    tile_y=512,
-    #    tile_pad=10,
-    #    pre_pad=0,
-    # )
-
-    # PAN
-    # scale = 2 | 3 | 4
-    # clip = PAN_inference(clip, scale=2, fp16=True)
-    # SCUNet
-    # clip = scunet_inference(
-    #    clip = clip,
-    #    fp16 = True,
-    #    tile_x = 384,
-    #    tile_y = 384,
-    #    tile_pad = 10,
-    #    pre_pad = 0,
-    # )
+    # SwinIR
+    # clip = SwinIR(clip, task="lightweight_sr", scale=2)
 
     ###############################################
     # ncnn

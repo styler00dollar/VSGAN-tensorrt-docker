@@ -426,72 +426,29 @@ class SCUNet(nn.Module):
 import vapoursynth as vs
 import os
 import functools
-from .realesrganner import RealESRGANer
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
 
-def scunet_inference(
-    clip: vs.VideoNode,
-    fp16: bool = True,
-    tile_x: int = 300,
-    tile_y: int = 300,
-    tile_pad: int = 10,
-    pre_pad: int = 0,
-) -> vs.VideoNode:
-    if not isinstance(clip, vs.VideoNode):
-        raise vs.Error("scunet: This is not a clip")
-
-    if clip.format.id != vs.RGBS:
-        raise vs.Error("scunet: only RGBS format is supported")
-
-    model = SCUNet(
-        in_nc=3, config=[4, 4, 4, 4, 4, 4, 4], dim=64, input_resolution=tile_x
-    )
-    model_path = "/workspace/tensorrt/models/scunet_color_real_gan.pth"
-    state_dict = torch.load(model_path, map_location="cpu")
-    model.load_state_dict(state_dict, True)
-    model.cuda().eval()
-    if fp16:
-        model.half()
-
-    upsampler = RealESRGANer(
-        "cuda", 1, model_path, model, tile_x, tile_y, tile_pad, pre_pad
-    )
-
-    def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        img = frame_to_tensor(clip.get_frame(n))
-
-        img = torch.Tensor(img).unsqueeze(0).to("cuda", non_blocking=True)
+class scunet_inference:
+    def __init__(self, fp16=True):
+        self.fp16 = fp16
+        self.scale = 1
+        self.cache = False
+        self.model = SCUNet(
+            in_nc=3, config=[4, 4, 4, 4, 4, 4, 4], dim=64, input_resolution=128
+        )
+        model_path = "/workspace/tensorrt/models/scunet_color_real_gan.pth"
+        state_dict = torch.load(model_path, map_location="cpu")
+        self.model.load_state_dict(state_dict, True)
+        self.model.cuda().eval()
         if fp16:
+            self.model.half()
+
+    def execute(self, img):
+        if self.fp16:
             img = img.half()
-        output = upsampler.enhance(img)
-        output = output.detach().squeeze(0).cpu().numpy()
-
-        return tensor_to_clip(clip=clip, image=output)
-
-    return core.std.FrameEval(
-        core.std.BlankClip(clip=clip, width=clip.width, height=clip.height),
-        functools.partial(execute, clip=clip),
-    )
-
-
-def frame_to_tensor(frame: vs.VideoFrame):
-    return np.stack(
-        [np.asarray(frame[plane]) for plane in range(frame.format.num_planes)]
-    )
-
-
-def tensor_to_frame(f: vs.VideoFrame, array) -> vs.VideoFrame:
-    for plane in range(f.format.num_planes):
-        d = np.asarray(f[plane])
-        np.copyto(d, array[plane, :, :])
-    return f
-
-
-def tensor_to_clip(clip: vs.VideoNode, image) -> vs.VideoNode:
-    clip = core.std.BlankClip(clip=clip, width=image.shape[-1], height=image.shape[-2])
-    return core.std.ModifyFrame(
-        clip=clip, clips=clip, selector=lambda n, f: tensor_to_frame(f.copy(), image)
-    )
+        output = self.model(img)
+        output = output.detach()
+        return output

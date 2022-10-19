@@ -7,16 +7,13 @@ from torch.nn import functional as F
 class RealESRGANer:
     def __init__(
         self,
-        device,
         scale,
-        model_path,
         model=None,
         tile_x=0,
         tile_y=0,
         tile_pad=10,
         pre_pad=10,
     ):
-        self.device = device
         self.scale = scale
         self.tile_x = tile_x
         self.tile_y = tile_y
@@ -48,7 +45,7 @@ class RealESRGANer:
             )
 
     def process(self):
-        self.output = self.model(self.img)
+        self.output = self.model.execute(self.img)
 
     def tile_process(self):
         """Modified from: https://github.com/ata4/esrgan-launcher"""
@@ -93,7 +90,7 @@ class RealESRGANer:
                 ]
 
                 # upscale tile
-                output_tile = self.model(input_tile)
+                output_tile = self.model.execute(input_tile)
 
                 # output tile area on total image
                 output_start_x = input_start_x * self.scale

@@ -324,6 +324,8 @@ class ESRGAN(nn.Module):
         if "params_ema" in self.state:
             self.state = self.state["params_ema"]
         self.num_blocks = self.get_num_blocks()
+        print("self.num_blocks")
+        print(self.num_blocks)
         self.plus = any("conv1x1" in k for k in self.state.keys())
 
         self.state: STATE_T = self.new_to_old_arch(self.state)
@@ -333,6 +335,8 @@ class ESRGAN(nn.Module):
         )  # assume same as in nc if not found
         self.scale = self.get_scale()
         self.num_filters = self.state["model.0.weight"].shape[0]
+        print("self.num_filters")
+        print(self.num_filters)
 
         if self.in_nc in (self.out_nc * 4, self.out_nc * 16) and self.out_nc in (
             self.in_nc / 4,
@@ -645,244 +649,226 @@ core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 
 
-def ESRGAN_inference(
-    clip: vs.VideoNode,
-    model_path: str = "/workspace/tensorrt/models/4x_fatal_Anime_500000_G.pth",
-    tile_x: int = 0,
-    tile_y: int = 0,
-    tile_pad: int = 10,
-    pre_pad: int = 0,
-    device_type: str = "cuda",
-    device_index: int = 0,
-    fp16: bool = False,
-    tta: bool = False,
-    tta_mode: int = 1,
-) -> vs.VideoNode:
-
-    if not isinstance(clip, vs.VideoNode):
-        raise vs.Error("RealESRGAN: this is not a clip")
-
-    if clip.format.id != vs.RGBS:
-        raise vs.Error("RealESRGAN: only RGBS format is supported")
-
-    if device_type not in ["cuda", "cpu"]:
-        raise vs.Error("RealESRGAN: device_type must be 'cuda' or 'cpu'")
-
-    device = torch.device(device_type, device_index)
-    if device_type == "cuda":
+class ESRGAN_inference:
+    def __init__(
+        self,
+        model_path="/workspace/tensorrt/models/RealESRGAN_x4plus_anime_6B.pth",
+        fp16=False,
+        tta=False,
+        tta_mode=1,
+    ):
+        self.cache = False
+        self.tta_mode = tta_mode
+        self.tta = tta
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
 
-    model = ESRGAN(model_path)
-    model.eval()
-    scale = model.scale
+        self.model = ESRGAN(model_path)
+        self.model.eval()
+        self.scale = self.model.scale
 
-    import torch_tensorrt
+        import torch_tensorrt
 
-    if fp16 == False:
-        model.eval()
-        example_data = torch.rand(1, 3, 64, 64)
-        model = torch.jit.trace(model, [example_data])
-        model = torch_tensorrt.compile(
-            model,
-            inputs=[
-                torch_tensorrt.Input(
-                    min_shape=(1, 3, 24, 24),
-                    opt_shape=(1, 3, 256, 256),
-                    max_shape=(1, 3, 512, 512),
-                    dtype=torch.float32,
-                )
-            ],
-            enabled_precisions={torch.float},
-            truncate_long_and_double=True,
-        )
-    elif fp16 == True:
-        # for fp16, the data needs to be on cuda
-        model.eval().half().cuda()
-        example_data = torch.rand(1, 3, 64, 64).half().cuda()
-        model = torch.jit.trace(model, [example_data])
-        model = torch_tensorrt.compile(
-            model,
-            inputs=[
-                torch_tensorrt.Input(
-                    min_shape=(1, 3, 24, 24),
-                    opt_shape=(1, 3, 256, 256),
-                    max_shape=(1, 3, 512, 512),
-                    dtype=torch.half,
-                )
-            ],
-            enabled_precisions={torch.half},
-            truncate_long_and_double=True,
-        )
-        model.half()
-    del example_data
-
-    upsampler = RealESRGANer(
-        device, scale, model_path, model, tile_x, tile_y, tile_pad, pre_pad
-    )
+        self.fp16 = fp16
+        if fp16 == False:
+            self.model.eval()
+            example_data = torch.rand(1, 3, 64, 64)
+            self.model = torch.jit.trace(self.model, [example_data])
+            self.model = torch_tensorrt.compile(
+                self.model,
+                inputs=[
+                    torch_tensorrt.Input(
+                        min_shape=(1, 3, 24, 24),
+                        opt_shape=(1, 3, 256, 256),
+                        max_shape=(1, 3, 512, 512),
+                        dtype=torch.float32,
+                    )
+                ],
+                enabled_precisions={torch.float},
+                truncate_long_and_double=True,
+            )
+        elif fp16 == True:
+            # for fp16, the data needs to be on cuda
+            self.model.eval().half().cuda()
+            example_data = torch.rand(1, 3, 64, 64).half().cuda()
+            self.model = torch.jit.trace(self.model, [example_data])
+            self.model = torch_tensorrt.compile(
+                model,
+                inputs=[
+                    torch_tensorrt.Input(
+                        min_shape=(1, 3, 24, 24),
+                        opt_shape=(1, 3, 256, 256),
+                        max_shape=(1, 3, 512, 512),
+                        dtype=torch.half,
+                    )
+                ],
+                enabled_precisions={torch.half},
+                truncate_long_and_double=True,
+            )
+            model.half()
+        del example_data
 
     @torch.inference_mode()
-    def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        img = frame_to_tensor(clip.get_frame(n))
-        img = torch.Tensor(img).unsqueeze(0).to(device, non_blocking=True)
-
-        if fp16 == True:
+    def execute(self, img) -> vs.VideoNode:
+        if self.fp16 == True:
             img = img.half()
 
-        output = upsampler.enhance(img)
-        output = output.detach().squeeze().cpu().numpy()
+        output = self.model(img)
+        output = output.detach()
 
         # flip for tta
         # vs does optimize variables away, explicitly getting all images to avoid "referenced before assignment"
-        if tta == True:
-            if tta_mode == 1:
+        if not self.tta:
+            final_output = output
+        if self.tta:
+            if self.tta_mode == 1:
                 img_flipped = torch.flip(img, [2, 3])
                 output2 = upsampler.enhance(img_flipped)
-                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+                output2 = torch.flip(output2, [2, 3]).detach()
                 final_output = (output + output2) / 2
-            elif tta_mode == 2:
+            elif self.tta_mode == 2:
                 img_flipped = torch.flip(img, [2, 3])
                 output2 = upsampler.enhance(img_flipped)
-                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+                output2 = torch.flip(output2, [2, 3]).detach()
 
                 img_flipped = torch.flip(img, [2])
                 output3 = upsampler.enhance(img_flipped)
-                output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+                output3 = torch.flip(output3, [2]).detach()
                 final_output = (output + output2 + output3) / 3
-            elif tta_mode == 3:
+            elif self.tta_mode == 3:
                 img_flipped = torch.flip(img, [2, 3])
                 output2 = upsampler.enhance(img_flipped)
-                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+                output2 = torch.flip(output2, [2, 3]).detach()
 
                 img_flipped = torch.flip(img, [2])
                 output3 = upsampler.enhance(img_flipped)
-                output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+                output3 = torch.flip(output3, [2]).detach()
 
                 img_flipped = torch.flip(img, [3])
                 output4 = upsampler.enhance(img_flipped)
-                output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+                output4 = torch.flip(output4, [3]).detach()
                 final_output = (output + output2 + output3 + output4) / 4
             # rot90
-            elif tta_mode == 4:
+            elif self.tta_mode == 4:
                 img_flipped = torch.flip(img, [2, 3])
                 output2 = upsampler.enhance(img_flipped)
-                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+                output2 = torch.flip(output2, [2, 3]).detach()
 
                 img_flipped = torch.flip(img, [2])
                 output3 = upsampler.enhance(img_flipped)
-                output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+                output3 = torch.flip(output3, [2]).detach()
 
                 img_flipped = torch.flip(img, [3])
                 output4 = upsampler.enhance(img_flipped)
-                output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+                output4 = torch.flip(output4, [3]).detach()
 
                 img_flipped = torch.flip(img, [2, 3])
                 img_flipped = torch.rot90(img_flipped, 1, [2, 3])
                 output5 = upsampler.enhance(img_flipped)
                 output5 = torch.rot90(output5, 3, [2, 3])
-                output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
+                output5 = torch.flip(output5, [2, 3]).detach()
 
                 final_output = (output + output2 + output3 + output4 + output5) / 5
 
-            elif tta_mode == 5:
+            elif self.tta_mode == 5:
                 img_flipped = torch.flip(img, [2, 3])
                 output2 = upsampler.enhance(img_flipped)
-                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+                output2 = torch.flip(output2, [2, 3]).detach()
 
                 img_flipped = torch.flip(img, [2])
                 output3 = upsampler.enhance(img_flipped)
-                output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+                output3 = torch.flip(output3, [2]).detach()
 
                 img_flipped = torch.flip(img, [3])
                 output4 = upsampler.enhance(img_flipped)
-                output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+                output4 = torch.flip(output4, [3]).detach()
 
                 img_flipped = torch.flip(img, [2, 3])
                 img_flipped = torch.rot90(img_flipped, 1, [2, 3])
                 output5 = upsampler.enhance(img_flipped)
                 output5 = torch.rot90(output5, 3, [2, 3])
-                output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
+                output5 = torch.flip(output5, [2, 3]).detach()
 
                 img_flipped = torch.flip(img, [2])
                 img_flipped = torch.rot90(img_flipped, 1, [2, 3])
                 output6 = upsampler.enhance(img_flipped)
                 output6 = torch.rot90(output6, 3, [2, 3])
-                output6 = torch.flip(output6, [2]).detach().cpu().squeeze().numpy()
+                output6 = torch.flip(output6, [2]).detach()
 
                 final_output = (
                     output + output2 + output3 + output4 + output5 + output6
                 ) / 6
 
-            elif tta_mode == 6:
+            elif self.tta_mode == 6:
                 img_flipped = torch.flip(img, [2, 3])
                 output2 = upsampler.enhance(img_flipped)
-                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+                output2 = torch.flip(output2, [2, 3]).detach()
 
                 img_flipped = torch.flip(img, [2])
                 output3 = upsampler.enhance(img_flipped)
-                output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+                output3 = torch.flip(output3, [2]).detach()
 
                 img_flipped = torch.flip(img, [3])
                 output4 = upsampler.enhance(img_flipped)
-                output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+                output4 = torch.flip(output4, [3]).detach()
 
                 img_flipped = torch.flip(img, [2, 3])
                 img_flipped = torch.rot90(img_flipped, 1, [2, 3])
                 output5 = upsampler.enhance(img_flipped)
                 output5 = torch.rot90(output5, 3, [2, 3])
-                output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
+                output5 = torch.flip(output5, [2, 3]).detach()
 
                 img_flipped = torch.flip(img, [2])
                 img_flipped = torch.rot90(img_flipped, 1, [2, 3])
                 output6 = upsampler.enhance(img_flipped)
                 output6 = torch.rot90(output6, 3, [2, 3])
-                output6 = torch.flip(output6, [2]).detach().cpu().squeeze().numpy()
+                output6 = torch.flip(output6, [2]).detach()
 
                 img_flipped = torch.flip(img, [3])
                 img_flipped = torch.rot90(img_flipped, 1, [2, 3])
                 output7 = upsampler.enhance(img_flipped)
                 output7 = torch.rot90(output7, 3, [2, 3])
-                output7 = torch.flip(output7, [3]).detach().cpu().squeeze().numpy()
+                output7 = torch.flip(output7, [3]).detach()
 
                 final_output = (
                     output + output2 + output3 + output4 + output5 + output6 + output7
                 ) / 7
 
-            elif tta_mode == 7:
+            elif self.tta_mode == 7:
                 img_flipped = torch.flip(img, [2, 3])
                 output2 = upsampler.enhance(img_flipped)
-                output2 = torch.flip(output2, [2, 3]).detach().cpu().squeeze().numpy()
+                output2 = torch.flip(output2, [2, 3]).detach()
 
                 img_flipped = torch.flip(img, [2])
                 output3 = upsampler.enhance(img_flipped)
-                output3 = torch.flip(output3, [2]).detach().cpu().squeeze().numpy()
+                output3 = torch.flip(output3, [2]).detach()
 
                 img_flipped = torch.flip(img, [3])
                 output4 = upsampler.enhance(img_flipped)
-                output4 = torch.flip(output4, [3]).detach().cpu().squeeze().numpy()
+                output4 = torch.flip(output4, [3]).detach()
 
                 img_flipped = torch.flip(img, [2, 3])
                 img_flipped = torch.rot90(img_flipped, 1, [2, 3])
                 output5 = upsampler.enhance(img_flipped)
                 output5 = torch.rot90(output5, 3, [2, 3])
-                output5 = torch.flip(output5, [2, 3]).detach().cpu().squeeze().numpy()
+                output5 = torch.flip(output5, [2, 3]).detach()
 
                 img_flipped = torch.flip(img, [2])
                 img_flipped = torch.rot90(img_flipped, 1, [2, 3])
                 output6 = upsampler.enhance(img_flipped)
                 output6 = torch.rot90(output6, 3, [2, 3])
-                output6 = torch.flip(output6, [2]).detach().cpu().squeeze().numpy()
+                output6 = torch.flip(output6, [2]).detach()
 
                 img_flipped = torch.flip(img, [3])
                 img_flipped = torch.rot90(img_flipped, 1, [2, 3])
                 output7 = upsampler.enhance(img_flipped)
                 output7 = torch.rot90(output7, 3, [2, 3])
-                output7 = torch.flip(output7, [3]).detach().cpu().squeeze().numpy()
+                output7 = torch.flip(output7, [3]).detach()
 
                 img_flipped = torch.rot90(img, 1, [2, 3])
                 output8 = upsampler.enhance(img_flipped)
                 output8 = torch.rot90(output8, 3, [2, 3])
-                output8 = output8.detach().cpu().squeeze().numpy()
+                output8 = output8.detach()
 
                 final_output = (
                     output
@@ -895,33 +881,4 @@ def ESRGAN_inference(
                     + output8
                 ) / 8
 
-            return tensor_to_clip(clip=clip, image=final_output)
-        else:
-            return tensor_to_clip(clip=clip, image=output)
-
-    return core.std.FrameEval(
-        core.std.BlankClip(
-            clip=clip, width=clip.width * scale, height=clip.height * scale
-        ),
-        functools.partial(execute, clip=clip),
-    )
-
-
-def frame_to_tensor(frame: vs.VideoFrame) -> torch.Tensor:
-    return np.stack(
-        [np.asarray(frame[plane]) for plane in range(frame.format.num_planes)]
-    )
-
-
-def tensor_to_frame(f: vs.VideoFrame, array) -> vs.VideoFrame:
-    for plane in range(f.format.num_planes):
-        d = np.asarray(f[plane])
-        np.copyto(d, array[plane, :, :])
-    return f
-
-
-def tensor_to_clip(clip: vs.VideoNode, image) -> vs.VideoNode:
-    clip = core.std.BlankClip(clip=clip, width=image.shape[-1], height=image.shape[-2])
-    return core.std.ModifyFrame(
-        clip=clip, clips=clip, selector=lambda n, f: tensor_to_frame(f.copy(), image)
-    )
+        return final_output
