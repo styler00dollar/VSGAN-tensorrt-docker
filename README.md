@@ -468,6 +468,7 @@ V100 (Colab High RAM / 8CPU) (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_strea
 V100 (Colab High RAM / 8CPU) (vs+TensorRT8.2GA+ffmpeg+C++ TRT+num_streams=3+no tiling+opset15) | 5.4 | 4.8 | 2.2
 3090² (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset16) (+dropout) | 13 | 5.8 | 2.7
 2x3090² (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset16) (+dropout) | 26 | 11 | 5.3
+4090 (C++ TRT+TensorRT8.4GA+vs_threads=6+num_threads=6+no tiling+opset16+"--best") (+dropout) | ? | ? | ? / 12*
 
 RealESRGAN (2x) (3b+64nf+dropout)ⓘ | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
