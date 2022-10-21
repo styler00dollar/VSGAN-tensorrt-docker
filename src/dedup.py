@@ -107,7 +107,7 @@ def get_duplicate_frames_with_vmaf(file_path: str):
     pxdifft = 10240
     consecutivet = 2
 
-    with open(os.path.join("infos_running.txt"), "r") as f:
+    with open(os.path.join(tmp_dir, "infos_running.txt"), "r") as f:
         lines = [i.split("\t") for i in f][1:]
     for i in range(len(lines)):
         lines[i][0] = int(lines[i][0])

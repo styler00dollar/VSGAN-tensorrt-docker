@@ -26,10 +26,10 @@ class M2M:
             output = self.model(I0, I1, tenSteps, multi)
             output = torch.cat(output)
 
-            with open('shape.txt', 'w') as f:
+            with open("shape.txt", "w") as f:
                 f.write(str(output.shape))
 
-            with open('tenSteps.txt', 'w') as f:
+            with open("tenSteps.txt", "w") as f:
                 f.write(str(tenSteps))
 
         return output

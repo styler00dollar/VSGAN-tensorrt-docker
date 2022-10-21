@@ -138,7 +138,7 @@ RUN apt update -y && \
     pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R60.zip && \
     7z x R60.zip && cd vapoursynth-R60 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.8/lib-dynload/vapoursynth.so && \
-    pip install cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python opencv-contrib-python cupy-cuda116 pytorch-msssim thop einops \
+    pip install cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python opencv-contrib-python cupy pytorch-msssim thop einops \
         https://download.pytorch.org/whl/cu116/torch-1.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl \
         https://download.pytorch.org/whl/cpu/torchvision-0.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl \
         mmcv-full==1.6.0 -f https://download.openmmlab.com/mmcv/dist/cu116/torch1.12.0/index.html \
@@ -275,3 +275,7 @@ RUN mv /usr/src/tensorrt/bin/trtexec /usr/bin
 ########################
 # RealBasicVSR_x4 will download this if you dont download it prior
 #RUN wget "https://download.pytorch.org/models/vgg19-dcbb9e9d.pth" -P /root/.cache/torch/hub/checkpoints/
+
+# install custom opencv for av1
+RUN apt install libtbb2 libgtk2.0-0 -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && \
+    pip install https://github.com/styler00dollar/opencv-python/releases/download/4.6.0.3725898/opencv_contrib_python-4.6.0.3725898-cp38-cp38-linux_x86_64.whl && pip cache purge
