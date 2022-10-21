@@ -81,12 +81,15 @@ docker pull styler00dollar/vsgan_tensorrt:latest
 # Build docker manually
 # Put the dockerfile in a directory and run that inside that directory
 # You can name it whatever you want, I just applied the same name as the dockerhub command
-docker build -t styler00dollar/vsgan_tensorrt:latest .
+DOCKER_BUILDKIT=1 docker build -t styler00dollar/vsgan_tensorrt:latest .
 # If you want to rebuild from scratch or have errors, try to build without cache
 # If you still have problems, try to uncomment "RUN apt-get dist-upgrade -y" in the Dockerfile and try again
-docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest . 
+DOCKER_BUILDKIT=1 docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest . 
 # If you encounter 401 unauthorized error, pull an image manually, for example
 docker pull nvcr.io/nvidia/tensorrt:21.12-py3
+
+# run docker with the sh startup script (linux)
+sh start_docker.sh
 
 # run the docker with docker-compose
 # go into the vsgan folder, inside that folder should be compose.yaml, run this command
