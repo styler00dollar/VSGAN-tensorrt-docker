@@ -53,11 +53,11 @@ def inference_clip(video_path):
     # COLORSPACE
     ###############################################
     # convert colorspace
-    # clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
+    clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
     # convert colorspace + resizing
-    clip = vs.core.resize.Bicubic(
-        clip, width=512, height=512, format=vs.RGBS, matrix_in_s="709"
-    )
+    #clip = vs.core.resize.Bicubic(
+    #    clip, width=1280, height=720, format=vs.RGBS, matrix_in_s="709"
+    #)
 
     ###############################################
 
@@ -76,52 +76,44 @@ def inference_clip(video_path):
     # to use for upscaling, apply this after upscaling
     # clip = upscale_frame_skip(clip, skip_frame_list)
 
+    ###############################################
+    # MODELS
+    ###############################################
     ######
-
-    ###############################################
-    # MODELS (CUDA)
-    ###############################################
     # VFI
+    ######
 
     # VFI example for jit models
     # clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
-
-    # select desired model
+    
+    # Rife: model "rife40" up to "rife46" and "sudo_rife4"
     model_inference = RIFE(
         scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=False
     )
+    
+    # IFRNet: model="small" or "large"
     # model_inference = IFRNet(model="small", fp16=False)
+    
     # model_inference = GMFupSS()
+    
     # model_inference = EISAI() # 960x540
+    
+    # FILM: model_choise="style", "l1" or "vgg"
     # model_inference = FILM(model_choise="vgg")
-    # model_inference = M2M()  # only 2x supported
+    
+    # model_inference = M2M()
+    
     # model_inference = sepconv() # only 2x supported
+    
     # model_inference = IFUNet()
+   
     clip = vfi_inference(
         model_inference=model_inference, clip=clip, skip_frame_list=[], multi=4
     )
 
     ######
-    # if you want to use dedup or scene change detect for external vs plugins like mlrt, use vfi_frame_merger
-
-    # workaround to use mlrt for video interpolation
-    # clip1 = core.std.DeleteFrames(clip, frames=0)
-    # clip2 = core.std.StackHorizontal([clip1, clip])
-    # clip2 = core.trt.Model(
-    #    clip2,
-    #    engine_path="/workspace/tensorrt/rife46_onnx16_1080_2input.engine",
-    #    num_streams=6,
-    # )
-    # clip2=core.std.Crop(clip2,right=1920)
-    # clip1 = core.std.Interleave([clip, clip])
-    # clip2 = core.std.Interleave([clip, clip2])
-
-    # skipping all duplicated / scene change frames
-    # clip = vfi_frame_merger(clip1, clip2, skip_frame_list)
-
+    # UPSCALING WITH TENSORRT
     ######
-    # UPSCALING
-
     # vs-mlrt (you need to create the engine yourself, read the readme)
     # clip = core.trt.Model(
     #    clip,
@@ -130,6 +122,7 @@ def inference_clip(video_path):
     #    overlap=[0 ,0],
     #    num_streams=6,
     # )
+    
     # vs-mlrt (DPIR)
     # DPIR does need an extra channel
     # strength = 10.0
@@ -141,16 +134,33 @@ def inference_clip(video_path):
     #    num_streams=2,
     # )
 
-    # cuda related upscaling/denoising, if possible, use mlrt from above instead due to speed
+    ######
+    # CUDA (upscaling/denoising)
+    # if possible, use mlrt from above instead due to speed
+    ######
     # upscale_model_inference = PAN_inference(scale = 2, fp16 = True)
+    
     # upscale_model_inference = egvsr_inference(scale=4)
-    # upscale_model_inference = cugan_inference(fp16=True,scale=2,kind_model="no_denoise",backend_inference="cuda")
+    
+    # CUGAN: kind_model="no_denoise", "conservative" or "denoise3x"
+    # upscale_model_inference = cugan_inference(fp16=True,scale=2,kind_model="no_denoise")
+    
     # upscale_model_inference = scunet_inference(fp16 = True)
+    
+    # ESRGAN: tta is in the range between 1 and 7
     # upscale_model_inference = ESRGAN_inference(model_path="/workspace/tensorrt/models/RealESRGAN_x4plus_anime_6B.pth", fp16=False, tta=False, tta_mode=1)
-    # upscale_model_inference = compact_inference(scale=2, fp16=True, clip=clip) # no tiling allowed, use mlrt instead though
+    
+    # Compact: no tiling allowed due to onnx-tensorrt not allowing dynamic shapes, use mlrt instead though
+    # upscale_model_inference = compact_inference(scale=2, fp16=True, clip=clip)
+    
     # upscale_model_inference = realbasicvsr_inference(fp16=True)
+    
     # clip = upscale_inference(upscale_model_inference, clip, skip_frame_list=[], tile_x=512, tile_y=512, tile_pad=10, pre_pad=0)
 
+    ######
+    # external vs plugins
+    ######
+    
     # BasicVSR++
     # 0 = REDS, 1 = Vimeo-90K (BI), 2 = Vimeo-90K (BD), 3 = NTIRE 2021 - Track 1, 4 = NTIRE 2021 - Track 2, 5 = NTIRE 2021 - Track 3
     # clip = BasicVSRPP(
@@ -170,17 +180,17 @@ def inference_clip(video_path):
     # clip = SwinIR(clip, task="lightweight_sr", scale=2)
 
     ###############################################
-    # ncnn
+    # ncnn (ncnn also works in docker)
     ###############################################
     # from src.SRVGGNetCompact_ncnn import SRVGGNetCompactRealESRGAN_ncnn
 
     # Rife ncnn (C++)
-    # https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan
+    # Model list can be found in https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan
     # clip = core.misc.SCDetect(clip=clip, threshold=0.100)
     # clip = core.rife.RIFE(
     #    clip,
     #    model=9,
-    #    multiplier=2,
+    #    factor_num=2,
     #    gpu_id=0,
     #    gpu_thread=4,
     #    tta=False,
@@ -189,16 +199,28 @@ def inference_clip(video_path):
     #    sc=True,
     # )
 
-    # compact example
-    # clip = SRVGGNetCompactRealESRGAN(
-    #    clip,
-    #    scale=2,
-    #    fp16=True,
-    #    backend_inference="ncnn",
-    #    param_path="test.param",
-    #    bin_path="test.bin",
+    ###############################################
+    # exotic
+    ###############################################
+    
+    # if you want to use dedup or scene change detect for external vs plugins like mlrt, use vfi_frame_merger
+    # example for rife with TensorRT 8.5, but that isn't in the docker yet due to nvidia not publishing the install files and compatibility reasons
+    
+    # workaround to use mlrt for video interpolation
+    # clip1 = core.std.DeleteFrames(clip, frames=0)
+    # clip2 = core.std.StackHorizontal([clip1, clip])
+    # clip2 = core.trt.Model(
+    #    clip2,
+    #    engine_path="/workspace/tensorrt/rife46_onnx16_1080_2input.engine",
+    #    num_streams=6,
     # )
+    # clip2=core.std.Crop(clip2,right=1920)
+    # clip1 = core.std.Interleave([clip, clip])
+    # clip2 = core.std.Interleave([clip, clip2])
 
+    # skipping all duplicated / scene change frames
+    # clip = vfi_frame_merger(clip1, clip2, skip_frame_list)
+    
     ###############################################
     # OUTPUT
     ###############################################
