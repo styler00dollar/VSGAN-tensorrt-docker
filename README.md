@@ -60,11 +60,11 @@ ncnn | yes, but compile yourself ([realsr ncnn models](https://github.com/nihui/
 
 Some important things:
 - If you are on Windows, install all the latest updates first, otherwise wsl won't work properly. 21H2 minimum.
-- Do not use `webm` video, webm is often broken. It can work, but don't complain about broken output afterwards.
-- Processing variable framerate (vfr) video is dangerous, but you can try to use fpsnum and fpsden. I would recommend to just render the input video into constant framerate (crf).
-- `x264` can be faster than `ffmpeg`, use that instead.
+- Do not use `webm` video, webm is often broken. It can work, but don't complain about broken output afterwards. I would suggest to render webm into mp4 or mkv.
+- Only use ffmpeg to determine if video is variable framerate (vfr) or not. Other programs do not seem reliable.
+- Processing vfr video is dangerous, but you can try to use fpsnum and fpsden. Either use these params or render the input video into constant framerate (crf).
+- `x264` can be faster than `ffmpeg`.
 - The C++ VS rife extention can be faster than CUDA.
-- `rife4` with PyTorch can use PSNR, SSIM, MS_SSIM deduplication. The C++ plugin also supports VMAF. Quick testing showed quite some speed increase.
 - Colabs have a weak cpu, you should try `x264` with `--opencl`. (A100 does not support NVENC and such)
 
 <div id='usage'/>
