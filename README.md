@@ -9,14 +9,16 @@ Table of contents
 
 <!--ts-->
    * [Usage](#usage)
+   * [Usage example](#usage-example)
+   * [Video guide (depricated)](#video-guide)
    * [Deduplicated inference](#deduplicated)
-   * [Skipping scenes with scene detection](#skipping)
+   * [Scene change detection](#scene-change)
    * [vs-mlrt (C++ TRT)](#vs-mlrt)
        * [multi-gpu](#multi-gpu)
+   * [ddfi](#ddfi)
    * [ncnn](#ncnn)
        * [If you have errors installing ncnn whl files with pip](#pip-error)
        * [Rife ncnn C++](#rife-ncnn-c)
-       * [Rife ncnn Python](#rife-ncnn-python)
        * [RealSR / ESRGAN ncnn](#sr-ncnn)
        * [Waifu2x ncnn](#waifu-ncnn)
    * [VFR (variable refresh rate)](#vfr)
@@ -127,34 +129,88 @@ docker run --privileged --gpus all -it --rm -v /mnt/c/path:/workspace/tensorrt v
 docker run --privileged --gpus all -it --rm -v //c/path:/workspace/tensorrt vsgan_tensorrt:latest
 ```
 
+<div id='usage-example'/>
+
+## Usage example
+
+Small minimalistic example of how to configure inference. If you only want to process one video, then edit video path in `inference.py`
+```
+video_path = "test.mkv"
+```
+and then afterwards edit `inference_config.py`. Small example:
+
+```python
+import sys
+sys.path.append("/workspace/tensorrt/")
+import vapoursynth as vs
+core = vs.core
+vs_api_below4 = vs.__api_version__.api_major < 4
+core.num_threads = 4
+core.std.LoadPlugin(path="/usr/lib/x86_64-linux-gnu/libffms2.so")
+
+from src.rife import RIFE
+from src.vfi_inference import vfi_inference
+
+def inference_clip(video_path):
+    clip = core.ffms2.Source(source=video_path)
+    clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
+    # apply one or multiple models, will be applied in order
+    model_inference = RIFE(scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=True)
+    clip = vfi_inference(model_inference=model_inference, clip=clip, skip_frame_list=[], multi=2)
+    # return clip
+    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+    return clip
+```
+Then use the commands above to render. For example:
+```
+vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv
+```
+
+Video will be rendered without sound and other attachments. You can add that manually to the ffmpeg command.
+
+To process videos in batch and copy their properties like audio and subtitle to another file, you need to use `main.py`. Edit filepaths and file extention:
+```
+input_dir = "/workspace/tensorrt/input/"
+output_dir = "/workspace/tensorrt/output/"
+files = glob.glob(input_dir + "/**/*.webm", recursive=True)
+```
+and configure `inference_config.py` like wanted. Afterwards just run
+```
+python main.py
+```
+
+<div id='video-guide'/>
+
+## Video guide (depricated)
+
+**WARNING: I RECOMMEND READING THE README INSTEAD. THE VIDEO SHOULD GET RE-DONE AT SOME POINT.**
+
 If you are confused, here is a Youtube video showing how to use Python API based TensorRT on Windows. That's the easiest way to get my code running, but I would recommend trying to create `.engine` files instead. I wrote instructions for that further down below under [vs-mlrt (C++ TRT)](#vs-mlrt). The difference in speed can be quite big. Look at [benchmarks](#benchmarks) for further details.
 
 [![Tutorial](https://img.youtube.com/vi/B134jvhO8yk/0.jpg)](https://www.youtube.com/watch?v=B134jvhO8yk)
 
-There is also batch processing, just edit and use `main.py` (which calls `inference_batch.py`, edit the file if needed) instead.
-```bash
-python main.py
-```
 <div id='deduplicated'/>
 
 ## Deduplicated inference
-You can delete and duplicate video frames, so you only process non-duplicated frames.
+You can delete and duplicate video frames for video frame interpolation, so you only process non-duplicated frames.
 ```python
-from src.dedup import return_frames
-frames_duplicated, frames_duplicating = return_frames(video_path, psnr_value=60)
-clip = core.std.DeleteFrames(clip, frames_duplicated)
-# do upscaling here
-clip = core.std.DuplicateFrames(clip, frames_duplicating)
+from src.dedup import get_duplicate_frames_with_vmaf
+skip_frame_list = get_duplicate_frames_with_vmaf(video_path)
+# apply upscaling on clip, just showing one specific example and process it with upscale_frame_skip
+clip = core.trt.Model(clip, engine_path="/workspace/tensorrt/model.engine")
+clip = upscale_frame_skip(clip, skip_frame_list=skip_frame_list)
 ```
 
-<div id='skipping'/>
+<div id='scene-change'/>
 
-## Skipping scenes with scene detection
-This avoids interpolation when a scene change happens. Create framelist with pyscenedetect and pass that.
+## Scene change detection
+
 ```python
 from src.scene_detect import find_scenes
-skip_framelist = find_scenes(video_path, threshold=30)
-clip = RIFE(clip, multi = 2, scale = 1.0, fp16 = True, fastmode = False, ensemble = True, psnr_dedup = False, psnr_value = 70, ssim_dedup = True, ms_ssim_dedup = False, ssim_value = 0.999, skip_framelist=skip_framelist)
+skip_frame_list = find_scenes(video_path, threshold=30)
+# set model_inference and then use vfi_inference
+model_inference = RIFE(scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=True)
+clip = vfi_inference(model_inference=model_inference, clip=clip, skip_frame_list=skip_frame_list, multi=2)
 ```
 
 <div id='vs-mlrt'/>
@@ -168,7 +224,7 @@ Be aware that DPIR (color) needs 4 channels.
 ```
 trtexec --fp16 --onnx=dpir_drunet_color.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT
 ```
-and put that engine path into `inference.py`. Only do FP16 if your GPU does support it. 
+and put that engine path into `inference_config.py`. Only do FP16 if your GPU does support it. 
 
 **Warnings**: 
 - You need to use the FP32 onnx, even if you want FP16, specify `--fp16` for FP16.
@@ -182,17 +238,41 @@ and put that engine path into `inference.py`. Only do FP16 if your GPU does supp
 
 Thanks to tepete who figured it out, there is also a way to do inference on multipe GPUs.
 
-```
+```python
 stream0 = core.std.SelectEvery(core.trt.Model(clip, engine_path="models/engines/model.engine", num_streams=2, device_id=0), cycle=3, offsets=0)
 stream1 = core.std.SelectEvery(core.trt.Model(clip, engine_path="models/engines/model.engine", num_streams=2, device_id=1), cycle=3, offsets=1)
 stream2 = core.std.SelectEvery(core.trt.Model(clip, engine_path="models/engines/model.engine", num_streams=2, device_id=2), cycle=3, offsets=2)
 clip = core.std.Interleave([stream0, stream1, stream2])
 ```
 
+<div id='ddfi'/>
+
+## ddfi
+
+To quickly explain what ddfi is, the repository [Mr-Z-2697/ddfi-rife](https://github.com/Mr-Z-2697/ddfi-rife) deduplicates frames and interpolates between frames. Normally, frames which are duplicated can create a stuttering visual effect and to mitigate that, a higher interpolation factor is used on scenes which have a duplicated frames to compensate. 
+
+Visual examples from that repository:
+
+![IMG](https://github.com/Mr-Z-2697/ddfi/blob/main/example/ddfi.webp?raw=true)
+![IMG](https://github.com/Mr-Z-2697/ddfi/blob/main/example/simp.webp?raw=true)
+
+To use it, first you need to edit `ddfi.py` to select your interpolator of choise and then also apply the desired framerate. The official code uses 8x and I suggest you do so too. Small example:
+```python
+clip = core.misc.SCDetect(clip=clip, threshold=0.100)
+clip = core.rife.RIFE(clip, model=9, sc=True, skip=False, multiplier=8)
+
+clip = core.vfrtocfr.VFRToCFR(
+    clip, os.path.join(tmp_dir, "tsv2nX8.txt"), 192000, 1001, True
+) # 23.97 * 8
+``` 
+
+Afterwards, you need to use `deduped_vfi.py` similar to how you used `main.py`. Adjust paths and file extention.
+
+
 <div id='ncnn'/>
 
 ## ncnn
-If you want to use ncnn, then you need to get the dev docker with `docker pull styler00dollar/vsgan_tensorrt_dev:latest` or set up your own os for this if you use AMD GPU or simply want to run it locally.
+If you have and AMD gpu, then you can at least use ncnn on your own system. The docker includes ncnn functionality.
 
 **WARNING: It seems like some videos result in a broken output. For some reason a certain `webm` video produced very weird results, despite it working with other (non-ncnn) models. If you encounter this, just mux to a mkv with `ffmpeg -i input.webm -c copy output.mkv` and it should work properly again.**
 
@@ -239,17 +319,10 @@ git clone https://github.com/vapoursynth/vs-miscfilters-obsolete && cd vs-miscfi
 
 # RIFE
 git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan && cd VapourSynth-RIFE-ncnn-Vulkan && \
-  git submodule update --init --recursive --depth 1 && meson build -Dbuildtype=debug -Db_lto=false && ninja -C build && ninja -C build install
+  git submodule update --init --recursive --depth 1 && meson build && ninja -C build && ninja -C build install
 ```
 
 <div id='rife-ncnn-python'/>
-
-#### Rife ncnn (Python API):
-You can install precompiled whl files from [here](https://github.com/styler00dollar/rife-ncnn-vulkan-python/releases/tag/v1a). If you want to compile it, visit [styler00dollar/rife-ncnn-vulkan-python](https://github.com/styler00dollar/rife-ncnn-vulkan-python).
-```bash
-sudo pacman -S base-devel vulkan-headers vulkan-icd-loader vulkan-devel
-pip install [URL for whl]
-```
 
 <div id='sr-ncnn'/>
 
@@ -266,22 +339,6 @@ If you want to convert a normal pth to ncnn, you need to do `pth->onnx->ncnn(bin
 
 <div id='waifu-ncnn'/>
 
-#### Waifu2x ncnn:
-```python
-sudo pacman -S vapoursynth glslang vulkan-icd-loader vulkan-headers
-
-git clone https://github.com/Nlzy/vapoursynth-waifu2x-ncnn-vulkan.git
-cd vapoursynth-waifu2x-ncnn-vulkan
-git submodule update --init --recursive
-mkdir build
-cd build
-cmake ..
-cmake --build . -j16
-sudo su
-make install
-exit
-```
-
 <div id='vfr'/>
 
 ## VFR
@@ -293,15 +350,15 @@ and look at the final line. If it is not zero, then it means it is variable refr
 ```bash
 [Parsed_vfrdet_0 @ 0x56518fa3f380] VFR:0.400005 (15185/22777) min: 1801 max: 3604)
 ```
-To go around this issue, simply convert everything to constant framerate with ffmpeg.
+To go around this issue, specify `fpsnum` and `fpsden` in `inference_config.py`
+```
+clip = core.ffms2.Source(source='input.mkv', fpsnum = 24000, fpsden = 1001)
+```
+or convert everything to constant framerate with ffmpeg.
 ```bash
 ffmpeg -i video_input.mkv -vsync cfr -crf 10 -c:a copy video_out.mkv
 ```
 or use my `vfr_to_cfr.py` to process a folder.
-## Manual instructions
-If you don't want to use docker, vapoursynth install commands are [here](https://github.com/styler00dollar/vs-vfi) and a TensorRT example is [here](https://github.com/styler00dollar/Colab-torch2trt/blob/main/Colab-torch2trt.ipynb).
-
-Set the input video path in `inference.py` and access videos with the mounted folder.
 
 <div id='mpv'/>
 
