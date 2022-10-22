@@ -125,6 +125,7 @@ def inference_clip(video_path):
     #    clip,
     #    engine_path="/workspace/tensorrt/real2x.engine",
     #    tilesize=[854, 480],
+    #    overlap=[0 ,0],
     #    num_streams=6,
     # )
     # vs-mlrt (DPIR)
