@@ -2297,7 +2297,8 @@ class Model:
                 convert(torch.load(metricnet_path))
             )
 
-            fusionnet_path = torch.load("{}/GMFupSS_fusionnet.pkl".format(path)
+            fusionnet_path = "{}/GMFupSS_fusionnet.pkl".format(path)
+            check_and_download(fusionnet_path)
             self.fusionnet.load_state_dict(
                 convert(torch.load(fusionnet_path))
             )

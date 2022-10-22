@@ -8,11 +8,11 @@ def eprint(*args, **kwargs):
 
 
 def check_and_download(file_path: str):
-    path = "models/"
+    path = "/workspace/tensorrt/models/"
     if not os.path.exists(path):
-        os.mkdir(tmp_dir)
+        os.mkdir(path)
 
-    if not os.path.exists(file_path)
+    if not os.path.exists(file_path):
         model_name = os.path.basename(file_path)
         url = (
             "https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/"
