@@ -8,6 +8,7 @@ from src.IFRNet import IFRNet
 from src.GMFupSS import GMFupSS
 from src.eisai import EISAI
 from src.film import FILM
+
 core = vs.core
 
 core.std.LoadPlugin(path="/usr/lib/x86_64-linux-gnu/libffms2.so")

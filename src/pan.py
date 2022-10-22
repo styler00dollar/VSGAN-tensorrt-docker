@@ -8,6 +8,7 @@ import vapoursynth as vs
 import functools
 import torch.nn.init as init
 import numpy as np
+from .download import check_and_download
 
 # for RCAN
 def default_conv(in_channels, out_channels, kernel_size, bias=True):
@@ -283,13 +284,16 @@ class PAN_inference:
         # load network
         if scale == 2:
             model_path = f"/workspace/tensorrt/models/PANx2_DF2K.pth"
-            self.model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=2)
+            scale = 2
         elif scale == 3:
             model_path = f"/workspace/tensorrt/models/PANx3_DF2K.pth"
-            self.model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=3)
+            scale = 3
         elif scale == 4:
             model_path = f"/workspace/tensorrt/models/PANx4_DF2K.pth"
-            self.model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=4)
+            scale = 4
+
+        check_and_download(model_path)
+        self.model = PAN(in_nc=3, out_nc=3, nf=40, unf=24, nb=16, scale=scale)
         self.model.load_state_dict(torch.load(model_path, map_location="cpu"))
         self.model.eval()
 

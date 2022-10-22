@@ -4,6 +4,7 @@ import vapoursynth as vs
 import functools
 import torch
 from .M2M_arch import M2M_PWC
+from .download import check_and_download
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class M2M:
@@ -11,8 +12,11 @@ class M2M:
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
 
+        model_path = "/workspace/tensorrt/models/M2M.pth"
+        check_and_download(model_path)
+
         self.model = M2M_PWC()
-        self.model.load_state_dict(torch.load("/workspace/tensorrt/models/M2M.pth"))
+        self.model.load_state_dict(torch.load(model_path))
         self.model.eval().cuda()
         self.cache = True
 

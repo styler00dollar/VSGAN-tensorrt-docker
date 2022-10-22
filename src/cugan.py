@@ -4,6 +4,7 @@ from torch import nn as nn
 from torch.nn import functional as F
 import os, sys
 import numpy as np
+from .download import check_and_download
 
 
 class SEBlock(nn.Module):
@@ -476,6 +477,7 @@ class cugan_inference:
                     "/workspace/tensorrt/models/cugan_up4x-latest-denoise3x.pth"
                 )
 
+        check_and_download(model_path)
         self.model.load_state_dict(torch.load(model_path, map_location="cpu"))
 
         self.model.eval().cuda()

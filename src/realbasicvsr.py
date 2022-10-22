@@ -9,6 +9,7 @@ import os
 import torch
 import torch.nn as nn
 import vapoursynth as vs
+from .download import check_and_download
 
 
 def build(cfg, registry, default_args=None):
@@ -83,8 +84,10 @@ class realbasicvsr_inference:
         config.model.pretrained = None
         config.test_cfg.metrics = None
         self.model = build_model(config.model, test_cfg=config.test_cfg)
+        model_path = "/workspace/tensorrt/models/RealBasicVSR_x4.pth"
+        check_and_download(model_path)
         self.model.load_state_dict(
-            torch.load("/workspace/tensorrt/models/RealBasicVSR_x4.pth")["state_dict"],
+            torch.load(model_path)["state_dict"],
             strict=True,
         )
         self.model.cuda().eval()

@@ -10,6 +10,7 @@ import torch
 import typing
 from torch.nn.modules.utils import _pair
 import math
+from .download import check_and_download
 
 device = torch.device("cuda")
 
@@ -2284,14 +2285,21 @@ class Model:
                 return param
 
         if rank <= 0:
+            flownet_path = "{}/GMFupSS_flownet.pkl".format(path)
+            check_and_download(flownet_path)
             self.flownet.load_state_dict(
-                torch.load("{}/GMFupSS_flownet.pkl".format(path))
+                torch.load(flownet_path)
             )
+
+            metricnet_path = "{}/GMFupSS_metric.pkl".format(path)
+            check_and_download(metricnet_path)
             self.metricnet.load_state_dict(
-                convert(torch.load("{}/GMFupSS_metric.pkl".format(path)))
+                convert(torch.load(metricnet_path))
             )
+
+            fusionnet_path = torch.load("{}/GMFupSS_fusionnet.pkl".format(path)
             self.fusionnet.load_state_dict(
-                convert(torch.load("{}/GMFupSS_fusionnet.pkl".format(path)))
+                convert(torch.load(fusionnet_path))
             )
 
     def reuse(self, img0, img1, scale=1.0):

@@ -10,7 +10,7 @@ import os
 import re
 import torch
 import typing
-
+from .download import check_and_download
 
 ##########################################################
 
@@ -1293,7 +1293,9 @@ class sepconv:
         torch.backends.cudnn.benchmark = True
 
         self.model = Network()
-        self.model.load_state_dict(torch.load("/workspace/tensorrt/models/sepconv.pth"))
+        model_path = "/workspace/tensorrt/models/sepconv.pth"
+        check_and_download(model_path)
+        self.model.load_state_dict(torch.load(model_path))
         self.model.eval()
         self.model.cuda()
         self.cache = False

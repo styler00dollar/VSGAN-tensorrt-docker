@@ -3,6 +3,7 @@ import numpy as np
 import vapoursynth as vs
 import functools
 import torch
+from .download import check_and_download
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class IFRNet:
@@ -14,17 +15,17 @@ class IFRNet:
             from .IFRNet_S_arch import IRFNet_S
 
             self.model = IRFNet_S()
-            self.model.load_state_dict(
-                torch.load("/workspace/tensorrt/models/IFRNet_S_Vimeo90K.pth")
-            )
+            model_path = "/workspace/tensorrt/models/IFRNet_S_Vimeo90K.pth"
+            check_and_downlaod(model_path)
+            self.model.load_state_dict(torch.load(model_path))
 
         elif model == "large":
             from .IFRNet_L_arch import IRFNet_L
 
             self.model = IRFNet_L()
-            self.model.load_state_dict(
-                torch.load("/workspace/tensorrt/models/IFRNet_L_Vimeo90K.pth")
-            )
+            model_path = "/workspace/tensorrt/models/IFRNet_L_Vimeo90K.pth"
+            check_and_downlaod(model_path)
+            self.model.load_state_dict(torch.load(model_path))
         self.model.eval().cuda()
 
         torch.backends.cudnn.enabled = True

@@ -482,6 +482,7 @@ import os
 import numpy as np
 import torch
 import vapoursynth as vs
+from .download import check_and_download
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -495,8 +496,11 @@ class egvsr_inference:
         torch.backends.cudnn.benchmark = True
 
         self.model = FRNet(in_nc=3, out_nc=3, nf=64, nb=10)
+
+        model_path = "/workspace/tensorrt/models/EGVSR_iter420000.pth"
+        check_and_download(model_path)
         self.model.load_state_dict(
-            torch.load("/workspace/tensorrt/models/EGVSR_iter420000.pth"), strict=False
+            torch.load(model_path, strict=False
         )
         self.model.cuda().eval()
 

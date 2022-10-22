@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import sys
 from contextlib import contextmanager
+from .download import check_and_download
 
 # https://stackoverflow.com/questions/5081657/how-do-i-prevent-a-c-shared-library-to-print-on-stdout-in-python
 @contextmanager
@@ -44,6 +45,7 @@ class compact_inference:
             model_path = (
                 f"/workspace/tensorrt/models/RealESRGANv2-animevideo-xsx{scale}.pth"
             )
+            check_and_download(model_path)
             self.model = SRVGGNetCompact(
                 num_in_ch=3,
                 num_out_ch=3,

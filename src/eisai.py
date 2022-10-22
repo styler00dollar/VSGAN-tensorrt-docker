@@ -4,6 +4,7 @@ import vapoursynth as vs
 import functools
 from .eisai_arch import SoftsplatLite, DTM, RAFT, interpolate
 import torch
+from .download import check_and_download
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class EISAI:
@@ -16,13 +17,18 @@ class EISAI:
 
         ssl = SoftsplatLite()
         dtm = DTM()
-        ssl.load_state_dict(torch.load("/workspace/tensorrt/models/eisai_ssl.pt"))
-        dtm.load_state_dict(torch.load("/workspace/tensorrt/models/eisai_dtm.pt"))
-        self.raft = (
-            RAFT(path="/workspace/tensorrt/models/eisai_anime_interp_full.ckpt")
-            .eval()
-            .to(device)
-        )
+
+        ssl_path = "/workspace/tensorrt/models/eisai_ssl.pt"
+        dtm_path = "/workspace/tensorrt/models/eisai_dtm.pt"
+        raft_path = "/workspace/tensorrt/models/eisai_anime_interp_full.ckpt"
+
+        check_and_download(ssl_path)
+        check_and_download(dtm_path)
+        check_and_download(raft_path)
+
+        ssl.load_state_dict(torch.load(ssl_path))
+        dtm.load_state_dict(torch.load(dtm_path))
+        self.raft = RAFT(path=raft_path).eval().to(device)
         self.ssl = ssl.to(device).eval()
         self.dtm = dtm.to(device).eval()
         self.cache = False

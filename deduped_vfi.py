@@ -35,7 +35,9 @@ for f in files:
     f_txt.close()
 
     os.system("vspipe parse.py -p .")
-    os.system(f"vspipe -c y4m ddfi.py - | ffmpeg -i pipe: -preset medium {out_render_path}")
+    os.system(
+        f"vspipe -c y4m ddfi.py - | ffmpeg -i pipe: -preset medium {out_render_path}"
+    )
 
     os.system(
         f"ffmpeg -y -loglevel error -i {f} -i {out_render_path}  -map 1 -map 0 -map -0:v -codec copy -max_interleave_delta 0 {mux_path}"

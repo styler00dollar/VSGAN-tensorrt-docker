@@ -426,6 +426,7 @@ class SCUNet(nn.Module):
 import vapoursynth as vs
 import os
 import functools
+from .download import check_and_download
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -440,6 +441,7 @@ class scunet_inference:
             in_nc=3, config=[4, 4, 4, 4, 4, 4, 4], dim=64, input_resolution=128
         )
         model_path = "/workspace/tensorrt/models/scunet_color_real_gan.pth"
+        check_and_download(model_path)
         state_dict = torch.load(model_path, map_location="cpu")
         self.model.load_state_dict(state_dict, True)
         self.model.cuda().eval()

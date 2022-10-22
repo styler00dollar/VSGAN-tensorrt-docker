@@ -14,9 +14,9 @@ files.sort()
 
 for f in files:
     # creating folders if they dont exist
-    if os.path.exists(tmp_dir) == False:
+    if not os.path.exists(tmp_dir):
         os.mkdir(tmp_dir)
-    if os.path.exists(output_dir) == False:
+    if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
     # paths

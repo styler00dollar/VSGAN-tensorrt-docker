@@ -14,6 +14,7 @@ from src.eisai import EISAI
 from src.film import FILM
 from src.M2M import M2M
 from src.sepconv_enhanced import sepconv
+from src.IFUNet import IFUNet
 
 # upscale imports
 from src.upscale_inference import upscale_frame_skip, upscale_inference
@@ -95,6 +96,7 @@ def inference_clip(video_path):
     # model_inference = FILM(model_choise="vgg")
     # model_inference = M2M()  # only 2x supported
     # model_inference = sepconv() # only 2x supported
+    # model_inference = IFUNet()
     clip = vfi_inference(
         model_inference=model_inference, clip=clip, skip_frame_list=[], multi=4
     )
@@ -120,7 +122,7 @@ def inference_clip(video_path):
     ######
     # UPSCALING
 
-    # vs-mlrt (you need to create the engine yourself)
+    # vs-mlrt (you need to create the engine yourself, read the readme)
     # clip = core.trt.Model(
     #    clip,
     #    engine_path="/workspace/tensorrt/real2x.engine",
@@ -139,6 +141,7 @@ def inference_clip(video_path):
     #    num_streams=2,
     # )
 
+    # cuda related upscaling/denoising, if possible, use mlrt from above instead due to speed
     # upscale_model_inference = PAN_inference(scale = 2, fp16 = True)
     # upscale_model_inference = egvsr_inference(scale=4)
     # upscale_model_inference = cugan_inference(fp16=True,scale=2,kind_model="no_denoise",backend_inference="cuda")
@@ -146,7 +149,7 @@ def inference_clip(video_path):
     # upscale_model_inference = ESRGAN_inference(model_path="/workspace/tensorrt/models/RealESRGAN_x4plus_anime_6B.pth", fp16=False, tta=False, tta_mode=1)
     # upscale_model_inference = compact_inference(scale=2, fp16=True, clip=clip) # no tiling allowed, use mlrt instead though
     # upscale_model_inference = realbasicvsr_inference(fp16=True)
-    # clip = upscale_inference(upscale_model_inference, clip, skip_frame_list=[])
+    # clip = upscale_inference(upscale_model_inference, clip, skip_frame_list=[], tile_x=512, tile_y=512, tile_pad=10, pre_pad=0)
 
     # BasicVSR++
     # 0 = REDS, 1 = Vimeo-90K (BI), 2 = Vimeo-90K (BD), 3 = NTIRE 2021 - Track 1, 4 = NTIRE 2021 - Track 2, 5 = NTIRE 2021 - Track 3
