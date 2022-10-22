@@ -52,6 +52,7 @@ def inference_clip(video_path):
     ###############################################
     # COLORSPACE
     ###############################################
+    
     # convert colorspace
     clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
     # convert colorspace + resizing
@@ -67,6 +68,7 @@ def inference_clip(video_path):
     ######
     # dedup tools
     ######
+    
     # from src.scene_detect import find_scenes
     # skip_frame_list = find_scenes(video_path, threshold=30)
 
@@ -114,6 +116,7 @@ def inference_clip(video_path):
     ######
     # UPSCALING WITH TENSORRT
     ######
+    
     # vs-mlrt (you need to create the engine yourself, read the readme)
     # clip = core.trt.Model(
     #    clip,
@@ -138,6 +141,7 @@ def inference_clip(video_path):
     # CUDA (upscaling/denoising)
     # if possible, use mlrt from above instead due to speed
     ######
+    
     # upscale_model_inference = PAN_inference(scale = 2, fp16 = True)
     
     # upscale_model_inference = egvsr_inference(scale=4)
@@ -182,8 +186,7 @@ def inference_clip(video_path):
     ###############################################
     # ncnn (ncnn also works in docker)
     ###############################################
-    # from src.SRVGGNetCompact_ncnn import SRVGGNetCompactRealESRGAN_ncnn
-
+    
     # Rife ncnn (C++)
     # Model list can be found in https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan
     # clip = core.misc.SCDetect(clip=clip, threshold=0.100)
