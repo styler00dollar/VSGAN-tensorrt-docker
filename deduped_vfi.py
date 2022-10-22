@@ -1,13 +1,16 @@
-import os
+# example usage: python main.py
+# vapoursynth does not have audio support and processing multiple files is not really possible
+# hacky script to make batch processing with audio and subtitle support
+# make sure tmp_dir is also set in inference.py
+# maybe should pass arguments instead of a text file instead
 import glob
+import os
 
 input_dir = "/workspace/tensorrt/input/"
 tmp_dir = "tmp/"
 output_dir = "/workspace/tensorrt/output/"
-
-files = glob.glob(input_dir + "/**/*.mp4", recursive=True)
+files = glob.glob(input_dir + "/**/*.mkv", recursive=True)
 files.sort()
-
 
 for f in files:
     # creating folders if they dont exist
@@ -18,25 +21,12 @@ for f in files:
 
     # paths
     txt_path = os.path.join(tmp_dir, "tmp.txt")
-    subs_path = os.path.join(tmp_dir, "subs.ass")  # srt, ass
-    audio_path = os.path.join(tmp_dir, "audio.flac")  # ogg, aac, flac, ac3
-    out_path = os.path.join(
+    out_render_path = os.path.join(
+        output_dir, os.path.splitext(os.path.basename(f))[0] + "_rendered.mkv"
+    )
+    mux_path = os.path.join(
         output_dir, os.path.splitext(os.path.basename(f))[0] + "_mux.mkv"
     )
-
-    # delete cache file if exists
-    if os.path.exists(os.path.join(tmp_dir, "infos_running.txt")) == True:
-        os.remove(os.path.join(tmp_dir, "infos_running.txt"))
-    if os.path.exists(os.path.join(tmp_dir, "tsv2nX8.txt")) == True:
-        os.remove(os.path.join(tmp_dir, "tsv2nX8.txt"))
-    if os.path.exists(audio_path) == True:
-        os.remove(audio_path)
-    if os.path.exists(subs_path) == True:
-        os.remove(subs_path)
-    if os.path.exists(audio_path) == True:
-        os.remove(audio_path)
-    # deleting all ffindex
-    os.system(f"find . -name '*ffindex' -type f -delete")
 
     # writing filepath into temp txt
     # workaround to pass filename parameter
@@ -44,18 +34,12 @@ for f in files:
     f_txt.write(str(f))
     f_txt.close()
 
-    # calling vspipe and piping into ffmpeg
-    ###############################################
-    # AUDIO
-    # -map 0:2 means second audio track
-
-    # copy audio without reencoding
-    # os.system(f"ffmpeg -i {f} -vn -acodec copy {audio_path}")
-    # reencode if extract fails
-    # os.system(f"ffmpeg -i {f} -vn {audio_path}")
-    ###############################################
-    # extract subtitles, -map 0:s:1 means second subtitle track
-    # os.system(f"ffmpeg -i {f} -map 0:s:0 {subs_path}")
-
     os.system("vspipe parse.py -p .")
-    os.system(f"vspipe -c y4m ddfi.py - | ffmpeg -i pipe: -preset medium {out_path}")
+    os.system(f"vspipe -c y4m ddfi.py - | ffmpeg -i pipe: -preset medium {out_render_path}")
+
+    os.system(
+        f"ffmpeg -y -loglevel error -i {f} -i {out_render_path}  -map 1 -map 0 -map -0:v -codec copy -max_interleave_delta 0 {mux_path}"
+    )
+
+    # deleting temp files
+    os.remove(txt_path)
