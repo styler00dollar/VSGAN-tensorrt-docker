@@ -142,7 +142,7 @@ RUN apt update -y && \
     pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R60.zip && \
     7z x R60.zip && cd vapoursynth-R60 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.8/lib-dynload/vapoursynth.so && \
-    pip install cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python opencv-contrib-python cupy pytorch-msssim thop einops \
+    pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python opencv-contrib-python cupy pytorch-msssim thop einops \
         https://download.pytorch.org/whl/cu116/torch-1.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl \
         https://download.pytorch.org/whl/cpu/torchvision-0.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl \
         mmcv-full==1.6.0 -f https://download.openmmlab.com/mmcv/dist/cu116/torch1.12.0/index.html \
