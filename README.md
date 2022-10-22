@@ -82,10 +82,7 @@ docker pull styler00dollar/vsgan_tensorrt:latest
 # You can name it whatever you want, I just applied the same name as the dockerhub command
 DOCKER_BUILDKIT=1 docker build -t styler00dollar/vsgan_tensorrt:latest .
 # If you want to rebuild from scratch or have errors, try to build without cache
-# If you still have problems, try to uncomment "RUN apt-get dist-upgrade -y" in the Dockerfile and try again
 DOCKER_BUILDKIT=1 docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest . 
-# If you encounter 401 unauthorized error, pull an image manually, for example
-docker pull nvcr.io/nvidia/tensorrt:21.12-py3
 
 # run docker with the sh startup script (linux)
 sh start_docker.sh
@@ -166,7 +163,7 @@ vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv
 Video will be rendered without sound and other attachments. You can add that manually to the ffmpeg command.
 
 To process videos in batch and copy their properties like audio and subtitle to another file, you need to use `main.py`. Edit filepaths and file extention:
-```
+```python
 input_dir = "/workspace/tensorrt/input/"
 output_dir = "/workspace/tensorrt/output/"
 files = glob.glob(input_dir + "/**/*.webm", recursive=True)
