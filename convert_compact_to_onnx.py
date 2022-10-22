@@ -3,10 +3,18 @@ import torch
 
 print("Converting")
 
+# parameters depend on model and you need to set them manually if it errors
 model = SRVGGNetCompact(
     num_in_ch=3, num_out_ch=3, num_feat=64, num_conv=16, upscale=4, act_type="prelu"
 )
-model.load_state_dict(torch.load("model.pth"))
+
+state_dict = torch.load("realesr-animevideov3.pth")
+
+if "params" in state_dict.keys():
+    model.load_state_dict(state_dict["params"])
+else:
+    model.load_state_dict(state_dict)
+
 model.eval().cuda()
 # https://github.com/onnx/onnx/issues/654
 dynamic_axes = {
