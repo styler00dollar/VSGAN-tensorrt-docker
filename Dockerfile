@@ -125,6 +125,10 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.
     cp /workspace/bin/cmake /usr/bin/cmake && cp /workspace/bin/cmake /usr/lib/x86_64-linux-gnu/cmake && \
     cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-3.23 /usr/local/share/
 
+# using own custom compiled ffmpeg
+RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/ffmpeg && \
+    chmod +x ffmpeg && mv ffmpeg /usr/bin/ffmpeg
+
 # installing vapoursynth and torch
 # for newer ubuntu: python-is-python3 libffms2-5
 # currently not on 3.10: onnx onnxruntime onnxruntime-gpu
@@ -132,7 +136,7 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.
 
 RUN apt update -y && \
     #apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa -y && \
-    apt install pkg-config wget python3-pip git p7zip-full x264 ffmpeg autoconf libtool yasm ffmsindex libffms2-4 libffms2-dev -y && \
+    apt install pkg-config wget python3-pip git p7zip-full x264 autoconf libtool yasm ffmsindex libffms2-4 libffms2-dev -y && \
     wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.zip && 7z x release-3.0.4.zip && \
     cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j4 && make install && cd .. && rm -rf zimg-release-3.0.4 release-3.0.4.zip && \
     pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R60.zip && \
@@ -157,11 +161,6 @@ RUN apt-get install checkinstall libwebp-dev libopenjp2-7-dev librsvg2-dev libde
     ./configure --enable-shared --with-modules --with-gslib && make && \
     make install && ldconfig /usr/local/lib && cd /workspace && rm -rf ImageMagick && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-    
-# upgrading ffmpeg manually (https://johnvansickle.com/ffmpeg/)
-RUN wget https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz && \
-    tar -xf ffmpeg-git-amd64-static.tar.xz && export FFMPEG_PATH=$(find . -name 'ffmpeg'); \
-    chmod +x ${FFMPEG_PATH} && mv ${FFMPEG_PATH} /usr/bin/ffmpeg && rm -rf ffmpeg-git-* 
 
 # installing tensorflow because of FILM
 RUN pip install tensorflow tensorflow-gpu tensorflow_addons gin-config && pip3 cache purge
