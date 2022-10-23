@@ -28,8 +28,8 @@ def check_and_download_film():
     for model_type in ["L1", "Style", "VGG"]:
         model_paths.append(os.path.join(path, "FILM", model_type, "saved_model.pb"))
         model_paths.append(os.path.join(path, "FILM", model_type, "keras_metadata.pb"))
-        model_paths.append(os.path.join(path, "FILM", model_type, "variables.data-00000-of-00001"))
-        model_paths.append(os.path.join(path, "FILM", model_type, "variables.index"))
+        model_paths.append(os.path.join(path, "FILM", model_type, "variables/variables.data-00000-of-00001"))
+        model_paths.append(os.path.join(path, "FILM", model_type, "variables/variables.index"))
     
     for i in model_paths:
         if not os.path.exists(path):
