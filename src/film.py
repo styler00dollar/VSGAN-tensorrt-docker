@@ -5,6 +5,7 @@ import kornia
 import os
 import kornia
 import functools
+from .download import check_and_download_film
 
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
@@ -53,6 +54,9 @@ class FILM:
             gpus = tf.config.experimental.list_physical_devices("GPU")
             # print(gpus)
             tf.config.experimental.set_memory_growth(gpus[0], True)
+
+            check_and_download_film()
+
             if model_choise == "style":
                 self.model = tf.compat.v2.saved_model.load(
                     "/workspace/tensorrt/models/FILM/Style/"
