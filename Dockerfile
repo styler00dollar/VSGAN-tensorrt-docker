@@ -127,7 +127,7 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.
 
 # using own custom compiled ffmpeg
 RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/ffmpeg && \
-    chmod +x ffmpeg && mv ffmpeg /usr/bin/ffmpeg
+    chmod +x ffmpeg && rm -rf /usr/bin/ffmpeg && mv ffmpeg /usr/bin/ffmpeg
 
 # installing vapoursynth and torch
 # for newer ubuntu: python-is-python3 libffms2-5
