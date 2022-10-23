@@ -184,7 +184,7 @@ def inference_clip(video_path):
     # clip = SwinIR(clip, task="lightweight_sr", scale=2)
 
     ###############################################
-    # ncnn (ncnn also works in docker)
+    # ncnn (works in docker, but only on linux, because wsl on windows does not support vulkan)
     ###############################################
     
     # Rife ncnn (C++)

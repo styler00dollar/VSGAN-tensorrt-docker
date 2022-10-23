@@ -500,7 +500,7 @@ class egvsr_inference:
         model_path = "/workspace/tensorrt/models/EGVSR_iter420000.pth"
         check_and_download(model_path)
         self.model.load_state_dict(
-            torch.load(model_path, strict=False
+            torch.load(model_path, strict=False)
         )
         self.model.cuda().eval()
 

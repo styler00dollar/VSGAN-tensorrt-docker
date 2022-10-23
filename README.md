@@ -59,6 +59,7 @@ TensoRT | yes (torch_tensorrt / C++ TRT) | yes (onnx_tensorrt / C++ TRT) [v2](ht
 ncnn | yes, but compile yourself ([realsr ncnn models](https://github.com/nihui/realsr-ncnn-vulkan/tree/master/models)) | yes, but compile yourself ([2x](https://files.catbox.moe/u62vpw.tar)) | [yes](https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan/tree/master/models) | - | - | - | - | - | - | - | - | - | - | - | - | - | -
 
 Some important things:
+- `ncnn` does not work in wsl and that means it doesn't work in Windows currently. `ncnn` will only work if you use docker in linux.
 - If you are on Windows, install all the latest updates first, otherwise wsl won't work properly. 21H2 minimum.
 - Do not use `webm` video, webm is often broken. It can work, but don't complain about broken output afterwards. I would suggest to render webm into mp4 or mkv.
 - Only use ffmpeg to determine if video is variable framerate (vfr) or not. Other programs do not seem reliable.
