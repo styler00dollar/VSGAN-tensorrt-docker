@@ -595,7 +595,8 @@ A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads+ffv1) (rife46) | 86 | 86 | 43
 
 GMFupSS | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
-T4 (Colab / 8CPU) | 9.3 | 4.1 | 1.6
+T4 (Colab / 8CPU) | 8.1 | 3.4 | 1.3
+T4 (Colab / 8CPU) (partial fp16) | 13 | 5.2 | 2.3
 A100 (Colab / 12CPU) | 23 | 14 | 6.2
 4090 (12 vs threads) | 27 | 22 | 8.6
 4090 (12 vs threads + thread_queue_size) | 32 | 21 | 8.6
