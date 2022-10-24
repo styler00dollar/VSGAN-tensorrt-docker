@@ -2,7 +2,6 @@
 import torch
 from torch import nn as nn
 from torch.nn import functional as F
-import os, sys
 import numpy as np
 from .download import check_and_download
 
@@ -382,8 +381,6 @@ class UpCunet2x_fast(nn.Module):  # 完美tile，全程无损
 
 # Code mainly from https://github.com/HolyWu/vs-realesrgan
 import vapoursynth as vs
-import os
-import functools
 from .realesrganner import RealESRGANer
 
 core = vs.core

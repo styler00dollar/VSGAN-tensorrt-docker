@@ -1,7 +1,6 @@
 import itertools
 import numpy as np
 import vapoursynth as vs
-import functools
 from .GMFupSS_arch import Model_inference
 import torch
 
@@ -11,7 +10,6 @@ class GMFupSS:
         self.cache = False
         self.amount_input_img = 2
 
-        device = torch.device("cuda")
         torch.set_grad_enabled(False)
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True

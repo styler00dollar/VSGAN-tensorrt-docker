@@ -638,8 +638,6 @@ def conv1x1(in_planes: int, out_planes: int, stride=1) -> nn.Conv2d:
 
 
 # https://github.com/HolyWu/vs-realesrgan/blob/master/vsrealesrgan/__init__.py
-import os
-import functools
 import numpy as np
 import torch
 import vapoursynth as vs

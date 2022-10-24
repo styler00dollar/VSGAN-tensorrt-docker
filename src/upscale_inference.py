@@ -4,7 +4,6 @@ import vapoursynth as vs
 import functools
 import torch
 from .realesrganner import RealESRGANer
-import traceback
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 def upscale_inference(

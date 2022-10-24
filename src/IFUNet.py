@@ -1,7 +1,6 @@
 import itertools
 import numpy as np
 import vapoursynth as vs
-import functools
 from .IFUNet_arch import IFUNetModel
 import torch
 from .download import check_and_download

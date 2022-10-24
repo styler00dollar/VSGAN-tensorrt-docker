@@ -1,7 +1,6 @@
 import itertools
 import numpy as np
 import vapoursynth as vs
-import functools
 import torch
 from .M2M_arch import M2M_PWC
 from .download import check_and_download

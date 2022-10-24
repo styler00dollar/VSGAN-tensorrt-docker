@@ -1,4 +1,3 @@
-import functools
 import numpy as np
 import vapoursynth as vs
 import os

@@ -122,7 +122,7 @@ def _scale_array(arr, clip=True, new_range=(0, 255)):
         scaled = np.clip(arr, new_range[0], new_range[1])
         # scaled = np.clip(arr, 0, 255)
     else:
-        scale_range = (max([arr.min(), new_range[0]]), min([arr.max(), new_range[1]]))
+        # scaled_range = (max([arr.min(), new_range[0]]), min([arr.max(), new_range[1]]))
         scaled = _min_max_scale(arr, new_range=new_range)
 
     return scaled

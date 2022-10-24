@@ -1,5 +1,4 @@
 # https://github.com/cszn/SCUNet
-import math
 import torch
 import torch.nn as nn
 import numpy as np
@@ -424,8 +423,6 @@ class SCUNet(nn.Module):
 
 # Code mainly from https://github.com/HolyWu/vs-realesrgan
 import vapoursynth as vs
-import os
-import functools
 from .download import check_and_download
 
 core = vs.core

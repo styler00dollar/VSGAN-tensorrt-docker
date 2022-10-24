@@ -185,7 +185,6 @@ class ResynNet(nn.Module):
         merged = []
         mask_list = []
         flow_list = []
-        flow = None
         for i in range(N):
             f, m, img = self.calflow(img_list[i], deg.detach(), scale)
             mask_list.append(m)

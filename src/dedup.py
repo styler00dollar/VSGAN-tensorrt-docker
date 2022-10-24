@@ -41,11 +41,8 @@ def PSNR(original, compressed):
 
 def return_frames(filepath, psnr_value=35):
     cap = cv2.VideoCapture(filepath, cv2.CAP_FFMPEG)
-    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     frames_duplicated = []
 
-    appeared = False
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) - 1
     eprint("Looking for duplicated frames")
 

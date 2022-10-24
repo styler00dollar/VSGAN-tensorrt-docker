@@ -1090,9 +1090,6 @@ class Network(torch.nn.Module):
     # end
 
     def bidir(self, tenOne, tenTwo):
-        intWidth = tenOne.shape[3] and tenTwo.shape[3]
-        intHeight = tenOne.shape[2] and tenTwo.shape[2]
-
         tenOne, tenTwo = list(
             zip(
                 *[

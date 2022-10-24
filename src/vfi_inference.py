@@ -2,8 +2,6 @@ import itertools
 import numpy as np
 import vapoursynth as vs
 import functools
-from pytorch_msssim import ssim, ms_ssim, SSIM, MS_SSIM
-from .dedup import PSNR
 import torch
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py

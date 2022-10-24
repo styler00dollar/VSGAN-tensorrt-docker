@@ -17,52 +17,34 @@ https://github.com/ShuhongChen/eisai-anime-interpolator/blob/master/_train/frame
 https://github.com/ShuhongChen/eisai-anime-interpolator/blob/master/_train/frame_interpolation/helpers/raft_v1/utils.py
 """
 
-import base64
-import colorsys
-import contextlib
 import copy
 import cupy
 import cv2
-from datetime import datetime
 import torch.nn.functional as F
 import torchvision.transforms.functional as F
 import gc
 from PIL import Image, ImageFile, ImageFont, ImageDraw
-import importlib
 import inspect
 from scipy import interpolate
-import io
 import kornia
-import logging
 import math
 from argparse import Namespace
 import torch.nn as nn
 import numpy as np
-from contextlib import nullcontext
-from collections import OrderedDict, defaultdict, Counter
 import os
 from functools import partial
 import pathlib
 import PIL
 import matplotlib.pyplot as plt
-import random
 import re
 import requests
 from scipy.spatial.transform import Rotation
 import scipy
 import shutil
-import subprocess
-import sys
 import torchvision.transforms as T
-import tempfile
-from threading import Thread
-import threading
 import time
 import torch
-import traceback
 import torchvision as tv
-import urllib
-import warnings
 import zlib
 import numpy as np
 import torch
@@ -1695,7 +1677,7 @@ def flownet2(img_a, img_b, mode="shm", back=False):
     elif mode == "net":
         assert False, "not impl"
         q = u2d.img2uri(img.pil("RGB"))
-        data = q.decode()
+        q.decode()
     resp = requests.get(
         url,
         params={
@@ -2258,8 +2240,7 @@ def to(x, device):
 
 ################ PARSING ################
 
-import argparse
-from argparse import Namespace, ArgumentParser
+from argparse import Namespace
 
 # args:  all args
 # bargs: base args
@@ -2373,8 +2354,6 @@ except:
 
 try:
     import pyunpack
-    import zipfile
-    import tarfile
 except:
     pass
 

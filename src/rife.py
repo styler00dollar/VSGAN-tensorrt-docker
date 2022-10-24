@@ -1,7 +1,6 @@
 import itertools
 import numpy as np
 import vapoursynth as vs
-import functools
 import torch
 from .rife_arch import IFNet
 from .download import check_and_download
@@ -17,7 +16,6 @@ class RIFE:
         self.cache = False
         self.amount_input_img = 2
 
-        core = vs.core
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
 

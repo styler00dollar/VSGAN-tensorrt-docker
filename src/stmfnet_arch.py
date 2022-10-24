@@ -14,12 +14,9 @@ from torch.nn import functional as F
 from torch.utils.model_zoo import load_url as load_state_dict_from_url
 import cupy
 import cv2
-import getopt
 import math
 import numpy
 import numpy as np
-import os
-import os
 import PIL
 import PIL.Image
 import re

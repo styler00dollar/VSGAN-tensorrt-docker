@@ -24,15 +24,12 @@ class BaseSequenceGenerator(nn.Module):
 
     def forward(self, *args, **kwargs):
         """forward pass for a singe frame"""
-        pass
 
     def forward_sequence(self, lr_data):
         """forward pass for a whole sequence (for training)"""
-        pass
 
     def infer_sequence(self, lr_data, device):
         """infer for a whole sequence (for inference)"""
-        pass
 
 
 class BaseSequenceDiscriminator(nn.Module):
@@ -41,11 +38,9 @@ class BaseSequenceDiscriminator(nn.Module):
 
     def forward(self, *args, **kwargs):
         """forward pass for a singe frame"""
-        pass
 
     def forward_sequence(self, data, args_dict):
         """forward pass for a whole sequence (for training)"""
-        pass
 
 
 def space_to_depth(x, scale=4):
@@ -477,8 +472,6 @@ class FRNet(BaseSequenceGenerator):
 
 
 # https://github.com/HolyWu/vs-basicvsrpp
-import math
-import os
 import numpy as np
 import torch
 import vapoursynth as vs

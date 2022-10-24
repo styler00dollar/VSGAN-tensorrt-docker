@@ -1,11 +1,8 @@
 # https://github.com/ckkelvinchan/RealBasicVSR/blob/master/realbasicvsr/models/builder.py
 from mmcv import build_from_cfg
 from mmedit.models.registry import BACKBONES, COMPONENTS, LOSSES, MODELS
-import functools
-import math
 import mmcv
 import numpy as np
-import os
 import torch
 import torch.nn as nn
 import vapoursynth as vs

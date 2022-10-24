@@ -4,7 +4,6 @@ import numpy as np
 import kornia
 import os
 import kornia
-import functools
 from .download import check_and_download_film
 
 core = vs.core

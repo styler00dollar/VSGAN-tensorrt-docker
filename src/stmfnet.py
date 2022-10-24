@@ -1,7 +1,6 @@
 import itertools
 import numpy as np
 import vapoursynth as vs
-import functools
 import torch
 from .stmfnet_arch import STMFNet_Model
 from .download import check_and_download
@@ -14,7 +13,6 @@ class STMFNet:
         self.cache = False
         self.amount_input_img = 4
 
-        core = vs.core
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
 
