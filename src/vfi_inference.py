@@ -12,6 +12,9 @@ def vfi_inference(
 ) -> vs.VideoNode:
     core = vs.core
 
+    if model_inference.amount_input_img == 4 and multi != 2:
+        raise ValueError("4 image input interpolation networks currently only support 2x")
+
     def frame_to_tensor(frame: vs.VideoFrame):
         return np.stack(
             [np.asarray(frame[plane]) for plane in range(frame.format.num_planes)]
@@ -57,45 +60,48 @@ def vfi_inference(
 
         return tensor_to_clip(clip=clip0, image=middle)
 
-    cache = {}
-
-    def execute_cache(n: int, clip0: vs.VideoNode, clip1: vs.VideoNode) -> vs.VideoNode:
+    def execute_4img(n: int, clip0: vs.VideoNode, clip1: vs.VideoNode) -> vs.VideoNode:
         if (
             (n % multi == 0)
             or n == 0
+            or n == 1
             or n in skip_frame_list
             or n // multi == clip.num_frames - 1
         ):
             return clip0
 
-        if str(n) not in cache:
-            cache.clear()
+        I0 = frame_to_tensor(clip0.get_frame(n - 1 - 1))
+        I1 = frame_to_tensor(clip1.get_frame(n - 1 - 1))
+        I2 = frame_to_tensor(clip0.get_frame(n + 3 - 1))
+        I3 = frame_to_tensor(clip1.get_frame(n + 3 - 1))
 
-            I0 = frame_to_tensor(clip0.get_frame(n))
-            I1 = frame_to_tensor(clip1.get_frame(n))
+        I0 = torch.Tensor(I0).unsqueeze(0).to("cuda", non_blocking=True)
+        I1 = torch.Tensor(I1).unsqueeze(0).to("cuda", non_blocking=True)
+        I2 = torch.Tensor(I2).unsqueeze(0).to("cuda", non_blocking=True)
+        I3 = torch.Tensor(I3).unsqueeze(0).to("cuda", non_blocking=True)
 
-            I0 = torch.Tensor(I0).unsqueeze(0).to("cuda", non_blocking=True)
-            I1 = torch.Tensor(I1).unsqueeze(0).to("cuda", non_blocking=True)
+        # clamping because vs does not give tensors in range 0-1, results in nan in output
+        I0 = torch.clamp(I0, min=0, max=1)
+        I1 = torch.clamp(I1, min=0, max=1)
+        I2 = torch.clamp(I2, min=0, max=1)
+        I3 = torch.clamp(I3, min=0, max=1)
 
-            # clamping because vs does not give tensors in range 0-1, results in nan in output
-            I0 = torch.clamp(I0, min=0, max=1)
-            I1 = torch.clamp(I1, min=0, max=1)
+        with torch.inference_mode():
+            middle = model_inference.execute(I0, I1, I2, I3)
 
-            with torch.inference_mode():
-                output = model_inference.execute(I0, I1, multi)
-
-            for i in range(output.shape[0]):
-                cache[str(n + i)] = output[i, :, :, :].cpu().numpy()
-
-            del output
-            torch.cuda.empty_cache()
-        return tensor_to_clip(clip=clip0, image=cache[str(n)])
+        return tensor_to_clip(clip=clip0, image=middle)
 
     clip0 = vs.core.std.Interleave([clip] * multi)
     clip1 = clip.std.DuplicateFrames(frames=clip.num_frames - 1).std.DeleteFrames(
         frames=0
     )
     clip1 = vs.core.std.Interleave([clip1] * multi)
+
+    if model_inference.amount_input_img == 4:
+        return core.std.FrameEval(
+            core.std.BlankClip(clip=clip0, width=clip.width, height=clip.height),
+            functools.partial(execute_4img, clip0=clip0, clip1=clip1),
+        )
 
     if model_inference.cache:
         return core.std.FrameEval(

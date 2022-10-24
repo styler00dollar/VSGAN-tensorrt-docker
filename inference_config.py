@@ -15,6 +15,7 @@ from src.film import FILM
 from src.M2M import M2M
 from src.sepconv_enhanced import sepconv
 from src.IFUNet import IFUNet
+from src.stmfnet import STMFNet
 
 # upscale imports
 from src.upscale_inference import upscale_frame_skip, upscale_inference
@@ -87,30 +88,32 @@ def inference_clip(video_path):
 
     # VFI example for jit models
     # clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
-    
+
     # Rife: model "rife40" up to "rife46" and "sudo_rife4"
     model_inference = RIFE(
         scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=False
     )
-    
+
     # IFRNet: model="small" or "large"
     # model_inference = IFRNet(model="small", fp16=False)
-    
+
     # model_inference = GMFupSS()
-    
+
     # model_inference = EISAI() # 960x540
-    
+
     # FILM: model_choise="style", "l1" or "vgg"
     # model_inference = FILM(model_choise="vgg")
-    
+
     # model_inference = M2M()
-    
-    # model_inference = sepconv() # only 2x supported
-    
+
+    # model_inference = sepconv() # only 2x supported because architecture only outputs one image
+
     # model_inference = IFUNet()
-   
+
+    #model_inference = STMFNet()  # only 2x supported because architecture only outputs one image
+
     clip = vfi_inference(
-        model_inference=model_inference, clip=clip, skip_frame_list=[], multi=4
+        model_inference=model_inference, clip=clip, skip_frame_list=[], multi=2
     )
 
     ######
