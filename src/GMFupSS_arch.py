@@ -1016,6 +1016,7 @@ class GMFlow(nn.Module):
         num_transformer_layers=6,
         ffn_dim_expansion=4,
         num_head=1,
+        partial_fp16=True,
         **kwargs,
     ):
         super(GMFlow, self).__init__()
@@ -1025,6 +1026,7 @@ class GMFlow(nn.Module):
         self.upsample_factor = upsample_factor
         self.attention_type = attention_type
         self.num_transformer_layers = num_transformer_layers
+        self.partial_fp16 = partial_fp16
 
         # CNN backbone
         self.backbone = CNNEncoder(
@@ -1039,9 +1041,13 @@ class GMFlow(nn.Module):
             attention_type=attention_type,
             ffn_dim_expansion=ffn_dim_expansion,
         )
+        if self.partial_fp16:
+            self.transformer = self.transformer.half()
 
         # flow propagation with self-attn
         self.feature_flow_attn = FeatureFlowAttention(in_channels=feature_channels)
+        if self.partial_fp16:
+            self.feature_flow_attn = self.feature_flow_attn.half()
 
         # convex upsampling: concat feature0 and flow as input
         self.upsampler = nn.Sequential(
@@ -1049,9 +1055,12 @@ class GMFlow(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(256, upsample_factor**2 * 9, 1, 1, 0),
         )
+        if self.partial_fp16:
+            self.upsampler = self.upsampler.half()
 
     def extract_feature(self, img0, img1):
         concat = torch.cat((img0, img1), dim=0)  # [2B, C, H, W]
+
         features = self.backbone(
             concat
         )  # list of [2B, C, H, W], resolution from high to low
@@ -1091,7 +1100,11 @@ class GMFlow(nn.Module):
             # convex upsampling
             concat = torch.cat((flow, feature), dim=1)
 
+            if self.partial_fp16:
+                concat = concat.half()
+
             mask = self.upsampler(concat)
+
             b, flow_channel, h, w = flow.shape
             mask = mask.view(
                 b, 1, 9, self.upsample_factor, self.upsample_factor, h, w
@@ -1108,6 +1121,9 @@ class GMFlow(nn.Module):
             up_flow = up_flow.reshape(
                 b, flow_channel, self.upsample_factor * h, self.upsample_factor * w
             )  # [B, 2, K*H, K*W]
+
+            if self.partial_fp16:
+                up_flow = up_flow.float()
 
         return up_flow
 
@@ -1173,9 +1189,18 @@ class GMFlow(nn.Module):
             )
 
             # Transformer
+
+            if self.partial_fp16:
+                feature0 = feature0.half()
+                feature1 = feature1.half()
+
             feature0, feature1 = self.transformer(
                 feature0, feature1, attn_num_splits=attn_splits
             )
+
+            if self.partial_fp16:
+                feature0 = feature0.float()
+                feature1 = feature1.float()
 
             # correlation and softmax
             if corr_radius == -1:  # global matching
@@ -1203,12 +1228,18 @@ class GMFlow(nn.Module):
                 feature0 = torch.cat(
                     (feature0, feature1), dim=0
                 )  # [2*B, C, H, W] for propagation
+            
+            if self.partial_fp16:
+                feature0 = feature0.half()
+                flow = flow.half()
             flow = self.feature_flow_attn(
                 feature0,
                 flow.detach(),
                 local_window_attn=prop_radius > 0,
                 local_window_radius=prop_radius,
             )
+            if self.partial_fp16:
+                flow = flow.float()
 
             # bilinear upsampling at training time except the last one
             if self.training and scale_idx < self.num_scales - 1:
@@ -1961,7 +1992,7 @@ def forward_backward_consistency_check(fwd_flow, bwd_flow, alpha=0.01, beta=0.5)
 
 
 class MetricNet(nn.Module):
-    def __init__(self):
+    def __init__(self, partial_fp16):
         super(MetricNet, self).__init__()
         self.metric_net = nn.Sequential(
             nn.Conv2d(4, 64, 3, 1, 1),
@@ -1969,13 +2000,29 @@ class MetricNet(nn.Module):
             nn.Conv2d(64, 64, 3, 1, 1),
             nn.PReLU(64),
             nn.Conv2d(64, 1, 3, 1, 1),
-        )
+        ).cuda()
+
+        self.partial_fp16 = partial_fp16
+        if partial_fp16:
+            self.metric_net = self.metric_net.half()
+
 
     def forward(self, img0, img1, flow01, flow10):
         fwd_occ, bwd_occ = forward_backward_consistency_check(flow01, flow10)
 
-        metric0 = self.metric_net(torch.cat((img0, fwd_occ.unsqueeze(1)), 1))
-        metric1 = self.metric_net(torch.cat((img1, bwd_occ.unsqueeze(1)), 1))
+        metric_input0 = torch.cat((img0, fwd_occ.unsqueeze(1)), 1)
+        metric_input1 = torch.cat((img1, bwd_occ.unsqueeze(1)), 1)
+
+        if self.partial_fp16:
+            metric_input0 = metric_input0.half()
+            metric_input1 = metric_input1.half()
+
+        metric0 = self.metric_net(metric_input0)
+        metric1 = self.metric_net(metric_input1)
+
+        if self.partial_fp16:
+            metric_input0 = metric_input0.float()
+            metric_input1 = metric_input1.float()
 
         return metric0, metric1
 
@@ -2201,10 +2248,14 @@ class FeatureExtractor(nn.Module):
 class AnimeInterp(nn.Module):
     """The quadratic model"""
 
-    def __init__(self):
+    def __init__(self, partial_fp16=True):
         super(AnimeInterp, self).__init__()
-        self.feat_ext = FeatureExtractor()
-        self.synnet = GridNet(6, 64, 128, 96 * 2, 3)
+        self.feat_ext = FeatureExtractor().cuda()
+        self.synnet = GridNet(6, 64, 128, 96 * 2, 3).cuda()
+        self.partial_fp16 = partial_fp16
+
+        if partial_fp16:
+            self.synnet = self.synnet.half()
 
     def dflow(self, flo, target):
         tmp = F.interpolate(flo, target.size()[2:4])
@@ -2246,21 +2297,31 @@ class AnimeInterp(nn.Module):
         feat1t3 = warp(feat13, F1tddd, Z1ddd, strMode="soft")
         feat2t3 = warp(feat23, F2tddd, Z2ddd, strMode="soft")
 
-        It_warp = self.synnet(
-            torch.cat([I1t, I2t], dim=1),
-            torch.cat([feat1t1, feat2t1], dim=1),
-            torch.cat([feat1t2, feat2t2], dim=1),
-            torch.cat([feat1t3, feat2t3], dim=1),
-        )
+        if self.partial_fp16:
+            It_warp = self.synnet(
+                torch.cat([I1t, I2t], dim=1).half(),
+                torch.cat([feat1t1, feat2t1], dim=1).half(),
+                torch.cat([feat1t2, feat2t2], dim=1).half(),
+                torch.cat([feat1t3, feat2t3], dim=1).half(),
+            )
+            It_warp = It_warp.float()
+
+        if not self.partial_fp16:
+            It_warp = self.synnet(
+                torch.cat([I1t, I2t], dim=1),
+                torch.cat([feat1t1, feat2t1], dim=1),
+                torch.cat([feat1t2, feat2t2], dim=1),
+                torch.cat([feat1t3, feat2t3], dim=1),
+            )
 
         return torch.clamp(It_warp, 0, 1)
 
 
 class Model:
-    def __init__(self):
-        self.flownet = GMFlow()
-        self.metricnet = MetricNet()
-        self.fusionnet = AnimeInterp()
+    def __init__(self, partial_fp16):
+        self.flownet = GMFlow(partial_fp16=partial_fp16)
+        self.metricnet = MetricNet(partial_fp16)
+        self.fusionnet = AnimeInterp(partial_fp16)
         self.version = 3.9
 
     def eval(self):
@@ -2360,9 +2421,9 @@ class Model:
 
 
 class Model_inference(nn.Module):
-    def __init__(self):
+    def __init__(self, partial_fp16=True):
         super(Model_inference, self).__init__()
-        self.model = Model()
+        self.model = Model(partial_fp16)
         self.model.eval()
         self.model.device()
         self.model.load_model("/workspace/tensorrt/models/", -1)

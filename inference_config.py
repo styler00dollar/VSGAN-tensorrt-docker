@@ -97,7 +97,7 @@ def inference_clip(video_path):
     # IFRNet: model="small" or "large"
     # model_inference = IFRNet(model="small", fp16=False)
 
-    # model_inference = GMFupSS()
+    # model_inference = GMFupSS(partial_fp16=False)
 
     # model_inference = EISAI() # 960x540
 

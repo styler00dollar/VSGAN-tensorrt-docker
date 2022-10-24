@@ -6,7 +6,7 @@ import torch
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class GMFupSS:
-    def __init__(self):
+    def __init__(self, partial_fp16=False):
         self.cache = False
         self.amount_input_img = 2
 
@@ -14,7 +14,7 @@ class GMFupSS:
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
 
-        self.model = Model_inference()
+        self.model = Model_inference(partial_fp16=partial_fp16)
         self.model.eval()
 
     def execute(self, I0, I1, timestep):
