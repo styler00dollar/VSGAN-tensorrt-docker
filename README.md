@@ -644,6 +644,10 @@ SCUNet | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
 4090 (12 vs threads) | 10 | ? | ?
 
+ST-MFNet | 480p | 720p | 1080p
+-------- | ---- | ---- | ----
+1070ti | 1.6 | OOM | OOM
+
 <div id='license'/>
 
 ## License
