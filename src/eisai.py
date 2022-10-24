@@ -9,6 +9,9 @@ from .download import check_and_download
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class EISAI:
     def __init__(self):
+        self.amount_input_img = 2
+        self.cache = False
+
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
 
@@ -31,7 +34,6 @@ class EISAI:
         self.raft = RAFT(path=raft_path).eval().to(device)
         self.ssl = ssl.to(device).eval()
         self.dtm = dtm.to(device).eval()
-        self.cache = False
 
     def execute(self, I0, I1, timestep):
         with torch.inference_mode():

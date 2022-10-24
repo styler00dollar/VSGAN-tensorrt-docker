@@ -38,6 +38,7 @@ def stdout_redirected(to=os.devnull):
 class FILM:
     def __init__(self, model_choise):
         self.cache = False
+        self.amount_input_img = 2
 
         import tensorflow as tf
 

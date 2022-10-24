@@ -9,6 +9,9 @@ from .download import check_and_download
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class M2M:
     def __init__(self):
+        self.cache = True
+        self.amount_input_img = 2
+
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
 
@@ -18,7 +21,6 @@ class M2M:
         self.model = M2M_PWC()
         self.model.load_state_dict(torch.load(model_path))
         self.model.eval().cuda()
-        self.cache = True
 
     def execute(self, I0, I1, multi):
         tenSteps = [

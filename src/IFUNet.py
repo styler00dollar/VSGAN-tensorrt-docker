@@ -9,6 +9,9 @@ from .download import check_and_download
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class IFUNet:
     def __init__(self):
+        self.amount_input_img = 2
+        self.cache = False
+
         torch.set_grad_enabled(False)
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
@@ -19,7 +22,6 @@ class IFUNet:
         self.model = IFUNetModel()
         self.model.load_state_dict(torch.load(model_path), False)
         self.model.cuda().eval()
-        self.cache = False
 
     def execute(self, I0, I1, timestep):
         with torch.inference_mode():

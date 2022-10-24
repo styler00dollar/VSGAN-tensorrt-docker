@@ -9,13 +9,13 @@ from .download import check_and_download
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class RIFE:
     def __init__(self, scale, fastmode, ensemble, model_version, fp16):
-        # clip: vs.VideoNode,
         self.scale = scale
         self.fastmode = fastmode
         self.ensemble = ensemble
         self.model_version = model_version
         self.fp16 = fp16
         self.cache = False
+        self.amount_input_img = 2
 
         core = vs.core
         torch.backends.cudnn.enabled = True

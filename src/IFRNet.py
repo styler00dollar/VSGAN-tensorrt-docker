@@ -10,6 +10,7 @@ class IFRNet:
     def __init__(self, model, fp16):
         self.fp16 = fp16
         self.cache = False
+        self.amount_input_img = 2
 
         if model == "small":
             from .IFRNet_S_arch import IRFNet_S

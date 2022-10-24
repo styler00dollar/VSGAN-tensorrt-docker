@@ -8,7 +8,8 @@ import torch
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class GMFupSS:
     def __init__(self):
-        core = vs.core
+        self.cache = False
+        self.amount_input_img = 2
 
         device = torch.device("cuda")
         torch.set_grad_enabled(False)
@@ -17,7 +18,6 @@ class GMFupSS:
 
         self.model = Model_inference()
         self.model.eval()
-        self.cache = False
 
     def execute(self, I0, I1, timestep):
         with torch.inference_mode():

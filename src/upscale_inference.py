@@ -8,13 +8,24 @@ import traceback
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 def upscale_inference(
-    upscale_model_inference, clip: vs.VideoNode, skip_frame_list=[], tile_x=512, tile_y=512, tile_pad=10, pre_pad=0
+    upscale_model_inference,
+    clip: vs.VideoNode,
+    skip_frame_list=[],
+    tile_x=512,
+    tile_y=512,
+    tile_pad=10,
+    pre_pad=0,
 ) -> vs.VideoNode:
     core = vs.core
     scale = upscale_model_inference.scale
 
     upsampler = RealESRGANer(
-        scale, upscale_model_inference, tile_x=tile_x, tile_y=tile_y, tile_pad=tile_pad, pre_pad=pre_pad
+        scale,
+        upscale_model_inference,
+        tile_x=tile_x,
+        tile_y=tile_y,
+        tile_pad=tile_pad,
+        pre_pad=pre_pad,
     )
 
     def frame_to_tensor(frame: vs.VideoFrame):

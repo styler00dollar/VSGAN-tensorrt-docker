@@ -2287,21 +2287,15 @@ class Model:
         if rank <= 0:
             flownet_path = "{}/GMFupSS_flownet.pkl".format(path)
             check_and_download(flownet_path)
-            self.flownet.load_state_dict(
-                torch.load(flownet_path)
-            )
+            self.flownet.load_state_dict(torch.load(flownet_path))
 
             metricnet_path = "{}/GMFupSS_metric.pkl".format(path)
             check_and_download(metricnet_path)
-            self.metricnet.load_state_dict(
-                convert(torch.load(metricnet_path))
-            )
+            self.metricnet.load_state_dict(convert(torch.load(metricnet_path)))
 
             fusionnet_path = "{}/GMFupSS_fusionnet.pkl".format(path)
             check_and_download(fusionnet_path)
-            self.fusionnet.load_state_dict(
-                convert(torch.load(fusionnet_path))
-            )
+            self.fusionnet.load_state_dict(convert(torch.load(fusionnet_path)))
 
     def reuse(self, img0, img1, scale=1.0):
         imgs = torch.cat((img0, img1), 1)
