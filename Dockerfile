@@ -108,7 +108,7 @@ RUN apt-get update -y && apt-get install libnvinfer8 libnvonnxparsers8 libnvpars
 #RUN apt-get install libnvinfer8=${version} libnvonnxparsers8=${version} libnvparsers8=${version} libnvinfer-plugin8=${version} \
 #    libnvinfer-dev=${version} libnvonnxparsers-dev=${version} libnvparsers-dev=${version} libnvinfer-plugin-dev=${version} \
 #    python3-libnvinfer=${version} libnvinfer-bin=${version} libnvinfer-samples=${version} -y && \
-    
+
 #    apt-mark hold libnvinfer8 libnvonnxparsers8 libnvparsers8 libnvinfer-plugin8 libnvinfer-dev libnvonnxparsers-dev libnvparsers-dev \
 #    libnvinfer-plugin-dev python3-libnvinfer && \
 
@@ -124,10 +124,6 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.
     chmod +x cmake-3.23.0-rc1-linux-x86_64.sh && sh cmake-3.23.0-rc1-linux-x86_64.sh --skip-license && \
     cp /workspace/bin/cmake /usr/bin/cmake && cp /workspace/bin/cmake /usr/lib/x86_64-linux-gnu/cmake && \
     cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-3.23 /usr/local/share/
-
-# using own custom compiled ffmpeg
-RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/ffmpeg && \
-    chmod +x ffmpeg && rm -rf /usr/bin/ffmpeg && mv ffmpeg /usr/bin/ffmpeg
 
 # installing vapoursynth and torch
 # for newer ubuntu: python-is-python3 libffms2-5
@@ -182,8 +178,7 @@ RUN pip install vsswinir vsbasicvsrpp && pip cache purge
 RUN apt install build-essential manpages-dev software-properties-common -y && add-apt-repository ppa:ubuntu-toolchain-r/test -y && \
     apt update -y && apt install gcc-11 g++-11 -y && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11 && \
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11 && \
-# compiling
-# new mlrt seems broken, going back to older commit
+    # compiling
     git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt/vstrt && mkdir build && \
     cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R60/include && make && make install && \
     cd /workspace && rm -rf /workspace/vs-mlrt
@@ -213,7 +208,7 @@ RUN apt install curl -y && curl https://sh.rustup.rs -sSf | sh -s -- -y && \
     cd Av1an && cargo build --release --features ffmpeg_static && \
     mv /workspace/Av1an/target/release/av1an /usr/bin && \
     cd /workspace && rm -rf Av1an && apt-get autoremove -y && apt-get clean
-    
+
 # svt
 RUN git clone https://gitlab.com/AOMediaCodec/SVT-AV1 && cd SVT-AV1/Build/linux/ && sh build.sh release && \
     cd /workspace/SVT-AV1/Bin/Release/ && chmod +x ./SvtAv1EncApp && mv SvtAv1EncApp /usr/bin && \
@@ -244,7 +239,7 @@ RUN wget https://github.com/Netflix/vmaf/archive/refs/tags/v2.3.1.tar.gz && \
     # MISC
     git clone https://github.com/vapoursynth/vs-miscfilters-obsolete && cd vs-miscfilters-obsolete && meson build && \
     ninja -C build && ninja -C build install && cd /workspace && rm -rf vs-miscfilters-obsolete && \
-    
+
     # RIFE
     git clone https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan && cd VapourSynth-RIFE-ncnn-Vulkan && \
     git submodule update --init --recursive --depth 1 && meson build && ninja -C build && ninja -C build install && \
@@ -274,6 +269,10 @@ RUN mv /usr/src/tensorrt/bin/trtexec /usr/bin
 ########################
 # RealBasicVSR_x4 will download this if you dont download it prior
 #RUN wget "https://download.pytorch.org/models/vgg19-dcbb9e9d.pth" -P /root/.cache/torch/hub/checkpoints/
+
+# using own custom compiled ffmpeg
+RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/ffmpeg && \
+    chmod +x ffmpeg && rm -rf /usr/bin/ffmpeg && mv ffmpeg /usr/bin/ffmpeg
 
 # install custom opencv for av1
 RUN apt install libtbb2 libgtk2.0-0 -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && \
