@@ -80,19 +80,22 @@ yay -S docker nvidia-docker nvidia-container-toolkit docker-compose
 docker pull styler00dollar/vsgan_tensorrt:latest
 
 # Build docker manually
-# Put the dockerfile in a directory and run that inside that directory
-# You can name it whatever you want, I just applied the same name as the dockerhub command
+# This step is not needed if you already downloaded the docker and is only needed if yo
+# want to build it from scratch. Keep in mind that you need to set env variables in windows differently and
+# this command will only work in linux. Run that inside that directory
 DOCKER_BUILDKIT=1 docker build -t styler00dollar/vsgan_tensorrt:latest .
 # If you want to rebuild from scratch or have errors, try to build without cache
 DOCKER_BUILDKIT=1 docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest . 
 
-# run docker with the sh startup script (linux)
-sh start_docker.sh
-
 # run the docker with docker-compose
 # go into the vsgan folder, inside that folder should be compose.yaml, run this command
 # you can adjust folder mounts in the yaml file
+# afterwards the vsgan folder will be mounted under `/workspace/tensorrt` and you can navigate 
+# into it with `cd tensorrt`
 docker-compose run --rm vsgan_tensorrt
+
+# run docker with the sh startup script (linux)
+sh start_docker.sh
 
 # run docker manually
 # the folderpath before ":" will be mounted in the path which follows afterwards
