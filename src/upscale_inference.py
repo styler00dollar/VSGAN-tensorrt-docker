@@ -49,7 +49,7 @@ def upscale_inference(
         )
 
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        if clip0.get_frame(n).props.get('float_ssim') > ssim_value:
+        if clip.get_frame(n).props.get('float_ssim') > ssim_value:
             return clip
 
         I0 = frame_to_tensor(clip.get_frame(n))
@@ -69,7 +69,7 @@ def upscale_inference(
     interval = 5
 
     def execute_cache(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        if clip0.get_frame(n).props.get('float_ssim') > ssim_value:
+        if clip.get_frame(n).props.get('float_ssim') > ssim_value:
             return clip
 
         if str(n) not in cache:
@@ -111,7 +111,7 @@ def upscale_inference(
 
 def upscale_frame_skip(
     clip: vs.VideoNode,
-    skip_framelist=[],
+    ssim_value=0.999
 ) -> vs.VideoNode:
     core = vs.core
 
@@ -119,8 +119,10 @@ def upscale_frame_skip(
         if n == 0:
             return clip
 
-        if n in skip_framelist:
-            return clip[1::]
+        ssim_clip = clip.get_frame(n).props.get('float_ssim')
+        if ssim_clip is not None:
+            if ssim_clip > ssim_value:
+                return clip[1::]
         return clip
 
     return core.std.FrameEval(

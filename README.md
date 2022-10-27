@@ -193,10 +193,15 @@ If you are confused, here is a Youtube video showing how to use Python API based
 ## Deduplicated inference
 Calculate similarity between frames with [HomeOfVapourSynthEvolution/VapourSynth-VMAF](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF).
 ```python
+# requires yuv, convert if it isn't
+clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+# adding metric to clip property
+# 0 = PSNR, 1 = PSNR-HVS, 2 = SSIM, 3 = MS-SSIM, 4 = CIEDE2000
 offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
 offs1 = core.std.CopyFrameProps(offs1, clip)
-# 0 = PSNR, 1 = PSNR-HVS, 2 = SSIM, 3 = MS-SSIM, 4 = CIEDE2000
 clip = core.vmaf.Metric(clip, offs1, 2)
+# convert to rgbs if needed
+clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
 ```
 The properties in the clip will then be used to skip similar frames.
 
