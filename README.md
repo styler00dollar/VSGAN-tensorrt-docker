@@ -155,7 +155,7 @@ def inference_clip(video_path):
     clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
     # apply one or multiple models, will be applied in order
     model_inference = RIFE(scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=True)
-    clip = vfi_inference(model_inference=model_inference, clip=clip, skip_frame_list=[], multi=2)
+    clip = vfi_inference(model_inference=model_inference, clip=clip, multi=2)
     # return clip
     clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
     return clip
@@ -191,26 +191,23 @@ If you are confused, here is a Youtube video showing how to use Python API based
 <div id='deduplicated'/>
 
 ## Deduplicated inference
-You can delete and duplicate video frames for video frame interpolation, so you only process non-duplicated frames.
+Calculate similarity between frames with [HomeOfVapourSynthEvolution/VapourSynth-VMAF](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF).
 ```python
-from src.dedup import get_duplicate_frames_with_vmaf
-skip_frame_list = get_duplicate_frames_with_vmaf(video_path)
-# apply upscaling on clip, just showing one specific example and process it with upscale_frame_skip
-clip = core.trt.Model(clip, engine_path="/workspace/tensorrt/model.engine")
-clip = upscale_frame_skip(clip, skip_frame_list=skip_frame_list)
+offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
+offs1 = core.std.CopyFrameProps(offs1, clip)
+# 0 = PSNR, 1 = PSNR-HVS, 2 = SSIM, 3 = MS-SSIM, 4 = CIEDE2000
+clip = core.vmaf.Metric(clip, offs1, 2)
 ```
+The properties in the clip will then be used to skip similar frames.
 
 <div id='scene-change'/>
 
 ## Scene change detection
 
 ```python
-from src.scene_detect import find_scenes
-skip_frame_list = find_scenes(video_path, threshold=30)
-# set model_inference and then use vfi_inference
-model_inference = RIFE(scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=True)
-clip = vfi_inference(model_inference=model_inference, clip=clip, skip_frame_list=skip_frame_list, multi=2)
+clip = core.misc.SCDetect(clip=clip, threshold=0.100)
 ```
+The clip property will then be used in frame interpolation inference.
 
 <div id='vs-mlrt'/>
 

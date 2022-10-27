@@ -51,6 +51,18 @@ def inference_clip(video_path):
     # clip = core.descale.Debilinear(clip, 1280, 720)
 
     ###############################################
+    # SIMILARITY
+    # Set properties in clip for it to be applied
+    
+    # SSIM for deduplication in frame interpolation
+    offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
+    offs1 = core.std.CopyFrameProps(offs1, clip)
+    # 0 = PSNR, 1 = PSNR-HVS, 2 = SSIM, 3 = MS-SSIM, 4 = CIEDE2000
+    clip = core.vmaf.Metric(clip, offs1, 2)
+
+    # SCENE DETECT
+    clip = core.misc.SCDetect(clip=clip, threshold=0.100)
+    ###############################################
     # COLORSPACE
     ###############################################
     
@@ -60,24 +72,6 @@ def inference_clip(video_path):
     #clip = vs.core.resize.Bicubic(
     #    clip, width=1280, height=720, format=vs.RGBS, matrix_in_s="709"
     #)
-
-    ###############################################
-
-    # these demos work out of the box because docker also downloads the needed models, if you want other models, just add them
-    # you can combine everything however you want
-
-    ######
-    # dedup tools
-    ######
-    
-    # from src.scene_detect import find_scenes
-    # skip_frame_list = find_scenes(video_path, threshold=30)
-
-    # from src.dedup import get_duplicate_frames_with_vmaf
-    # skip_frame_list += get_duplicate_frames_with_vmaf(video_path)
-
-    # to use for upscaling, apply this after upscaling
-    # clip = upscale_frame_skip(clip, skip_frame_list)
 
     ###############################################
     # MODELS
@@ -113,7 +107,7 @@ def inference_clip(video_path):
     #model_inference = STMFNet()  # only 2x supported because architecture only outputs one image
 
     clip = vfi_inference(
-        model_inference=model_inference, clip=clip, skip_frame_list=[], multi=2
+        model_inference=model_inference, clip=clip, multi=2
     )
 
     ######
@@ -162,7 +156,7 @@ def inference_clip(video_path):
     
     # upscale_model_inference = realbasicvsr_inference(fp16=True)
     
-    # clip = upscale_inference(upscale_model_inference, clip, skip_frame_list=[], tile_x=512, tile_y=512, tile_pad=10, pre_pad=0)
+    # clip = upscale_inference(upscale_model_inference, clip, tile_x=512, tile_y=512, tile_pad=10, pre_pad=0)
 
     ######
     # external vs plugins
@@ -225,7 +219,7 @@ def inference_clip(video_path):
     # clip2 = core.std.Interleave([clip, clip2])
 
     # skipping all duplicated / scene change frames
-    # clip = vfi_frame_merger(clip1, clip2, skip_frame_list)
+    # clip = vfi_frame_merger(clip1, clip2)
     
     ###############################################
     # OUTPUT

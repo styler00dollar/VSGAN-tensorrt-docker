@@ -9,11 +9,11 @@ from .realesrganner import RealESRGANer
 def upscale_inference(
     upscale_model_inference,
     clip: vs.VideoNode,
-    skip_frame_list=[],
     tile_x=512,
     tile_y=512,
     tile_pad=10,
     pre_pad=0,
+    ssim_value=0.999
 ) -> vs.VideoNode:
     core = vs.core
     scale = upscale_model_inference.scale
@@ -49,7 +49,7 @@ def upscale_inference(
         )
 
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        if n in skip_frame_list:
+        if clip0.get_frame(n).props.get('float_ssim') > ssim_value:
             return clip
 
         I0 = frame_to_tensor(clip.get_frame(n))
@@ -69,7 +69,7 @@ def upscale_inference(
     interval = 5
 
     def execute_cache(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        if n in skip_frame_list:
+        if clip0.get_frame(n).props.get('float_ssim') > ssim_value:
             return clip
 
         if str(n) not in cache:
