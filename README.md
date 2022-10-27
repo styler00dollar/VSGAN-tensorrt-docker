@@ -438,11 +438,11 @@ rx470 vs+ncnn (np+no tile+tta off) | 2.7 | 1.6 | 0.6
 1070ti vs+ncnn (np+no tile+tta off) | 4.2 | 2 | 0.9
 1070ti (ONNX-TRT+FrameEval) | 12 | 6.1 | 2.8
 1070ti (C++ TRT+FrameEval+num_streams=6) | 14 | 6.7 | 3
-3060ti (ONNX-TRT+FrameEval) | 19 | 7.1 | 3.2
-3060ti (C++ TRT+FrameEval+num_streams=5) | 47.93 | 15.97 | 7.83
-3060ti VSGAN 2x | 9.7 | 3.6 | 1.77
-3060ti ncnn (Windows binary) 2x | 7 | 4.2 | 1.2
-3060ti Joey 2x | 2.24 | 0.87 | 0.36
+3060ti (ONNX-TRT+FrameEval) | ? | 7.1 | 3.2
+3060ti (C++ TRT+FrameEval+num_streams=5) | ? | 15.97 | 7.83
+3060ti VSGAN 2x | ? | 3.6 | 1.77
+3060ti ncnn (Windows binary) 2x | ? | 4.2 | 1.2
+3060ti Joey 2x | ? | 0.87 | 0.36
 3070 (ONNX-TRT+FrameEval) | 20 | 7.55 | 3.36
 3090¹ (ONNX-TRT+FrameEval) | ? | ? | 6.7
 3090² (vs+TensorRT8.4+C++ TRT+vs_threads=20+num_streams=20+opset15) | 105 | 47 | 21
@@ -467,11 +467,11 @@ A100 (Colab) (jpg+CUDA) | 28.2 (9 Threads) | 28.2 (7 Threads) | 9.96 (4 Threads)
 Compact (4x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
 1070ti TensorRT8 docker (ONNX-TensorRT+FrameEval) | 11 | 5.6 | X
-3060ti TensorRT8 docker (ONNX-TensorRT+FrameEval) | 16 | 6.1 | 2.7
-3060ti TensorRT8 docker 2x (C++ TRT+FrameEval+num_streams=5) | 29.78 | 11 | 5.24
-3060ti VSGAN 4x | 7.2 | 3 | 1.3
-3060ti ncnn (Windows binary) 4x | 3.72 | 0.85 | 0.53
-3060ti Joey 4x | 0.65 | 0.25 | 0.11
+3060ti TensorRT8 docker (ONNX-TensorRT+FrameEval) | ? | 6.1 | 2.7
+3060ti TensorRT8 docker 2x (C++ TRT+FrameEval+num_streams=5) | ? | 11 | 5.24
+3060ti VSGAN 4x | ? | 3 | 1.3
+3060ti ncnn (Windows binary) 4x | ? | 0.85 | 0.53
+3060ti Joey 4x | ? | 0.25 | 0.11
 A100 (Colab) (vs+CUDA+FrameEval) | 12 | 5.6 | 2.9
 A100 (Colab) (jpg+CUDA) | ? | ?| 3 (4 Threads)
 4090³ (TensorRT8.4GA+10 vs threads+fp16) | ? | ? / 56* (5 streams) | ? / 19.4 (2 streams)
@@ -492,10 +492,10 @@ A100 (Colab High RAM) (vs+TensorRT8.4+x264 (--opencl)+C++ TRT+vs threads=8+num_s
 ESRGAN 4x (64mb) (23b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
 1070ti TensorRT8 docker (Torch-TensorRT+ffmpeg+FrameEval) | 0.5 | 0.2 | >0.1
-3060ti TensorRT8 docker (Torch-TensorRT+ffmpeg+FrameEval) | 2 | 0.7 | 0.29
-3060ti Cupscale (Pytorch) | 0.41 | 0.13 | 0.044
-3060ti Cupscale (ncnn) | 0.27 | 0.1 | 0.04
-3060ti Joey | 0.41 | 0.095 | 0.043
+3060ti TensorRT8 docker (Torch-TensorRT+ffmpeg+FrameEval) | ? | 0.7 | 0.29
+3060ti Cupscale (Pytorch) | ? | 0.13 | 0.044
+3060ti Cupscale (ncnn) | ? | 0.1 | 0.04
+3060ti Joey | ? | 0.095 | 0.043
 V100 (Colab) (Torch-TensorRT8.2GA+ffmpeg+FrameEval) | 1.8 | 0.8 | ?
 V100 (Colab High VRAM) (C++ TensorRT8.2GA+x264 (--opencl)+FrameEval+no tiling) | 2.46 | OOM (OpenCL) | OOM (OpenCL)
 V100 (Colab High VRAM) (C++ TensorRT8.2GA+x264+FrameEval+no tiling) | 2.49 | 1.14 | 0.47
@@ -512,7 +512,7 @@ Note: The offical RealESRGAN repository uses 6b (6 blocks) for the anime model.
 
 RealESRGAN (4x) (6b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
-3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=2) | 6.8 | 1.7 | 0.75
+3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=2) | ? | 1.7 | 0.75
 V100 (Colab High RAM) (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=1+no tiling) | 6.82 | 3.15 | OOM (OpenCL) 
 V100 (Colab High RAM) (vs+TensorRT8.2GA+x264+C++ TRT+num_streams=1+no tiling) | ? | ? | 1.39
 A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 | 6.74 | 2.76
@@ -524,7 +524,7 @@ A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 
 RealESRGAN (2x) (6b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
 1070ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=1+no tiling+opset15) | 0.9 | 0.8 | 0.3
-3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=1) | 8.14 | 3.12 | 1.4
+3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=1) | ? | 3.12 | 1.4
 V100 (Colab High RAM / 8CPU) (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling+opset15) | 5.09 | 4.56 | 2.02
 V100 (Colab High RAM / 8CPU) (vs+TensorRT8.2GA+ffmpeg+C++ TRT+num_streams=3+no tiling+opset15) | 5.4 | 4.8 | 2.2
 3090² (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset16) (+dropout) | 13 | 5.8 | 2.7
@@ -533,7 +533,7 @@ V100 (Colab High RAM / 8CPU) (vs+TensorRT8.2GA+ffmpeg+C++ TRT+num_streams=3+no t
 
 RealESRGAN (2x) (3b+64nf+dropout)ⓘ | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
-3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=2) | 15.93 | 5.69 | 2.64
+3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=2) | ? | 5.69 | 2.64
 V100 (Colab High RAM / 8CPU) (vs+TensorRT8.4GA+ffmpeg+C++ TRT+num_streams=4+no tiling+opset15) | 10 | 9.4 | 4.2
 3090² (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset15) | 24 | 11 | 5.2
 2x3090 (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset15) | 51 | 23 | 10
@@ -543,7 +543,7 @@ Rife4.6 technically is fastmode=True, since contextnet/unet was removed.
 Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
 1070ti (vs+ffmpeg+ModifyFrame) | 61 | 30 | 15
-3060ti (vs+ffmpeg+ModifyFrame) | 89 | 45 | 24
+3060ti (vs+ffmpeg+ModifyFrame) | ? | 45 | 24
 
 Rife4+vs (fastmode False, ensemble True) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
@@ -566,7 +566,7 @@ Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p
 ---  | -------  | ------- | ------- 
 1070ti Python (ffmpeg+ModifyFrame) | 62 | 31 | 14
 1070ti (C++ NCNN) | ? | ? | 34
-3060ti (CUDA+ffmpeg+ModifyFrame) | 135 | 66 | 33 |
+3060ti (CUDA+ffmpeg+ModifyFrame) | ? | 66 | 33 |
 3090² (CUDA+ffmpeg+FrameEval+vs_threads=20) | 121 | 80 | 38
 3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 341 | 142 | 63
 2x3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 340 | 140 | 63
@@ -588,7 +588,7 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 ---  | -------  | ------- | ------- 
 1070ti (TensorRT8+ffmpeg+ModifyFrame) | 41 | 20 | 9.8 
 1070ti C++ NCNN | ? | ? | 17
-3060ti (ffmpeg+ModifyFrame) | 86 | 49 | 24 
+3060ti (ffmpeg+ModifyFrame) | ? | 49 | 24 
 3090¹ (ffmpeg+ModifyFrame) | ? | 90.3 | 45
 4090 (vs+CUDA+ffmpeg+FrameEval) (rife46) | 84 | 80 | 41
 4090 (ncnn+8 threads+12 vs threads) (rife4.6) | 280 | 165 | 76
