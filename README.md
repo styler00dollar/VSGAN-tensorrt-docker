@@ -29,7 +29,7 @@ Table of contents
 
 -------
 
-Currently working:
+Currently working networks:
 - ESRGAN with [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN) and [HolyWu/vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
 - RealESRGAN / RealESERGANVideo with [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) and [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN)
 - RealESRGAN ncnn with [styler00dollar/realsr-ncnn-vulkan-python](https://github.com/styler00dollar/realsr-ncnn-vulkan-python) and [media2x/realsr-ncnn-vulkan-python](https://github.com/media2x/realsr-ncnn-vulkan-python)
@@ -42,16 +42,20 @@ Currently working:
 - RealBasicVSR with [ckkelvinchan/RealBasicVSR](https://github.com/ckkelvinchan/RealBasicVSR)
 - RealCUGAN with [bilibili/ailab](https://github.com/bilibili/ailab/blob/main/Real-CUGAN/README_EN.md)
 - FILM with [google-research/frame-interpolation](https://github.com/google-research/frame-interpolation)
-- TensorRT C++ inference with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
 - PAN with [zhaohengyuan1/PAN](https://github.com/zhaohengyuan1/PAN)
 - IFRNet with [ltkong218/IFRNet](https://github.com/ltkong218/IFRNet)
 - M2M with [feinanshan/M2M_VFI](https://github.com/feinanshan/M2M_VFI)
 - IFUNet with [98mxr/IFUNet](https://github.com/98mxr/IFUNet/)
 - eisai with [ShuhongChen/eisai-anime-interpolator](https://github.com/ShuhongChen/eisai-anime-interpolator)
-- ddfi with [Mr-Z-2697/ddfi-rife](https://github.com/Mr-Z-2697/ddfi-rife) (auto dedup-duplication, not an arch)
 - SCUNet with [cszn/SCUNet](https://github.com/cszn/SCUNet)
 - GMFupSS with [98mxr/GMFupSS](https://github.com/98mxr/GMFupSS)
 - ST-MFNet with [danielism97/ST-MFNet](https://github.com/danielism97/ST-MFNet)
+
+Also used:
+- TensorRT C++ inference with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
+- ddfi with [Mr-Z-2697/ddfi-rife](https://github.com/Mr-Z-2697/ddfi-rife) (auto dedup-duplication, not an arch)
+- nix with [lucasew/nix-on-colab](https://github.com/lucasew/nix-on-colab)
+- custom ffmpeg with [markus-perl/ffmpeg-build-script](https://github.com/markus-perl/ffmpeg-build-script)
 
 Model | ESRGAN | SRVGGNetCompact | Rife | SwinIR | Sepconv | EGVSR | BasicVSR++ | Waifu2x | RealBasicVSR | RealCUGAN | FILM | DPIR | PAN | IFRNet | M2M | IFUNet | eisai | SCUNet | GMFupSS | ST-MFNet |
 ---  | ------- | --------------- | ---- | ------ | ------- | ----- | ---------- | ------- | ------------ | --------- | ---- | ---- | --- | ------ | --- | ------ | ----- | ------ | ---- | ----
