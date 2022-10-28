@@ -35,11 +35,13 @@ def vfi_inference(
         )
 
     def execute(n: int, clip0: vs.VideoNode, clip1: vs.VideoNode) -> vs.VideoNode:
+        clip_metric = clip0.get_frame(n).props.get('float_ssim')
+
         if (
             (n % multi == 0)
             or n == 0
             or clip0.get_frame(n).props.get('_SceneChangeNext')
-            or clip0.get_frame(n).props.get('float_ssim') > ssim_value
+            or (clip_metric and clip_metric > ssim_value)
             or n // multi == clip.num_frames - 1
         ):
             return clip0
@@ -60,12 +62,14 @@ def vfi_inference(
         return tensor_to_clip(clip=clip0, image=middle)
 
     def execute_4img(n: int, clip0: vs.VideoNode, clip1: vs.VideoNode) -> vs.VideoNode:
+        clip_metric = clip0.get_frame(n).props.get('float_ssim')
+
         if (
             (n % multi == 0)
             or n == 0
             or n == 1
             or clip0.get_frame(n).props.get('_SceneChangeNext')
-            or clip0.get_frame(n).props.get('float_ssim') > ssim_value
+            or (clip_metric and clip_metric > ssim_value)
             or n // multi == clip.num_frames - 1
         ):
             return clip0
@@ -94,11 +98,13 @@ def vfi_inference(
     cache = {}
 
     def execute_cache(n: int, clip0: vs.VideoNode, clip1: vs.VideoNode) -> vs.VideoNode:
+        clip_metric = clip0.get_frame(n).props.get('float_ssim')
+
         if (
             (n % multi == 0)
             or n == 0
             or clip0.get_frame(n).props.get('_SceneChangeNext')
-            or clip0.get_frame(n).props.get('float_ssim') > ssim_value
+            or (clip_metric and clip_metric > ssim_value)
             or n // multi == clip.num_frames - 1
         ):
             return clip0
