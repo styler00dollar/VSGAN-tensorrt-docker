@@ -199,21 +199,7 @@ RUN apt install mpv -y && apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install --yes pulseaudio-utils && \
     apt-get install -y pulseaudio && apt-get install pulseaudio libpulse-dev osspd -y && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-
-# av1an
-RUN apt install curl -y && curl https://sh.rustup.rs -sSf | sh -s -- -y && \
-    . $HOME/.cargo/env && \
-    apt install clang-12 nasm libavutil-dev libavformat-dev libavfilter-dev -y && \
-    git clone https://github.com/master-of-zen/Av1an && \
-    cd Av1an && cargo build --release --features ffmpeg_static && \
-    mv /workspace/Av1an/target/release/av1an /usr/bin && \
-    cd /workspace && rm -rf Av1an && apt-get autoremove -y && apt-get clean
-
-# svt
-RUN git clone https://gitlab.com/AOMediaCodec/SVT-AV1 && cd SVT-AV1/Build/linux/ && sh build.sh release && \
-    cd /workspace/SVT-AV1/Bin/Release/ && chmod +x ./SvtAv1EncApp && mv SvtAv1EncApp /usr/bin && \
-    mv libSvtAv1Enc.so* /usr/local/lib && cd /workspace && rm -rf SVT-AV1
-
+    
 # pycuda and numpy hotfix
 RUN pip install numpy==1.21 --force-reinstall && pip cache purge
 RUN pip install pycuda --force-reinstall && pip cache purge

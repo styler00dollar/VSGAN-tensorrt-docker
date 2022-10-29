@@ -36,7 +36,7 @@ for f in files:
 
     os.system("vspipe parse.py -p .")
     os.system(
-        f"vspipe -c y4m ddfi.py - | ffmpeg -i pipe: -preset medium {out_render_path}"
+        f"vspipe -c y4m ddfi.py - | ffmpeg -i pipe: -vcodec libsvtav1 -crf 20 {out_render_path}"
     )
 
     os.system(

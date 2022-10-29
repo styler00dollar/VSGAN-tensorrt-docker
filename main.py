@@ -35,7 +35,7 @@ for f in files:
     f_txt.close()
 
     os.system(
-        f"vspipe -c y4m inference_batch.py - | ffmpeg -i pipe: -preset slow {out_render_path}"
+        f"vspipe -c y4m inference_batch.py - | ffmpeg -i pipe: -vcodec libsvtav1 -crf 20 {out_render_path}"
     )
     os.system(
         f"ffmpeg -y -loglevel error -i {f} -i {out_render_path}  -map 1 -map 0 -map -0:v -codec copy -max_interleave_delta 0 {mux_path}"

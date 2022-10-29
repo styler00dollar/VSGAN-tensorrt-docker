@@ -72,19 +72,22 @@ newTSgen(tsv2o)
 
 with open(os.path.join(tmp_dir, "tmp.txt")) as f:
     video_path = f.readlines()[0]
-clip = core.ffms2.Source(video_path, cachefile="ffindex")
+clip = core.ffms2.Source(video_path)
 clip = core.std.DeleteFrames(clip, dels)
 sup = core.mv.Super(clip, pel=1, levels=1)
 bw = core.mv.Analyse(sup, isb=True, levels=1, truemotion=False)
 clip = core.mv.SCDetection(clip, bw, thscd1=200, thscd2=85)
+
+
+# easy example with ncnn rife
+clip = core.resize.Bicubic(clip, format=vs.RGBS, matrix_in=1)
+clip = core.misc.SCDetect(clip=clip, threshold=0.100)
+clip = core.rife.RIFE(clip, model=9, sc=True, skip=True, multiplier=8)
+
+# example for custom vfi
+"""
 clip = core.resize.Bicubic(clip, format=vs.RGBS, matrix_in=1)
 
-#######################
-# select model
-# clip = core.misc.SCDetect(clip=clip, threshold=0.100)
-# clip = core.rife.RIFE(clip, model=9, sc=True, skip=False, multiplier=8)
-
-###
 model_inference = RIFE(
     scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=False
 )
@@ -93,8 +96,38 @@ model_inference = RIFE(
 # model_inference = EISAI() # 960x540
 # model_inference = FILM(model_choise="vgg")
 clip = vfi_inference(
-    model_inference=model_inference, clip=clip, skip_frame_list=[], multi=8
+    model_inference=model_inference, clip=clip, multi=8
 )
+"""
+
+# advanced example with pytorch vfi + dedup + scene change + upscaling
+"""
+offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
+offs1 = core.std.CopyFrameProps(offs1, clip)
+clip = core.vmaf.Metric(clip, offs1, 2)
+clip = core.resize.Bicubic(clip, width=1280, height=720, format=vs.RGBS, matrix_in=1)
+
+clip = core.misc.SCDetect(clip=clip, threshold=0.100)
+
+model_inference = GMFupSS(partial_fp16=True)
+clip = vfi_inference(
+    model_inference=model_inference, clip=clip, multi=8
+)
+
+clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
+offs1 = core.std.CopyFrameProps(offs1, clip)
+clip = core.vmaf.Metric(clip, offs1, 2)
+clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
+
+clip = upscale_frame_skip(clip)
+
+clip = core.trt.Model(
+    clip,
+    engine_path="/content/model.engine",
+    num_streams=3,
+)
+"""
 #######################
 
 clip = core.resize.Bicubic(
