@@ -247,7 +247,7 @@ RUN git clone https://github.com/EleonoreMizo/fmtconv && cd fmtconv/build/unix/ 
     cd /workspace && rm -rf fmtconv
 
 # deleting files
-RUN rm -rf 1.3.216.0 cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth-R60 /root/.rustup /root/.cargo
+RUN rm -rf 1.3.216.0 cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth-R60
 
 # move trtexec so it can be globally accessed
 RUN mv /usr/src/tensorrt/bin/trtexec /usr/bin 
