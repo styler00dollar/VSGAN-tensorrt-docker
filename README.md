@@ -477,6 +477,11 @@ A100 (Colab) (vs+CUDA+FrameEval) | 12 | 5.6 | 2.9
 A100 (Colab) (jpg+CUDA) | ? | ?| 3 (4 Threads)
 4090³ (TensorRT8.4GA+10 vs threads+fp16) | ? | ? / 56* (5 streams) | ? / 19.4 (2 streams)
 
+UltraCompact (2x) | 480p | 720p | 1080p 
+-------- | ---- | ---- | ----
+4090²(2) (TensorRT8.4GA+4 vs threads+fp16) | ? | ? | ? / 55.1*
+4090²(2) (TensorRT8.4GA+4 vs threads+int8) | ? | ? | ? / 57.7*
+
 cugan (2x) | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
 1070ti (vs+TensorRT8.4+ffmpeg+C++ TRT+num_streams=2+no tiling+opset13) | 6 | 2.7 | OOM
@@ -506,8 +511,8 @@ A100 (Colab) (Torch-TensorRT8.2GA+ffmpeg+FrameEval) | 5.6 | 2.6 | 1.1
 
 ESRGAN 2x (64mb) (23b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
-4090 (C++ TensorRT8.4GA+ffmpeg+int8+12 vs threads+4 num_streams+fp16) | ? / 6.1 | ? / | ? / 
-4090 (C++ TensorRT8.4GA+ffmpeg+int8+12 vs threads+1 num_streams+int8) | ? / 17.4 | ? / 7.1* | ? / 3.1*
+4090 (C++ TensorRT8.4GA+ffmpeg+int8+12 vs threads+4 num_streams+fp16) | ? / 6.1* | ? / ? | ? / ?
+4090 (C++ TensorRT8.4GA+ffmpeg+int8+12 vs threads+1 num_streams+int8) | ? / 17.4* | ? / 7.1* | ? / 3.1*
 
 Note: The offical RealESRGAN repository uses 6b (6 blocks) for the anime model.
 
