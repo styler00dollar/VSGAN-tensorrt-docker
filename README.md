@@ -479,8 +479,8 @@ A100 (Colab) (jpg+CUDA) | ? | ?| 3 (4 Threads)
 
 UltraCompact (2x) | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
-4090²(2) (TensorRT8.4GA+4 vs threads+opset16+fp16) | ? | ? | ? / 55.1*
-4090²(2) (TensorRT8.4GA+4 vs threads+opset16+int8) | ? | ? | ? / 57.7*
+4090²(2) (TensorRT8.4GA+vs_threads=4+num_streams=4+opset16+fp16) | ? | ? | ? / 55.1*
+4090²(2) (TensorRT8.4GA+vs_threads=4+num_streams=4+opset16+int8) | ? | ? | ? / 57.7*
 
 cugan (2x) | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
