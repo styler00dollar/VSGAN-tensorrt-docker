@@ -475,7 +475,7 @@ Compact (4x) | 480p | 720p | 1080p
 3060ti Joey 4x | ? | 0.25 | 0.11
 A100 (Colab) (vs+CUDA+FrameEval) | 12 | 5.6 | 2.9
 A100 (Colab) (jpg+CUDA) | ? | ?| 3 (4 Threads)
-4090³ (TensorRT8.4GA+10 vs threads+fp16) | ? | ? / 56* (5 streams) | ? / 19.4 (2 streams)
+4090³ (TensorRT8.4GA+10 vs threads+fp16) | ? | ? / 56* (5 streams) | ? / 19.4* (2 streams)
 
 UltraCompact (2x) | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
