@@ -16,6 +16,7 @@ from src.M2M import M2M
 from src.sepconv_enhanced import sepconv
 from src.IFUNet import IFUNet
 from src.stmfnet import STMFNet
+from src.rife_trt import rife_trt 
 
 # upscale imports
 from src.upscale_inference import upscale_frame_skip, upscale_inference
@@ -109,6 +110,9 @@ def inference_clip(video_path):
     clip = vfi_inference(
         model_inference=model_inference, clip=clip, multi=2
     )
+
+    #clip = rife_trt(clip, multi = 2, scale = 1.0, device_id = 0, num_streams = 2, engine_path = "/workspace/tensorrt/rife46.engine")
+
 
     ######
     # UPSCALING WITH TENSORRT
