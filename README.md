@@ -571,7 +571,8 @@ A100 (Colab) (jpg+CUDA+ffmpeg+ModifyFrame) | ? | ? | 19.92 (14 Threads)
 Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
 1070ti Python (ffmpeg+ModifyFrame) | 62 | 31 | 14
-1070ti (C++ NCNN) | ? | ? | 34
+1070ti (C++ NCNN) (rife46) | ? | ? | 30
+1070ti (TensorRT8.5+num_streams=3) (rife46) | ? | ? | 27
 3060ti (CUDA+ffmpeg+ModifyFrame) | ? | 66 | 33 |
 3090² (CUDA+ffmpeg+FrameEval+vs_threads=20) | 121 | 80 | 38
 3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 341 | 142 | 63
@@ -592,8 +593,9 @@ A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads+ffv1) (rife40) | 87 | 97 | 48
 
 Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti (TensorRT8+ffmpeg+ModifyFrame) | 41 | 20 | 9.8 
-1070ti C++ NCNN | ? | ? | 17
+1070ti (PyTorch+ffmpeg+ModifyFrame) | 41 | 20 | 9.8 
+1070ti (C++ NCNN) (rife46) | ? | ? | 16
+1070ti (TensorRT8.5+num_streams=2) (rife46) | ? | ? | 14
 3060ti (ffmpeg+ModifyFrame) | ? | 49 | 24 
 3090¹ (ffmpeg+ModifyFrame) | ? | 90.3 | 45
 4090 (vs+CUDA+ffmpeg+FrameEval) (rife46) | 84 | 80 | 41
