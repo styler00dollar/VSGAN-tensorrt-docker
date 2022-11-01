@@ -139,11 +139,11 @@ RUN apt update -y && \
     7z x R60.zip && cd vapoursynth-R60 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.8/lib-dynload/vapoursynth.so && \
     pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python opencv-contrib-python cupy pytorch-msssim thop einops \
-        https://download.pytorch.org/whl/cu116/torch-1.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl \
-        https://download.pytorch.org/whl/cpu/torchvision-0.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl \
-        mmcv-full==1.6.0 -f https://download.openmmlab.com/mmcv/dist/cu116/torch1.12.0/index.html \
-        https://github.com/pytorch/TensorRT/releases/download/v1.2.0/torch_tensorrt-1.2.0-cp38-cp38-linux_x86_64.whl \
-        onnx onnxruntime-gpu && \
+    https://download.pytorch.org/whl/cu116/torch-1.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl \
+    https://download.pytorch.org/whl/cpu/torchvision-0.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl \
+    mmcv-full==1.6.0 -f https://download.openmmlab.com/mmcv/dist/cu116/torch1.12.0/index.html \
+    https://github.com/pytorch/TensorRT/releases/download/v1.2.0/torch_tensorrt-1.2.0-cp38-cp38-linux_x86_64.whl \
+    onnx onnxruntime-gpu && \
     # not deleting vapoursynth-R60 since vs-mlrt needs it
     rm -rf R60.zip && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip cache purge
@@ -199,7 +199,7 @@ RUN apt install mpv -y && apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install --yes pulseaudio-utils && \
     apt-get install -y pulseaudio && apt-get install pulseaudio libpulse-dev osspd -y && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-    
+
 # pycuda and numpy hotfix
 RUN pip install numpy==1.21 --force-reinstall && pip cache purge
 RUN pip install pycuda --force-reinstall && pip cache purge
@@ -213,7 +213,7 @@ RUN wget https://sdk.lunarg.com/sdk/download/1.3.216.0/linux/vulkansdk-linux-x86
 ENV VULKAN_SDK=/workspace/1.3.216.0/x86_64/
 
 # rife ncnn
-RUN wget https://github.com/Netflix/vmaf/archive/refs/tags/v2.3.1.tar.gz && \
+RUN apt install nasm -y && wget https://github.com/Netflix/vmaf/archive/refs/tags/v2.3.1.tar.gz && \
     # VMAF
     tar -xzf v2.3.1.tar.gz && cd vmaf-2.3.1/libvmaf/ && \
     meson build --buildtype release && ninja -C build && \
