@@ -150,7 +150,7 @@ from src.rife import RIFE
 from src.vfi_inference import vfi_inference
 
 def inference_clip(video_path):
-    clip = core.ffms2.Source(source=video_path)
+    clip = core.ffms2.Source(source=video_path, cache=False)
     clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
     # apply one or multiple models, will be applied in order
     model_inference = RIFE(scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=True)
@@ -352,7 +352,7 @@ and look at the final line. If it is not zero, then it means it is variable refr
 ```
 To go around this issue, specify `fpsnum` and `fpsden` in `inference_config.py`
 ```
-clip = core.ffms2.Source(source='input.mkv', fpsnum = 24000, fpsden = 1001)
+clip = core.ffms2.Source(source='input.mkv', fpsnum = 24000, fpsden = 1001, cache=False)
 ```
 or convert everything to constant framerate with ffmpeg.
 ```bash

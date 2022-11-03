@@ -43,9 +43,11 @@ core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
 def inference_clip(video_path):
     # cfr video
-    clip = core.ffms2.Source(source=video_path)
-    # vfr video (untested)
-    # clip = core.ffms2.Source(source='input.mkv', fpsnum = 24000, fpsden = 1001)
+    clip = core.ffms2.Source(source=video_path, cache=False)
+    # vfr video
+    # clip = core.ffms2.Source(source=video_path, fpsnum = 24000, fpsden = 1001, cache=False)
+    # vfr video (automatically set num and den)
+    # clip = core.ffms2.Source(source=video_path, fpsnum = -1, fpsden = 1, cache=False)
 
     # resizing with descale
     # Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale

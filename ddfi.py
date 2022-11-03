@@ -72,7 +72,7 @@ newTSgen(tsv2o)
 
 with open(os.path.join(tmp_dir, "tmp.txt")) as f:
     video_path = f.readlines()[0]
-clip = core.ffms2.Source(video_path)
+clip = core.ffms2.Source(video_path, cache=False)
 clip = core.std.DeleteFrames(clip, dels)
 sup = core.mv.Super(clip, pel=1, levels=1)
 bw = core.mv.Analyse(sup, isb=True, levels=1, truemotion=False)
