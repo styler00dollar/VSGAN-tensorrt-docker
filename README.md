@@ -526,6 +526,8 @@ A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 
 2x3090² (C++ TRT+vs_threads=10+num_threads=2+no tiling+opset14) | 22 | 9.5 | 4.2
 4090 (C++ TensorRT8.4GA+ffmpeg+12 vs threads+1 num_streams+ffv1+opset16+fp16) | 19 / 19* (2 streams) | ? | ?
 4090 (C++ TensorRT8.4GA+ffmpeg+12 vs threads+1 num_streams+ffv1+opset16+int8) | 34 (4 streams) / 50* (6 streams) | ? / ? | ? / 5.7* (1 stream)
+4090³ (C++ TensorRT8.5+vs_threads=4+num_streams=1+fp16+(--heuristic) | ? | ? / 6.9* | ? / 3.1*
+4090³ (C++ TensorRT8.5+vs_threads=4+num_streams=1+fp16) | ? | ? / 6.9* | ? / 3.1*
 
 RealESRGAN (2x) (6b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
@@ -582,8 +584,9 @@ Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p
 4090 (ncnn+8 threads+12 vs threads+ffv1) (rife4.4) |- |	- |	129 / 128*
 4090 (ncnn+8 threads+12 vs threads) (rife4.6) | 455 | 215 | 100 / 136*
 4090² (ncnn+2 threads+4 vs threads+ffmpeg (ultrafast)) (rife4.6) | ? | ? | 164
-4090 (TensorRT8.5+num_streams 8+num_threads=6) (rife46) | ? | ? | ? / 146*
-4090 (TensorRT8.5+num_streams 8+num_threads=6+int8+ffv1) (rife46)| ? | ? | 123 / 156*
+4090 (TensorRT8.5+num_streams 8+num_threads=6+stacking method) (rife46) | ? | ? | ? / 146*
+4090 (TensorRT8.5+num_streams 8+num_threads=6+int8+ffv1+stacking method) (rife46)| ? | ? | 123 / 156*
+4090³ (TensorRT8.5+vs_threads=4+fp16) (rife46) | ? | ? / 541* (num_streams=14) | ? / 288* (num_streams=10)
 V100 (Colab) (ffmpeg+ModifyFrame) | 34 | 17 | 7.6
 V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | 64 | 43 | 25
 V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (8 threads)) | 136 | 65 | 29
@@ -601,6 +604,7 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 4090 (vs+CUDA+ffmpeg+FrameEval) (rife46) | 84 | 80 | 41
 4090 (ncnn+8 threads+12 vs threads) (rife4.6) | 280 | 165 | 76
 4090 (ncnn+8 threads+12 vs threads) (rife4.6+ffv1) | 222 | 162 | 80
+4090³ (TensorRT8.5+vs_threads=4+fp16) (rife46) | ? | 320 / 401.6* (num_streams=14) | 160 / 207* (num_streams=10)
 A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads) (rife46) | 154 | 86 | 43
 A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads+ffv1) (rife46) | 86 | 86 | 43
 
@@ -611,6 +615,7 @@ T4 (Colab / 8CPU) (partial fp16) | 13 | 5.2 | 2.3
 A100 (Colab / 12CPU) | 23 | 14 | 6.2
 4090 (12 vs threads) | 27 | 22 | 8.6
 4090 (12 vs threads + thread_queue_size) | 32 | 21 | 8.6
+4090³ (num_threads=4, partial fp16) | ? | ? / 34.4* | ? / 13.1*
 
 EGVSR (4x, interval=5) | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
