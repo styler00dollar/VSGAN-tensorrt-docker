@@ -47,7 +47,7 @@ def props2csv(
 tmp_dir = "tmp/"
 with open(os.path.join(tmp_dir, "tmp.txt")) as f:
     video_path = f.readlines()[0]
-clip = core.ffms2.Source(video_path, cachefile=False)
+clip = core.ffms2.Source(video_path, cache=False)
 offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
 offs1 = core.std.CopyFrameProps(offs1, clip)
 offs1 = core.vmaf.Metric(clip, offs1, 2)
