@@ -13,7 +13,7 @@ def upscale_inference(
     tile_y=512,
     tile_pad=10,
     pre_pad=0,
-    ssim_value=0.999,
+    metric_thresh=0.999,
 ) -> vs.VideoNode:
     core = vs.core
     scale = upscale_model_inference.scale
@@ -50,7 +50,7 @@ def upscale_inference(
 
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
         clip_metric = clip.get_frame(n).props.get("float_ssim")
-        if clip_metric and clip_metric > ssim_value:
+        if clip_metric and clip_metric > metric_thresh:
             return clip
 
         I0 = frame_to_tensor(clip.get_frame(n))
@@ -71,7 +71,7 @@ def upscale_inference(
 
     def execute_cache(n: int, clip: vs.VideoNode) -> vs.VideoNode:
         clip_metric = clip.get_frame(n).props.get("float_ssim")
-        if clip_metric and clip_metric > ssim_value:
+        if clip_metric and clip_metric > metric_thresh:
             return clip
 
         if str(n) not in cache:
@@ -111,7 +111,7 @@ def upscale_inference(
     )
 
 
-def upscale_frame_skip(clip: vs.VideoNode, ssim_value=0.999) -> vs.VideoNode:
+def upscale_frame_skip(clip: vs.VideoNode, metric_thresh=0.999) -> vs.VideoNode:
     core = vs.core
 
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
@@ -119,7 +119,7 @@ def upscale_frame_skip(clip: vs.VideoNode, ssim_value=0.999) -> vs.VideoNode:
             return clip
 
         ssim_clip = clip.get_frame(n).props.get("float_ssim")
-        if ssim_clip and ssim_clip > ssim_value:
+        if ssim_clip and ssim_clip > metric_thresh:
             return clip[1::]
         return clip
 

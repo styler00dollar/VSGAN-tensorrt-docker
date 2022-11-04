@@ -42,17 +42,19 @@ core.std.LoadPlugin(path="/usr/lib/x86_64-linux-gnu/libffms2.so")
 core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
 
-def inference_clip(video_path):
-    # cfr video
-    clip = core.ffms2.Source(source=video_path, cache=False)
-    # vfr video
-    # clip = core.ffms2.Source(source=video_path, fpsnum = 24000, fpsden = 1001, cache=False)
-    # vfr video (automatically set num and den)
-    # clip = core.ffms2.Source(source=video_path, fpsnum = -1, fpsden = 1, cache=False)
+def inference_clip(video_path="", clip=None):
+    # ddfi is passing clip
+    if clip is not None:
+        # cfr video
+        clip = core.ffms2.Source(source=video_path, cache=False)
+        # vfr video
+        # clip = core.ffms2.Source(source=video_path, fpsnum = 24000, fpsden = 1001, cache=False)
+        # vfr video (automatically set num and den)
+        # clip = core.ffms2.Source(source=video_path, fpsnum = -1, fpsden = 1, cache=False)
 
-    # resizing with descale
-    # Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale
-    # clip = core.descale.Debilinear(clip, 1280, 720)
+        # resizing with descale
+        # Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale
+        # clip = core.descale.Debilinear(clip, 1280, 720)
 
     ###############################################
     # SIMILARITY
@@ -113,7 +115,9 @@ def inference_clip(video_path):
 
     # model_inference = STMFNet()  # only 2x supported because architecture only outputs one image
 
-    clip = vfi_inference(model_inference=model_inference, clip=clip, multi=2)
+    clip = vfi_inference(
+        model_inference=model_inference, clip=clip, multi=2, metric_thresh=0.999
+    )
 
     # clip = rife_trt(clip, multi = 2, scale = 1.0, device_id = 0, num_streams = 2, engine_path = "/workspace/tensorrt/rife46.engine")
 
@@ -164,7 +168,7 @@ def inference_clip(video_path):
 
     # upscale_model_inference = realbasicvsr_inference(fp16=True)
 
-    # clip = upscale_inference(upscale_model_inference, clip, tile_x=512, tile_y=512, tile_pad=10, pre_pad=0)
+    # clip = upscale_inference(upscale_model_inference, clip, tile_x=512, tile_y=512, tile_pad=10, pre_pad=0, metric_thresh=0.999)
 
     ######
     # external vs plugins
@@ -207,27 +211,37 @@ def inference_clip(video_path):
     #    sc=True,
     # )
 
-    ###############################################
-    # exotic
-    ###############################################
+    ######
+    # DDFI
+    # you need to use 8x interp for this
+    ######
+    # advanced example with pytorch vfi + dedup + scene change + upscaling
 
-    # if you want to use dedup or scene change detect for external vs plugins like mlrt, use vfi_frame_merger
-    # example for rife with TensorRT 8.5, but that isn't in the docker yet due to nvidia not publishing the install files and compatibility reasons
+    # offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
+    # offs1 = core.std.CopyFrameProps(offs1, clip)
+    # clip = core.vmaf.Metric(clip, offs1, 2)
+    # clip = core.resize.Bicubic(clip, width=1280, height=720, format=vs.RGBS, matrix_in=1)
 
-    # workaround to use mlrt for video interpolation
-    # clip1 = core.std.DeleteFrames(clip, frames=0)
-    # clip2 = core.std.StackHorizontal([clip1, clip])
-    # clip2 = core.trt.Model(
-    #    clip2,
-    #    engine_path="/workspace/tensorrt/rife46_onnx16_1080_2input.engine",
-    #    num_streams=6,
+    # clip = core.misc.SCDetect(clip=clip, threshold=0.100)
+
+    # model_inference = GMFupSS(partial_fp16=True)
+    # clip = vfi_inference(
+    #     model_inference=model_inference, clip=clip, multi=8, metric_thresh=0.999
     # )
-    # clip2=core.std.Crop(clip2,right=1920)
-    # clip1 = core.std.Interleave([clip, clip])
-    # clip2 = core.std.Interleave([clip, clip2])
 
-    # skipping all duplicated / scene change frames
-    # clip = vfi_frame_merger(clip1, clip2)
+    # clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+    # offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
+    # offs1 = core.std.CopyFrameProps(offs1, clip)
+    # clip = core.vmaf.Metric(clip, offs1, 2)
+    # clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
+
+    # clip = upscale_frame_skip(clip)
+
+    # clip = core.trt.Model(
+    #     clip,
+    #     engine_path="/content/model.engine",
+    #     num_streams=3,
+    # )
 
     ###############################################
     # OUTPUT

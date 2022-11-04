@@ -6,7 +6,7 @@ import torch
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 def vfi_inference(
-    model_inference, clip: vs.VideoNode, multi=2, ssim_value=0.999
+    model_inference, clip: vs.VideoNode, multi=2, metric_thresh=0.999
 ) -> vs.VideoNode:
     core = vs.core
 
@@ -43,7 +43,7 @@ def vfi_inference(
             (n % multi == 0)
             or n == 0
             or clip0.get_frame(n).props.get("_SceneChangeNext")
-            or (clip_metric and clip_metric > ssim_value)
+            or (clip_metric and clip_metric > metric_thresh)
             or n // multi == clip.num_frames - 1
         ):
             return clip0
@@ -71,7 +71,7 @@ def vfi_inference(
             or n == 0
             or n == 1
             or clip0.get_frame(n).props.get("_SceneChangeNext")
-            or (clip_metric and clip_metric > ssim_value)
+            or (clip_metric and clip_metric > metric_thresh)
             or n // multi == clip.num_frames - 1
         ):
             return clip0
@@ -106,7 +106,7 @@ def vfi_inference(
             (n % multi == 0)
             or n == 0
             or clip0.get_frame(n).props.get("_SceneChangeNext")
-            or (clip_metric and clip_metric > ssim_value)
+            or (clip_metric and clip_metric > metric_thresh)
             or n // multi == clip.num_frames - 1
         ):
             return clip0
@@ -162,11 +162,11 @@ def vfi_frame_merger(
 ) -> vs.VideoNode:
     core = vs.core
 
-    ssim_value = 0.999
+    metric_thresh = 0.999
 
     def execute(n: int, clip1: vs.VideoNode, clip2: vs.VideoNode) -> vs.VideoNode:
         ssim_clip = clip1.get_frame(n).props.get("float_ssim")
-        if (ssim_clip and ssim_clip > ssim_value) or clip1.get_frame(n).props.get(
+        if (ssim_clip and ssim_clip > metric_thresh) or clip1.get_frame(n).props.get(
             "_SceneChangeNext"
         ):
             return clip1
