@@ -1291,7 +1291,7 @@ class sepconv:
     def __init__(self):
         self.cache = False
         self.amount_input_img = 2
-        
+
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
 

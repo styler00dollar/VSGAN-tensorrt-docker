@@ -6,12 +6,14 @@ import torch
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 def vfi_inference(
-    model_inference, clip: vs.VideoNode, multi=2, ssim_value = 0.999
+    model_inference, clip: vs.VideoNode, multi=2, ssim_value=0.999
 ) -> vs.VideoNode:
     core = vs.core
 
     if model_inference.amount_input_img == 4 and multi != 2:
-        raise ValueError("4 image input interpolation networks currently only support 2x")
+        raise ValueError(
+            "4 image input interpolation networks currently only support 2x"
+        )
 
     def frame_to_tensor(frame: vs.VideoFrame):
         return np.stack(
@@ -35,12 +37,12 @@ def vfi_inference(
         )
 
     def execute(n: int, clip0: vs.VideoNode, clip1: vs.VideoNode) -> vs.VideoNode:
-        clip_metric = clip0.get_frame(n).props.get('float_ssim')
+        clip_metric = clip0.get_frame(n).props.get("float_ssim")
 
         if (
             (n % multi == 0)
             or n == 0
-            or clip0.get_frame(n).props.get('_SceneChangeNext')
+            or clip0.get_frame(n).props.get("_SceneChangeNext")
             or (clip_metric and clip_metric > ssim_value)
             or n // multi == clip.num_frames - 1
         ):
@@ -62,13 +64,13 @@ def vfi_inference(
         return tensor_to_clip(clip=clip0, image=middle)
 
     def execute_4img(n: int, clip0: vs.VideoNode, clip1: vs.VideoNode) -> vs.VideoNode:
-        clip_metric = clip0.get_frame(n).props.get('float_ssim')
+        clip_metric = clip0.get_frame(n).props.get("float_ssim")
 
         if (
             (n % multi == 0)
             or n == 0
             or n == 1
-            or clip0.get_frame(n).props.get('_SceneChangeNext')
+            or clip0.get_frame(n).props.get("_SceneChangeNext")
             or (clip_metric and clip_metric > ssim_value)
             or n // multi == clip.num_frames - 1
         ):
@@ -98,12 +100,12 @@ def vfi_inference(
     cache = {}
 
     def execute_cache(n: int, clip0: vs.VideoNode, clip1: vs.VideoNode) -> vs.VideoNode:
-        clip_metric = clip0.get_frame(n).props.get('float_ssim')
+        clip_metric = clip0.get_frame(n).props.get("float_ssim")
 
         if (
             (n % multi == 0)
             or n == 0
-            or clip0.get_frame(n).props.get('_SceneChangeNext')
+            or clip0.get_frame(n).props.get("_SceneChangeNext")
             or (clip_metric and clip_metric > ssim_value)
             or n // multi == clip.num_frames - 1
         ):
@@ -154,16 +156,19 @@ def vfi_inference(
     )
 
 
-# depricated / subject to change once rife trt gets added
 def vfi_frame_merger(
     clip1: vs.VideoNode,
     clip2: vs.VideoNode,
-    skip_frame_list=[],
 ) -> vs.VideoNode:
     core = vs.core
 
+    ssim_value = 0.999
+
     def execute(n: int, clip1: vs.VideoNode, clip2: vs.VideoNode) -> vs.VideoNode:
-        if n in skip_frame_list:
+        ssim_clip = clip1.get_frame(n).props.get("float_ssim")
+        if (ssim_clip and ssim_clip > ssim_value) or clip1.get_frame(n).props.get(
+            "_SceneChangeNext"
+        ):
             return clip1
         return clip2
 

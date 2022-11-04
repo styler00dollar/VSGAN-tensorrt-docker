@@ -19,9 +19,7 @@ class STMFNet:
         model_path = "/workspace/tensorrt/models/stmfnet.pth"
         check_and_download(model_path)
         self.model = STMFNet_Model()
-        self.model.load_state_dict(
-            torch.load(model_path), True
-        )
+        self.model.load_state_dict(torch.load(model_path), True)
 
         self.model.eval().cuda()
 

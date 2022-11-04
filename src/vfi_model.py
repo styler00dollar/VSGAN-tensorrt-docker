@@ -34,7 +34,7 @@ def video_model(
     if fp16:
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
         model.half()
-        
+
     @torch.inference_mode()
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
         if (n % 2 == 0) or n == 0:

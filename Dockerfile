@@ -138,11 +138,10 @@ RUN apt update -y && \
     pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R60.zip && \
     7z x R60.zip && cd vapoursynth-R60 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.8/lib-dynload/vapoursynth.so && \
-    pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect kornia opencv-python opencv-contrib-python cupy pytorch-msssim thop einops \
-    https://download.pytorch.org/whl/cu116/torch-1.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl \
-    https://download.pytorch.org/whl/cpu/torchvision-0.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl \
-    mmcv-full==1.6.0 -f https://download.openmmlab.com/mmcv/dist/cu116/torch1.12.0/index.html \
-    https://github.com/pytorch/TensorRT/releases/download/v1.2.0/torch_tensorrt-1.2.0-cp38-cp38-linux_x86_64.whl \
+    pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect opencv-python opencv-contrib-python cupy pytorch-msssim thop einops \
+    torch torchvision kornia \
+    mmcv-full==1.7.0 -f https://download.openmmlab.com/mmcv/dist/cu117/torch1.13.0/index.html \
+    # https://github.com/pytorch/TensorRT/releases/download/v1.2.0/torch_tensorrt-1.2.0-cp38-cp38-linux_x86_64.whl \ # currently not supporting 8.5
     onnx onnxruntime-gpu && \
     # not deleting vapoursynth-R60 since vs-mlrt needs it
     rm -rf R60.zip && \
@@ -163,7 +162,8 @@ RUN pip install tensorflow tensorflow-gpu tensorflow_addons gin-config && pip3 c
 
 # installing onnx tensorrt with a workaround, error with import otherwise
 # https://github.com/onnx/onnx-tensorrt/issues/643
-RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
+# also disables pip cache purge
+RUN pip install nvidia-pyindex nvidia-tensorrt pycuda && git clone https://github.com/onnx/onnx-tensorrt.git && \
     cd onnx-tensorrt && \
     cp -r onnx_tensorrt /usr/local/lib/python3.8/dist-packages && \
     cd .. && rm -rf onnx-tensorrt
@@ -171,7 +171,7 @@ RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
 # vs plugings from others
 # https://github.com/HolyWu/vs-swinir
 # https://github.com/HolyWu/vs-basicvsrpp
-RUN pip install vsswinir vsbasicvsrpp && pip cache purge
+RUN pip install vsswinir vsbasicvsrpp
 
 # vs-mlrt
 # upgrading g++
@@ -201,8 +201,8 @@ RUN apt install mpv -y && apt-get update && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 
 # pycuda and numpy hotfix
-RUN pip install numpy==1.21 --force-reinstall && pip cache purge
-RUN pip install pycuda --force-reinstall && pip cache purge
+RUN pip install numpy==1.21 --force-reinstall
+RUN pip install pycuda --force-reinstall
 
 ########################
 # vulkan
@@ -246,6 +246,11 @@ RUN git clone https://github.com/dubhater/vapoursynth-mvtools && cd vapoursynth-
 RUN git clone https://github.com/EleonoreMizo/fmtconv && cd fmtconv/build/unix/ && ./autogen.sh && ./configure && make && make install && \
     cd /workspace && rm -rf fmtconv
 
+# akarin vs
+RUN apt install llvm-12 llvm-12-dev -y && git clone https://github.com/AkarinVS/vapoursynth-plugin && \
+    cd vapoursynth-plugin && meson build && ninja -C build && \
+    ninja -C build install && cd /workspace && rm -rf vapoursynth-plugin
+
 # deleting files
 RUN rm -rf 1.3.216.0 cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth-R60
 
@@ -262,4 +267,7 @@ RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/downlo
 
 # install custom opencv for av1
 RUN apt install libtbb2 libgtk2.0-0 -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && \
-    pip install https://github.com/styler00dollar/opencv-python/releases/download/4.6.0.3725898/opencv_contrib_python-4.6.0.3725898-cp38-cp38-linux_x86_64.whl && pip cache purge
+    pip install https://github.com/styler00dollar/opencv-python/releases/download/4.6.0.3725898/opencv_contrib_python-4.6.0.3725898-cp38-cp38-linux_x86_64.whl 
+
+ENV CUDA_MODULE_LOADING=LAZY
+WORKDIR /workspace/tensorrt

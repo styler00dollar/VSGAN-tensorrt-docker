@@ -1228,7 +1228,7 @@ class GMFlow(nn.Module):
                 feature0 = torch.cat(
                     (feature0, feature1), dim=0
                 )  # [2*B, C, H, W] for propagation
-            
+
             if self.partial_fp16:
                 feature0 = feature0.half()
                 flow = flow.half()
@@ -2005,7 +2005,6 @@ class MetricNet(nn.Module):
         self.partial_fp16 = partial_fp16
         if partial_fp16:
             self.metric_net = self.metric_net.half()
-
 
     def forward(self, img0, img1, flow01, flow10):
         fwd_occ, bwd_occ = forward_backward_consistency_check(flow01, flow10)
