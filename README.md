@@ -468,6 +468,7 @@ A100 (Colab) (jpg+CUDA) | 28.2 (9 Threads) | 28.2 (7 Threads) | 9.96 (4 Threads)
 4090 (vs+TesnorRT8.4GA+opset16+12 vs threads)| 135 | 59 | 25
 4090 (vs+TesnorRT8.4GA+opset16+12 vs threads+ffv1) | 155 | 72 | 35
 4090 (vs+TensorRT8.4GA+opset16+12 vs threads+thread_queue_size) | 200 | 91 | X
+6700xt (vs_threads=4+mlrt ncnn) | ? / 7.7* | ? / 3.25* | ? / 1.45*
 
 Compact (4x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
@@ -485,6 +486,7 @@ UltraCompact (2x) | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
 4090²(2) (TensorRT8.4GA+vs_threads=4+num_streams=4+opset16+fp16) | ? | ? | ? / 55.1*
 4090²(2) (TensorRT8.4GA+vs_threads=4+num_streams=4+opset16+int8) | ? | ? | ? / 57.7*
+6700xt (vs_threads=4+mlrt ncnn) | ? / 14.5* | ? / 6.1* | ? / 2.76*
 
 cugan (2x) | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
@@ -498,6 +500,7 @@ A100 (Colab High RAM) (vs+TensorRT8.4+x264 (--opencl)+C++ TRT+vs threads=8+num_s
 4090 (vs+TensorRT8.4GA+ffmpeg+C++ TRT+vs_threads=12+num_streams=6+no tiling+opset13) | 117 | 53 | 24
 4090 (vs+TensorRT8.4GA+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13+int8) | ? | ? | 17
 4090 (vs+TensorRT8.4GA+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13+int8+ffv1) | 132 | 61 | 29
+6700xt (vs_threads=4+mlrt ncnn) | ? / 3.3* | ? / 1.3* | OOM (512px tiling ? / 0.39*)
 
 ESRGAN 4x (64mb) (23b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
@@ -597,6 +600,7 @@ V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (8 threads)) | 136 | 65 | 29
 A100 (Colab) (ffmpeg+ModifyFrame) | 92 | 56 | 29
 A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads) (rife40) | 208 | 103 | 46
 A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads+ffv1) (rife40) | 87 | 97 | 48
+6700xt (vs_trheads=4, num_threads=2) | ? / 258.5* | ? / 122.4* | ? / 55.8*
 
 Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
@@ -611,6 +615,7 @@ Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p
 4090³ (TensorRT8.5+vs_threads=4+fp16) (rife46) | ? | 320 / 401.6* (num_streams=14) | 160 / 207* (num_streams=10)
 A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads) (rife46) | 154 | 86 | 43
 A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads+ffv1) (rife46) | 86 | 86 | 43
+6700xt (vs_trheads=4, num_threads=2) | ? / 129.7* | ? / 60.4* | ? / 28*
 
 GMFupSS | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
