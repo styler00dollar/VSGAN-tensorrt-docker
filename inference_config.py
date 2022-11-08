@@ -44,7 +44,7 @@ core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
 def inference_clip(video_path="", clip=None):
     # ddfi is passing clip
-    if clip is not None:
+    if clip is None:
         # cfr video
         clip = core.ffms2.Source(source=video_path, cache=False)
         # vfr video
