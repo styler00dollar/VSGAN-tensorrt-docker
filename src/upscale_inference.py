@@ -109,21 +109,3 @@ def upscale_inference(
         ),
         functools.partial(execute, clip=clip),
     )
-
-
-def upscale_frame_skip(clip: vs.VideoNode, metric_thresh=0.999) -> vs.VideoNode:
-    core = vs.core
-
-    def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        if n == 0:
-            return clip
-
-        ssim_clip = clip.get_frame(n).props.get("float_ssim")
-        if ssim_clip and ssim_clip > metric_thresh:
-            return clip[1::]
-        return clip
-
-    return core.std.FrameEval(
-        core.std.BlankClip(clip=clip, width=clip.width, height=clip.height),
-        functools.partial(execute, clip=clip),
-    )

@@ -19,7 +19,7 @@ from src.stmfnet import STMFNet
 from src.rife_trt import rife_trt
 
 # upscale imports
-from src.upscale_inference import upscale_frame_skip, upscale_inference
+from src.upscale_inference import upscale_inference
 from src.pan import PAN_inference
 from src.realbasicvsr import realbasicvsr_inference
 from src.egvsr import egvsr_inference
@@ -84,6 +84,7 @@ def inference_clip(video_path="", clip=None):
     ###############################################
     # in rare cases it can happen that image range is not 0-1 and that resulting in big visual problems, clamp input
     clip = core.akarin.Expr(clip, "x 0 1 clamp")
+    #clip = core.std.Limiter(clip, max=1, planes=[0,1,2])
 
     ######
     # VFI
@@ -234,8 +235,6 @@ def inference_clip(video_path="", clip=None):
     # offs1 = core.std.CopyFrameProps(offs1, clip)
     # clip = core.vmaf.Metric(clip, offs1, 2)
     # clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
-
-    # clip = upscale_frame_skip(clip)
 
     # clip = core.trt.Model(
     #     clip,
