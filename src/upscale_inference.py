@@ -13,7 +13,6 @@ def upscale_inference(
     tile_y=512,
     tile_pad=10,
     pre_pad=0,
-    metric_thresh=0.999,
 ) -> vs.VideoNode:
     core = vs.core
     scale = upscale_model_inference.scale
@@ -49,10 +48,6 @@ def upscale_inference(
         )
 
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        clip_metric = clip.get_frame(n).props.get("float_ssim")
-        if clip_metric and clip_metric > metric_thresh:
-            return clip
-
         I0 = frame_to_tensor(clip.get_frame(n))
 
         I0 = torch.Tensor(I0).unsqueeze(0).to("cuda", non_blocking=True)
@@ -70,10 +65,6 @@ def upscale_inference(
     interval = 5
 
     def execute_cache(n: int, clip: vs.VideoNode) -> vs.VideoNode:
-        clip_metric = clip.get_frame(n).props.get("float_ssim")
-        if clip_metric and clip_metric > metric_thresh:
-            return clip
-
         if str(n) not in cache:
             cache.clear()
             # clamping because vs does not give tensors in range 0-1, results in nan in output

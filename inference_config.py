@@ -169,7 +169,7 @@ def inference_clip(video_path="", clip=None):
 
     # upscale_model_inference = realbasicvsr_inference(fp16=True)
 
-    # clip = upscale_inference(upscale_model_inference, clip, tile_x=512, tile_y=512, tile_pad=10, pre_pad=0, metric_thresh=0.999)
+    # clip = upscale_inference(upscale_model_inference, clip, tile_x=512, tile_y=512, tile_pad=10, pre_pad=0)
 
     ######
     # external vs plugins
