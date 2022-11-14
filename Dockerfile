@@ -180,7 +180,7 @@ RUN apt install build-essential manpages-dev software-properties-common -y && ad
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11 && \
     # compiling
     git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt/vstrt && mkdir build && \
-    cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R60/include && make && make install && \
+    cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R60/include -D USE_NVINFER_PLUGIN=ON && make && make install && \
     cd /workspace && rm -rf /workspace/vs-mlrt
 
 # x265
