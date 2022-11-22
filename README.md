@@ -586,7 +586,7 @@ Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p
 3060ti (CUDA+ffmpeg+ModifyFrame) | ? | 66 | 33 |
 3090² (CUDA+ffmpeg+FrameEval+vs_threads=20) | 121 | 80 | 38
 3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 341 | 142 | 63
-3090³ (TensorRT8.5+vs_threads=4+num_streams=7) | ? / 205.6* | ? / 109.8* | ? / 70.6*
+3090³ (TensorRT8.5) | ? / 331.9* (9 streams) | ? / 275.3* (7 streams) | ? / 166.3* (7 streams)
 4090 (ncnn+8 threads+12 vs threads) (rife4.0) | 470 | 198 | 98
 4090 (ncnn+8 threads+12 vs threads) (rife4.4) | - | - | 98
 4090 (ncnn+8 threads+12 vs threads+ffv1) (rife4.4) |- |	- |	129 / 128*
