@@ -10,6 +10,7 @@ from src.vfi_model import video_model
 from src.rife import RIFE
 from src.IFRNet import IFRNet
 from src.GMFupSS import GMFupSS
+from src.GMFSS_union import GMFSS_union
 from src.eisai import EISAI
 from src.film import FILM
 from src.M2M import M2M
@@ -59,7 +60,6 @@ def inference_clip(video_path="", clip=None):
     ###############################################
     # SIMILARITY
     # Set properties in clip for it to be applied
-
     # SSIM for deduplication in frame interpolation
     offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
     offs1 = core.std.CopyFrameProps(offs1, clip)
@@ -84,7 +84,7 @@ def inference_clip(video_path="", clip=None):
     ###############################################
     # in rare cases it can happen that image range is not 0-1 and that resulting in big visual problems, clamp input
     clip = core.akarin.Expr(clip, "x 0 1 clamp")
-    #clip = core.std.Limiter(clip, max=1, planes=[0,1,2])
+    # clip = core.std.Limiter(clip, max=1, planes=[0,1,2])
 
     ######
     # VFI
@@ -94,14 +94,16 @@ def inference_clip(video_path="", clip=None):
     # clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 
     # Rife: model "rife40" up to "rife46" and "sudo_rife4"
-    model_inference = RIFE(
-        scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=False
-    )
+    # model_inference = RIFE(
+    #    scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=False
+    # )
 
     # IFRNet: model="small" or "large"
     # model_inference = IFRNet(model="small", fp16=False)
 
     # model_inference = GMFupSS(partial_fp16=False)
+
+    model_inference = GMFSS_union(partial_fp16=False)
 
     # model_inference = EISAI() # 960x540
 
