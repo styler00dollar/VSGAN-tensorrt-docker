@@ -153,7 +153,7 @@ RUN pip install docutils && git clone https://github.com/hahnec/color-matcher &&
 
 # imagemagick for imread
 RUN apt-get install checkinstall libwebp-dev libopenjp2-7-dev librsvg2-dev libde265-dev -y && git clone https://github.com/ImageMagick/ImageMagick && cd ImageMagick && \
-    ./configure --enable-shared --with-modules --with-gslib && make && \
+    ./configure --enable-shared --with-modules --with-gslib && make -j$(nproc) && \
     make install && ldconfig /usr/local/lib && cd /workspace && rm -rf ImageMagick && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 
@@ -180,12 +180,12 @@ RUN apt install build-essential manpages-dev software-properties-common -y && ad
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11 && \
     # compiling
     git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt/vstrt && mkdir build && \
-    cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R61/include -D USE_NVINFER_PLUGIN=ON && make && make install && \
+    cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R61/include -D USE_NVINFER_PLUGIN=ON && make -j$(nproc) && make install && \
     cd /workspace && rm -rf /workspace/vs-mlrt
 
 # x265
 RUN git clone https://github.com/AmusementClub/x265 /workspace/x265 && cd /workspace/x265/source/ && mkdir build && cd build && \
-    cmake .. -DNATIVE_BUILD=ON -DSTATIC_LINK_CRT=ON -DENABLE_AVISYNTH=OFF && make && make install && \
+    cmake .. -DNATIVE_BUILD=ON -DSTATIC_LINK_CRT=ON -DENABLE_AVISYNTH=OFF && make -j$(nproc) && make install && \
     cp /workspace/x265/source/build/x265 /usr/bin/x265 && \
     cp /workspace/x265/source/build/x265 /usr/local/bin/x265 && \
     cd /workspace && rm -rf /workspace/x265
@@ -239,17 +239,36 @@ RUN git clone https://github.com/Irrational-Encoding-Wizardry/Vapoursynth-VFRToC
     mkdir build && cd build && meson --buildtype release .. && ninja && ninja install && cd /workspace && rm -rf Vapoursynth-VFRToCFR
 
 # vapoursynth-mvtools
-RUN git clone https://github.com/dubhater/vapoursynth-mvtools && cd vapoursynth-mvtools && ./autogen.sh && ./configure && make && make install && \
+RUN git clone https://github.com/dubhater/vapoursynth-mvtools && cd vapoursynth-mvtools && ./autogen.sh && ./configure && make -j$(nproc) && make install && \
     cd /workspace && rm -rf vapoursynth-mvtools
 
 # fmtconv
-RUN git clone https://github.com/EleonoreMizo/fmtconv && cd fmtconv/build/unix/ && ./autogen.sh && ./configure && make && make install && \
+RUN git clone https://github.com/EleonoreMizo/fmtconv && cd fmtconv/build/unix/ && ./autogen.sh && ./configure && make -j$(nproc) && make install && \
     cd /workspace && rm -rf fmtconv
 
 # akarin vs
 RUN apt install llvm-12 llvm-12-dev -y && git clone https://github.com/AkarinVS/vapoursynth-plugin && \
     cd vapoursynth-plugin && meson build && ninja -C build && \
     ninja -C build install && cd /workspace && rm -rf vapoursynth-plugin
+
+# scxvid
+RUN apt install libxvidcore-dev -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && \
+    git clone https://github.com/dubhater/vapoursynth-scxvid && cd vapoursynth-scxvid && ./autogen.sh && ./configure && make -j$(nproc) && make install && \
+    cd /workspace && rm -rf vapoursynth-scxvid
+
+# wwxd
+RUN git clone https://github.com/dubhater/vapoursynth-wwxd && cd vapoursynth-wwxd && \
+    gcc -o libwwxd.so -fPIC -shared -O2 -Wall -Wextra -Wno-unused-parameter $(pkg-config --cflags vapoursynth) src/wwxd.c src/detection.c && \
+    cp libwwxd.so /usr/local/lib/libwwxd.so && cd /workspace && rm -rf vapoursynth-wwxd
+
+# lsmash
+# compiling ffmpeg because apt packages are too old (ffmpeg4.4 because 5 fails to compile)
+# using shared to avoid -fPIC https://ffmpeg.org/pipermail/libav-user/2014-December/007720.html
+RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && git switch release/4.4 && git checkout de1132a89113b131831d8edde75214372c983f32 && \
+    CFLAGS=-fPIC ./configure --enable-shared --disable-static --enable-pic && make -j$(nproc) && make install && ldconfig && cd /workspace && rm -rf FFmpeg && \
+    git clone https://github.com/l-smash/l-smash && cd l-smash && CFLAGS=-fPIC ./configure --disable-static --enable-shared  && make -j$(nproc) && make install && cd /workspace && rm -rf l-smash && \
+    git clone https://github.com/AkarinVS/L-SMASH-Works && cd L-SMASH-Works/VapourSynth/ && meson build && ninja -C build && ninja -C build install && \
+    cd /workspace && rm -rf L-SMASH-Works && ldconfig
 
 # deleting files
 RUN rm -rf 1.3.231.2 cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth-R61
@@ -263,7 +282,7 @@ RUN mv /usr/src/tensorrt/bin/trtexec /usr/bin
 
 # using own custom compiled ffmpeg
 RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/ffmpeg && \
-    chmod +x ffmpeg && rm -rf /usr/bin/ffmpeg && mv ffmpeg /usr/bin/ffmpeg
+    chmod +x ffmpeg && rm -rf /usr/local/bin/ffmpeg && mv ffmpeg /usr/local/bin/ffmpeg
 
 # install custom opencv for av1
 RUN apt install libtbb2 libgtk2.0-0 -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && \

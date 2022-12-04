@@ -41,7 +41,8 @@ core.num_threads = 4  # can influence ram usage
 # only needed if you are inside docker
 core.std.LoadPlugin(path="/usr/lib/x86_64-linux-gnu/libffms2.so")
 core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
-
+core.std.LoadPlugin(path="/usr/local/lib/libscxvid.so")
+core.std.LoadPlugin(path="/usr/local/lib/libwwxd.so")
 
 def inference_clip(video_path="", clip=None):
     # ddfi is passing clip
@@ -68,6 +69,8 @@ def inference_clip(video_path="", clip=None):
 
     # SCENE DETECT
     clip = core.misc.SCDetect(clip=clip, threshold=0.100)
+    #clip = core.scxvid.Scxvid(clip, use_slices=True) # todo
+    #clip = core.wwxd.WWXD(clip=clip) # todo
     ###############################################
     # COLORSPACE
     ###############################################
