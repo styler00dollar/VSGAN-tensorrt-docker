@@ -1,0 +1,77 @@
+FROM nvcr.io/nvidia/tensorrt:22.09-py3
+ARG DEBIAN_FRONTEND=noninteractive
+# if you have 404 problems when you build the docker, try to run the upgrade
+#RUN apt-get dist-upgrade -y
+
+# cmake
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.25.1/cmake-3.25.1-linux-x86_64.sh && \
+    chmod +x cmake-3.25.1-linux-x86_64.sh && sh cmake-3.25.1-linux-x86_64.sh --skip-license && \
+    cp /workspace/bin/cmake /usr/bin/cmake && cp /workspace/bin/cmake /usr/lib/x86_64-linux-gnu/cmake && \
+    cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-3.25 /usr/local/share/
+
+RUN apt update -y && \
+    #apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa -y && \
+    apt install pkg-config wget python3-pip git p7zip-full autoconf libtool yasm ffmsindex libffms2-4 libffms2-dev -y && \
+    wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.zip && 7z x release-3.0.4.zip && \
+    cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j4 && make install && cd .. && rm -rf zimg-release-3.0.4 release-3.0.4.zip && \
+    pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R61.zip && \
+    7z x R61.zip && cd vapoursynth-R61 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
+    ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.8/lib-dynload/vapoursynth.so && \
+    MAKEFLAGS="-j$(nproc)" pip install wget scipy vapoursynth meson ninja numba numpy opencv-python opencv-contrib-python cupy thop einops \
+    numpy --pre torch[dynamo] --extra-index-url https://download.pytorch.org/whl/nightly/cu117 \
+    kornia onnx --force-reinstall -U && \
+    # not deleting vapoursynth-R61 since vs-mlrt needs it
+    rm -rf R61.zip && \
+    apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip cache purge
+
+# vs-mlrt
+# upgrading g++
+RUN apt install build-essential manpages-dev software-properties-common -y && add-apt-repository ppa:ubuntu-toolchain-r/test -y && \
+    apt update -y && apt install gcc-11 g++-11 -y && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11 && \
+    # compiling
+    git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt/vstrt && mkdir build && \
+    cd build && /workspace/bin/cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R61/include -D USE_NVINFER_PLUGIN=OFF -D USE_NVINFER_PLUGIN_STATIC=OFF && make && make install && \
+    cd /workspace && rm -rf /workspace/vs-mlrt
+
+# descale
+RUN git clone https://github.com/Irrational-Encoding-Wizardry/descale && cd descale && meson build && ninja -C build && ninja -C build install && \
+    cd .. && rm -rf descale
+
+########################
+# vs plugins 
+
+# Vapoursynth-VFRToCFR
+RUN git clone https://github.com/Irrational-Encoding-Wizardry/Vapoursynth-VFRToCFR && cd Vapoursynth-VFRToCFR && \
+    mkdir build && cd build && meson --buildtype release .. && ninja && ninja install && cd /workspace && rm -rf Vapoursynth-VFRToCFR
+
+# vapoursynth-mvtools
+RUN apt install nasm fftw3-dev -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && git clone https://github.com/dubhater/vapoursynth-mvtools && cd vapoursynth-mvtools && ./autogen.sh && ./configure && make && make install && \
+    cd /workspace && rm -rf vapoursynth-mvtools
+
+# fmtconv
+RUN git clone https://github.com/EleonoreMizo/fmtconv && cd fmtconv/build/unix/ && ./autogen.sh && ./configure && make && make install && \
+    cd /workspace && rm -rf fmtconv
+
+# akarin vs
+RUN apt install llvm-12 llvm-12-dev -y && git clone https://github.com/AkarinVS/vapoursynth-plugin && \
+    cd vapoursynth-plugin && meson build && ninja -C build && \
+    ninja -C build install && cd /workspace && rm -rf vapoursynth-plugin
+
+# deleting files
+RUN rm -rf 1.3.231.2 zimg cmake-3.25.1-linux-x86_64.sh vapoursynth-R61
+
+# move trtexec so it can be globally accessed
+RUN mv /usr/src/tensorrt/bin/trtexec /usr/bin 
+
+########################
+# using own custom compiled ffmpeg
+RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/ffmpeg && \
+    chmod +x ffmpeg && rm -rf /usr/bin/ffmpeg && mv ffmpeg /usr/bin/ffmpeg
+
+# install custom opencv for av1
+RUN apt install libtbb2 libgtk2.0-0 -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && \
+    pip install https://github.com/styler00dollar/opencv-python/releases/download/4.6.0.3725898/opencv_contrib_python-4.6.0.3725898-cp38-cp38-linux_x86_64.whl 
+
+ENV CUDA_MODULE_LOADING=LAZY
+WORKDIR /workspace/tensorrt
