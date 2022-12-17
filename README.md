@@ -52,6 +52,7 @@ Currently working networks:
 - ST-MFNet with [danielism97/ST-MFNet](https://github.com/danielism97/ST-MFNet)
 - VapSR with [zhoumumu/VapSR](https://github.com/zhoumumu/VapSR)
 - GMFSS_union with [98mxr/GMFSS_union](https://github.com/98mxr/GMFSS_union)
+- AI scene detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer), [lucidrains/TimeSformer-pytorch](https://github.com/lucidrains/TimeSformer-pytorch) and [OpenGVLab/UniFormerV2](https://github.com/OpenGVLab/UniFormerV2)
 
 Also used:
 - TensorRT C++ inference with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
@@ -213,10 +214,61 @@ The properties in the clip will then be used to skip similar frames.
 
 ## Scene change detection
 
+Scene change detection is implemented in various different ways. To use traditional scene change without ai you can do:
+
 ```python
 clip = core.misc.SCDetect(clip=clip, threshold=0.100)
 ```
 The clip property will then be used in frame interpolation inference.
+
+Recently I started experimenting in training my own scene change detect models and I used a dataset with 272.016 images (90.884 triplets) which includes everything from animation to real video (vimeo90k + animeinterp + custom data). So these should work on any kind of video.
+
+```python
+clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98, fp16=False)
+```
+
+**Warning: Keep in mind that different models may require a different thresh to be good.**
+
+I think that `efficientnetv2_b0` is a good balance between speed and results. It overall did quite good. The other models which are included are not listed in an order. They looked all looked ok, but you would need to test yourself to dertermine an opinion.
+
+My personal favorites would be `efficientnetv2_b0`, `efficientformerv2_s0`, `maxvit_small` and `swinv2_small` for video interpolation tasks. Even if they overdetect a little, the main point is to avoid bad interpolation frames and the detection of bigger differences and scene changes is key because of that. Models will have a hard time discerning if bigger differences are a scene change and handle it in their own way. Some will trigger more and some less.
+
+Sidenote: "overdetect" is a bit hard to define with animation. There is no objective way of saying what frames are similar for drawn animation compared to irl videos. With a fast scene, fighting scene, zooming scene or scenes with particle effects covering a lot of the screen bigger differences can happen, but it does not necessarily mean a scene change. What about partial transitions and only partially changing screens? These are based on my opinion.
+
+Model list:
+- efficientnetv2_b0: Good overall
+- efficientformerv2_s0: good overall
+- maxvit_small: good, but can overdetect at high movement
+- regnetz_005: good overall
+- repvgg_b0: does barely overdetect, but seems to miss a few frames
+- resnetrs50: a bit hit and miss, but does not overdetect
+- resnetv2_50: might miss a bit, needs lower thresh like 0.9
+- rexnet_100: not too much and not too little, not perfect tho
+- swinv2_small: detects more than efficientnetv2_b0, but detects a bit too much at high movement
+- TimeSformer: it's alright, but might overdetect a little
+
+Models that I trained but seemed to be bad:
+- hornet_tiny_7x7
+- renset50
+- STAM
+- volo_d1
+- tf_efficientnetv2_xl_in21k
+- resnext50_32x4d
+- nfnet_f0
+- swsl_resnet18
+- poolformer_m36
+- densenet121
+
+Interesting observations:
+- Applying means/stds seemingly worsened results, despite people doing that as standard practise.
+- Applying image augmentation worsened results.
+- Training with higher batchsize made detections a little more stable, but maybe that was placebo and a result of more finetuning.
+
+Comparison to traditional methods:
+- [wwxd](https://github.com/dubhater/vapoursynth-wwxd) and [scxvid](https://github.com/dubhater/vapoursynth-scxvid) suffer from overdetection (at least in drawn animation).
+- The json that [master-of-zen/Av1an](https://github.com/master-of-zen/Av1an) produces with `--sc-only --sc-method standard --scenes test.json` returns too little scene changes. Changing the method does not really influence a lot. Not reliable enough for vfi.
+- I can't be bothered to [Breakthrough/PySceneDetect](https://github.com/Breakthrough/PySceneDetect) get working with vapousynth with FrameEval and by default it only works with video or image sequence as input. I may try in the future, but I don't understand why I cant just input two images.
+- `misc.SCDetect` seemed like the best traditional vapoursynth method that does currently exist, but I thought I could try to improve. It struggles harder with similar colors and tends to skip more changes compared to ai methods.
 
 <div id='vs-mlrt'/>
 
