@@ -59,22 +59,22 @@ def inference_clip(video_path="", clip=None):
 
         # resizing with descale
         # Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale
-        # clip = core.descale.Debilinear(clip, 1280, 720)
+        clip = core.descale.Debilinear(clip, 1280, 720)
 
     ###############################################
     # SIMILARITY
     # Set properties in clip for it to be applied
     # SSIM for deduplication in frame interpolation
 
-    #offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
-    #offs1 = core.std.CopyFrameProps(offs1, clip)
+    # offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
+    # offs1 = core.std.CopyFrameProps(offs1, clip)
     # 0 = PSNR, 1 = PSNR-HVS, 2 = SSIM, 3 = MS-SSIM, 4 = CIEDE2000
-    #clip = core.vmaf.Metric(clip, offs1, 2)
+    # clip = core.vmaf.Metric(clip, offs1, 2)
 
     # SCENE DETECT
-    #clip = core.misc.SCDetect(clip=clip, threshold=0.100)
-    #clip = core.scxvid.Scxvid(clip, use_slices=True) # todo
-    #clip = core.wwxd.WWXD(clip=clip) # todo
+    # clip = core.misc.SCDetect(clip=clip, threshold=0.100)
+    # clip = core.scxvid.Scxvid(clip, use_slices=True) # todo
+    # clip = core.wwxd.WWXD(clip=clip) # todo
 
     # model based scene detect needs RGBS as input
     # clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98, fp16=False)
@@ -95,7 +95,7 @@ def inference_clip(video_path="", clip=None):
     # in rare cases it can happen that image range is not 0-1 and that resulting in big visual problems, clamp input
     clip = core.akarin.Expr(clip, "x 0 1 clamp")
     # clip = core.std.Limiter(clip, max=1, planes=[0,1,2])
-    clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98, fp16=False)
+    clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98)
 
     ######
     # VFI
@@ -105,9 +105,9 @@ def inference_clip(video_path="", clip=None):
     # clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 
     # Rife: model "rife40" up to "rife46" and "sudo_rife4"
-    #model_inference = RIFE(
+    # model_inference = RIFE(
     #    scale=1, fastmode=True, ensemble=False, model_version="rife46", fp16=True
-    #)
+    # )
 
     # IFRNet: model="small" or "large"
     # model_inference = IFRNet(model="small", fp16=False)

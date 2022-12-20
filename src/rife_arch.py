@@ -348,6 +348,7 @@ class IFNet(nn.Module):
         training=True,
         fastmode=True,
         ensemble=False,
+        return_flow=False,
     ):
         n, c, h, w = img0.shape
         ph = ((h - 1) // 64 + 1) * 64
@@ -448,6 +449,8 @@ class IFNet(nn.Module):
             warped_img0 = warp(img0, flow[:, :2])
             warped_img1 = warp(img1, flow[:, 2:4])
             merged.append((warped_img0, warped_img1))
+        if return_flow:
+            return flow_list
         mask_list[3] = torch.sigmoid(mask_list[3])
         merged[3] = merged[3][0] * mask_list[3] + merged[3][1] * (1 - mask_list[3])
         if not fastmode and self.arch_ver not in ["4.5", "4.6"]:
@@ -456,4 +459,4 @@ class IFNet(nn.Module):
             tmp = self.unet(img0, img1, warped_img0, warped_img1, mask, flow, c0, c1)
             res = tmp[:, :3] * 2 - 1
             merged[3] = torch.clamp(merged[3] + res, 0, 1)
-        return merged[3][:, :, :h, :w]  # , flow_list
+        return merged[3][:, :, :h, :w]

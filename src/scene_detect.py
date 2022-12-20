@@ -12,6 +12,8 @@ import cv2
 import timm
 import torchvision
 from .download import check_and_download
+import traceback
+import sys
 
 
 def find_scenes(video_path, threshold=30.0):
@@ -34,14 +36,14 @@ def find_scenes(video_path, threshold=30.0):
 
     return framelist
 
-
+# todo: fp16
 def scene_detect(
     clip: vs.VideoNode,
     model_name: str = "efficientnetv2_b0",
     thresh: float = 0.98,
-    fp16: bool = False,
 ) -> vs.VideoNode:
     core = vs.core
+    use_rife = False
 
     def frame_to_tensor(frame: vs.VideoFrame):
         return np.stack(
@@ -64,6 +66,7 @@ def scene_detect(
             selector=lambda n, f: tensor_to_frame(f.copy(), image),
         )
 
+    model_name = "efficientformerv2_s0+rife46"
     if model_name == "efficientnetv2_b0":
         model_path = "/workspace/tensorrt/models/sc_efficientnetv2b0_17957_256.pth"
         check_and_download(model_path)
@@ -72,20 +75,54 @@ def scene_detect(
         )
         resolution = 256
         video_arch = False
+
+    elif model_name == "efficientnetv2b0+rife46":
+        model_path = (
+            "/workspace/tensorrt/models/sc_efficientnetv2b0+rife46_flow_1362_256.pth"
+        )
+        check_and_download(model_path)
+        model = timm.create_model(
+            "tf_efficientnetv2_b0", num_classes=2, pretrained=False, in_chans=22
+        )
+        use_rife = True
+        resolution = 256
+        video_arch = False
+
     elif model_name == "efficientformerv2_s0":
         model_path = "/workspace/tensorrt/models/sc_efficientformerv2_s0_12263_224.pth"
         check_and_download(model_path)
         from src.sc.efficientformer_v2_arch import efficientformerv2_s0
 
-        model = efficientformerv2_s0()
+        model = efficientformerv2_s0(in_ch=6)
         resolution = 224
         video_arch = False
+    elif model_name == "efficientformerv2_s0+rife46":
+        model_path = (
+            "/workspace/tensorrt/models/sc_efficientformerv2_s0+rife46_63972_224.pth"
+        )
+        check_and_download(model_path)
+        from src.sc.efficientformer_v2_arch import efficientformerv2_s0
+
+        model = efficientformerv2_s0(in_ch=22)
+        use_rife = True
+        resolution = 224
+        video_arch = False
+
     elif model_name == "maxvit_small":
         model_path = "/workspace/tensorrt/models/sc_maxvit_small_9072_224.pth"
         check_and_download(model_path)
         model = timm.create_model(
             "maxvit_small_224", num_classes=2, pretrained=False, in_chans=6
         )
+        resolution = 224
+        video_arch = False
+    elif model_name == "maxvit_small+rife46":
+        model_path = "/workspace/tensorrt/models/sc_maxvit_small+rife46_1512_224.pth"
+        check_and_download(model_path)
+        model = timm.create_model(
+            "maxvit_small_224", num_classes=2, pretrained=False, in_chans=22
+        )
+        use_rife = True
         resolution = 224
         video_arch = False
     elif model_name == "regnetz_005":
@@ -134,6 +171,17 @@ def scene_detect(
         model = timm.create_model(
             "swinv2_small_window16_256", num_classes=2, pretrained=False, in_chans=6
         )
+        resolution = 256
+        video_arch = False
+    elif model_name == "swinv2_small+rife46":
+        model_path = (
+            "/workspace/tensorrt/models/sc_swinv2_small_window16+rife46_1814_256.pth"
+        )
+        check_and_download(model_path)
+        model = timm.create_model(
+            "swinv2_small_window16_256", num_classes=2, pretrained=False, in_chans=22
+        )
+        use_rife = True
         resolution = 256
         video_arch = False
     elif model_name == "TimeSformer":
@@ -186,8 +234,15 @@ def scene_detect(
 
     model.load_state_dict(torch.load(model_path))
     model.cuda().eval()
-    if fp16:
-        model.half()
+
+    if use_rife:
+        from .rife_arch import IFNet
+
+        model_path = "/workspace/tensorrt/models/rife46.pth"
+        check_and_download(model_path)
+        rife_model = IFNet(arch_ver="4.6")
+        rife_model.load_state_dict(torch.load(model_path), True)
+        rife_model.eval().cuda()
 
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
         I0 = frame_to_tensor(clip.get_frame(n))
@@ -196,23 +251,27 @@ def scene_detect(
         I1 = np.rollaxis(I1, 0, 3)
         I0 = cv2.resize(I0, (resolution, resolution), interpolation=cv2.INTER_AREA)
         I1 = cv2.resize(I1, (resolution, resolution), interpolation=cv2.INTER_AREA)
-        I0 = torch.from_numpy(I0).unsqueeze(0).permute(0, 3, 1, 2)
-        I1 = torch.from_numpy(I1).unsqueeze(0).permute(0, 3, 1, 2)
+        I0 = torch.from_numpy(I0).unsqueeze(0).permute(0, 3, 1, 2).cuda()
+        I1 = torch.from_numpy(I1).unsqueeze(0).permute(0, 3, 1, 2).cuda()
 
         with torch.inference_mode():
             if not video_arch:
-                img = torch.cat([I0, I1], dim=1).cuda()
+                img = torch.cat([I0, I1], dim=1)
             elif model_name == "TimeSformer":
-                img = torch.stack([I0, I1], dim=0).cuda()
+                img = torch.stack([I0, I1], dim=0)
             elif model_name == "uniformerv2_b16":
                 img = (
                     torch.stack([I0.squeeze(0), I1.squeeze(0)], dim=0)
-                    .cuda()
                     .unsqueeze(0)
                     .permute(0, 2, 1, 3, 4)
                 )
-            if fp16:
-                img = img.half()
+            if use_rife:
+                out = rife_model(I0, I1, return_flow=True)
+                for i in range(4):
+                    img = torch.cat(
+                        [img.cuda(), out[i][:, :, :resolution, :resolution].cuda()],
+                        dim=1,
+                    )
             result = model(img)
 
         y_prob = torch.softmax(result, dim=1)

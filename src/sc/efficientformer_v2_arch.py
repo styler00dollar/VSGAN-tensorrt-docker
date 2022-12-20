@@ -695,6 +695,7 @@ class EfficientFormerV2(nn.Module):
         distillation=True,
         resolution=224,
         e_ratios=expansion_ratios_L,
+        in_ch=6,
         **kwargs,
     ):
         super().__init__()
@@ -703,7 +704,7 @@ class EfficientFormerV2(nn.Module):
             self.num_classes = num_classes
         self.fork_feat = fork_feat
 
-        self.patch_embed = stem(6, embed_dims[0], act_layer=act_layer)
+        self.patch_embed = stem(in_ch, embed_dims[0], act_layer=act_layer)
 
         network = []
         for i in range(len(layers)):
@@ -871,7 +872,7 @@ def _cfg(url="", **kwargs):
 
 
 @register_model
-def efficientformerv2_s0(pretrained=False, **kwargs):
+def efficientformerv2_s0(pretrained=False, in_ch=6, **kwargs):
     model = EfficientFormerV2(
         layers=EfficientFormer_depth["S0"],
         embed_dims=EfficientFormer_width["S0"],
@@ -879,6 +880,7 @@ def efficientformerv2_s0(pretrained=False, **kwargs):
         vit_num=2,
         drop_path_rate=0.0,
         e_ratios=expansion_ratios_S0,
+        in_ch=in_ch,
         **kwargs,
     )
     model.default_cfg = _cfg(crop_pct=0.9)

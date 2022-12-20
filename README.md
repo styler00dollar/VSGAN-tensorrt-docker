@@ -224,7 +224,7 @@ The clip property will then be used in frame interpolation inference.
 Recently I started experimenting in training my own scene change detect models and I used a dataset with 272.016 images (90.884 triplets) which includes everything from animation to real video (vimeo90k + animeinterp + custom data). So these should work on any kind of video.
 
 ```python
-clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98, fp16=False)
+clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98)
 ```
 
 **Warning: Keep in mind that different models may require a different thresh to be good.**
@@ -237,14 +237,18 @@ Sidenote: "overdetect" is a bit hard to define with animation. There is no objec
 
 Model list:
 - efficientnetv2_b0: Good overall
+- efficientnetv2_b0+rife46
 - efficientformerv2_s0: good overall
+- efficientformerv2_s0+rife46
 - maxvit_small: good, but can overdetect at high movement
+- maxvit_small+rife46
 - regnetz_005: good overall
 - repvgg_b0: does barely overdetect, but seems to miss a few frames
 - resnetrs50: a bit hit and miss, but does not overdetect
 - resnetv2_50: might miss a bit, needs lower thresh like 0.9
 - rexnet_100: not too much and not too little, not perfect tho
 - swinv2_small: detects more than efficientnetv2_b0, but detects a bit too much at high movement
+- swinv2_small+rife46
 - TimeSformer: it's alright, but might overdetect a little
 
 Models that I trained but seemed to be bad:
