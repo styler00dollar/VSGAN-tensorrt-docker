@@ -66,7 +66,6 @@ def scene_detect(
             selector=lambda n, f: tensor_to_frame(f.copy(), image),
         )
 
-    model_name = "efficientformerv2_s0+rife46"
     if model_name == "efficientnetv2_b0":
         model_path = "/workspace/tensorrt/models/sc_efficientnetv2b0_17957_256.pth"
         check_and_download(model_path)
@@ -98,7 +97,7 @@ def scene_detect(
         video_arch = False
     elif model_name == "efficientformerv2_s0+rife46":
         model_path = (
-            "/workspace/tensorrt/models/sc_efficientformerv2_s0+rife46_63972_224.pth"
+            "/workspace/tensorrt/models/sc_efficientformerv2_s0+rife46_84119_224.pth"
         )
         check_and_download(model_path)
         from src.sc.efficientformer_v2_arch import efficientformerv2_s0
