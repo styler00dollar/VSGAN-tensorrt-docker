@@ -2036,7 +2036,7 @@ def backwarp(tenIn, tenFlow):
 
 
 class MetricNet(nn.Module):
-    def __init__(self):
+    def __init__(self, partial_fp16):
         super(MetricNet, self).__init__()
         self.metric_net = nn.Sequential(
             nn.Conv2d(14, 64, 3, 1, 1),
@@ -2045,6 +2045,9 @@ class MetricNet(nn.Module):
             nn.PReLU(),
             nn.Conv2d(64, 2, 3, 1, 1),
         )
+        self.partial_fp16 = partial_fp16
+        if partial_fp16:
+            self.metric_net = self.metric_net.half()
 
     def forward(self, img0, img1, flow01, flow10):
         metric0 = F.l1_loss(img0, backwarp(img1, flow01), reduction="none").mean(
@@ -2054,6 +2057,16 @@ class MetricNet(nn.Module):
             [1], True
         )
         fwd_occ, bwd_occ = forward_backward_consistency_check(flow01, flow10)
+
+        if self.partial_fp16:
+            img0 = img0.half()
+            metric0 = metric0.half()
+            flow01 = flow01.half()
+            fwd_occ = fwd_occ.half()
+            img1 = img1.half()
+            metric1 = metric1.half()
+            flow10 = flow10.half()
+            bwd_occ = bwd_occ.half()
 
         metric = self.metric_net(
             torch.cat(
@@ -2071,6 +2084,8 @@ class MetricNet(nn.Module):
             )
         )
 
+        if self.partial_fp16:
+            metric = metric.float()
         return metric[:, :1], metric[:, 1:2]
 
 
@@ -2297,10 +2312,14 @@ class FeatureExtractor(nn.Module):
 class AnimeInterp(nn.Module):
     """The quadratic model"""
 
-    def __init__(self):
+    def __init__(self, partial_fp16=True):
         super(AnimeInterp, self).__init__()
         self.feat_ext = FeatureExtractor()
         self.synnet = GridNet(6, 64, 128, 96 * 2, 3)
+        self.partial_fp16 = partial_fp16
+
+        if partial_fp16:
+            self.synnet = self.synnet.half()
 
     def forward(self, I1, I2, reuse_things, merged, t):
         F12, Z1, feat11, feat12, feat13 = (
@@ -2385,13 +2404,24 @@ class AnimeInterp(nn.Module):
         norm2t3 = warp(one23, F2tddd, Z2ddd, strMode="soft")
         feat2t3[norm2t3 > 0] = feat2t3[norm2t3 > 0] / norm2t3[norm2t3 > 0]
 
-        It_warp = self.synnet(
-            torch.cat([I1t, I2t], dim=1),
-            torch.cat([feat1t1, feat2t1], dim=1),
-            torch.cat([feat1t2, feat2t2], dim=1),
-            torch.cat([feat1t3, feat2t3], dim=1),
-            merged,
-        )
+        if self.partial_fp16:
+            It_warp = self.synnet(
+                torch.cat([I1t, I2t], dim=1).half(),
+                torch.cat([feat1t1, feat2t1], dim=1).half(),
+                torch.cat([feat1t2, feat2t2], dim=1).half(),
+                torch.cat([feat1t3, feat2t3], dim=1).half(),
+                merged.half()
+            )
+            It_warp = It_warp.float()
+
+        if not self.partial_fp16:
+            It_warp = self.synnet(
+                torch.cat([I1t, I2t], dim=1),
+                torch.cat([feat1t1, feat2t1], dim=1),
+                torch.cat([feat1t2, feat2t2], dim=1),
+                torch.cat([feat1t3, feat2t3], dim=1),
+                merged
+            )
 
         return torch.clamp(It_warp, 0, 1)
 
@@ -2403,10 +2433,11 @@ class Model:
     def __init__(self, partial_fp16):
         self.flownet = GMFlow(partial_fp16=partial_fp16)
         self.ifnet = IFNet(arch_ver="4.6")
-        self.metricnet = MetricNet()  # partial_fp16 todo
-        self.fusionnet = AnimeInterp()  # partial_fp16
+        self.metricnet = MetricNet(partial_fp16=partial_fp16)
+        self.fusionnet = AnimeInterp(partial_fp16=partial_fp16)
         self.version = 3.9
         self.model_type = "vanilla"
+        self.partial_fp16 = partial_fp16
 
     def eval(self):
         self.flownet.eval()
@@ -2437,6 +2468,8 @@ class Model:
         ifnet_path = "/workspace/tensorrt/models/rife46.pth"
         check_and_download(ifnet_path)
         self.ifnet.load_state_dict(torch.load(ifnet_path))
+        if self.partial_fp16:
+            self.ifnet.half()
 
     def reuse(self, img0, img1, scale):
         feat11, feat12, feat13 = self.fusionnet.feat_ext((img0 - 0.5) / 0.5)
@@ -2494,8 +2527,14 @@ class Model:
         I1 = F.interpolate(I1, scale_factor=0.5, mode="bilinear", align_corners=False)
 
         scale_list = [8, 4, 2, 1]
-        merged = self.ifnet(I0, I1, timestep, scale_list)
-
+        if self.partial_fp16:
+            I0 = I0.half()
+            I1 = I1.half()
+        with torch.inference_mode():
+            merged = self.ifnet(I0, I1, timestep, scale_list)
+        if self.partial_fp16:
+            I0 = I0.float()
+            I1 = I1.float()
         out = self.fusionnet(
             I0,
             I1,
@@ -2503,7 +2542,6 @@ class Model:
             merged,
             timestep,
         )
-
         return out
 
 

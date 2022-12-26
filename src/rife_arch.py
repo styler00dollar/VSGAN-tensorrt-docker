@@ -52,6 +52,10 @@ def warp(tenInput, tenFlow):
     )
 
     g = (backwarp_tenGrid[k] + tenFlow).permute(0, 2, 3, 1)
+
+    if tenInput.type() == "torch.cuda.HalfTensor":
+        g = g.half()
+
     return torch.nn.functional.grid_sample(
         input=tenInput,
         grid=g,
