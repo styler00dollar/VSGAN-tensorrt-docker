@@ -113,7 +113,16 @@ sh start_docker.sh
 docker run --privileged --gpus all -it --rm -v /home/vsgan_path/:/workspace/tensorrt styler00dollar/vsgan_tensorrt:latest
 
 # you can use it in various ways, ffmpeg example
-vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv
+vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv -y
+# nvencc example
+vspipe -c y4m inference.py - | nvencc -i pipe: --codec av1 -o example.mkv
+# x264 example
+vspipe -c y4m inference.py - | x264 - --demuxer y4m -o example.mkv -y
+# x265 example
+vspipe -c y4m inference.py - | x265 - --y4m -o example.mkv -y
+
+# example without vspipe
+ffmpeg -f vapoursynth -i inference.py example.mkv -y
 
 # Models are outside of docker image to minimize download size and will be downloaded on demand if you run code.
 # If you want specific models you can look in https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models 
