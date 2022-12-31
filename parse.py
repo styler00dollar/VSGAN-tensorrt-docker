@@ -3,8 +3,8 @@ import os
 import functools
 
 core = vs.core
-core.num_threads = 4
-core.max_cache_size = 4096
+core.num_threads = 32
+core.max_cache_size = 4096*8
 
 core.std.LoadPlugin(path="/usr/lib/x86_64-linux-gnu/libffms2.so")
 core.std.LoadPlugin(path="/usr/local/lib/libfmtconv.so")

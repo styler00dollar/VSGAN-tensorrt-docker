@@ -1,5 +1,5 @@
 import sys
-
+import os
 sys.path.append("/workspace/tensorrt/")
 import vapoursynth as vs
 
@@ -59,7 +59,7 @@ def inference_clip(video_path="", clip=None):
 
         # resizing with descale
         # Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale
-        clip = core.descale.Debilinear(clip, 1280, 720)
+        #clip = core.descale.Debilinear(clip, 1280, 720)
 
     ###############################################
     # SIMILARITY
@@ -78,6 +78,13 @@ def inference_clip(video_path="", clip=None):
 
     # model based scene detect needs RGBS as input
     # clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98, fp16=False)
+
+    # dedup (requires you to call "vspipe parse.py -p ." to generate infos_running.txt and tmp.txt)
+    #from src.dedup import get_dedup_frames
+    #frames_duplicated, frames_duplicating = get_dedup_frames()
+    #clip = core.std.DeleteFrames(clip, frames_duplicated)
+    # do upscaling here
+    #clip = core.std.DuplicateFrames(clip, frames_duplicating)
     ###############################################
     # COLORSPACE
     ###############################################
@@ -95,7 +102,7 @@ def inference_clip(video_path="", clip=None):
     # in rare cases it can happen that image range is not 0-1 and that resulting in big visual problems, clamp input
     clip = core.akarin.Expr(clip, "x 0 1 clamp")
     # clip = core.std.Limiter(clip, max=1, planes=[0,1,2])
-    clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98)
+    #clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98)
 
     ######
     # VFI
@@ -114,7 +121,7 @@ def inference_clip(video_path="", clip=None):
 
     # model_inference = GMFupSS(partial_fp16=False)
 
-    model_inference = GMFSS_union(partial_fp16=False)
+    #model_inference = GMFSS_union(partial_fp16=False)
 
     # model_inference = EISAI() # 960x540
 
@@ -129,24 +136,23 @@ def inference_clip(video_path="", clip=None):
 
     # model_inference = STMFNet()  # only 2x supported because architecture only outputs one image
 
-    clip = vfi_inference(
-        model_inference=model_inference, clip=clip, multi=2, metric_thresh=0.999
-    )
+    #clip = vfi_inference(
+    #    model_inference=model_inference, clip=clip, multi=2, metric_thresh=0.999
+    #)
 
     # clip = rife_trt(clip, multi = 2, scale = 1.0, device_id = 0, num_streams = 2, engine_path = "/workspace/tensorrt/rife46.engine")
 
     ######
     # UPSCALING WITH TENSORRT
     ######
-
     # vs-mlrt (you need to create the engine yourself, read the readme)
-    # clip = core.trt.Model(
-    #    clip,
-    #    engine_path="/workspace/tensorrt/real2x.engine",
-    #    tilesize=[854, 480],
-    #    overlap=[0 ,0],
-    #    num_streams=6,
-    # )
+    clip = core.trt.Model(
+        clip,
+        engine_path="/workspace/tensorrt/cugan.engine",
+        #tilesize=[854, 480],
+        overlap=[0 ,0],
+        num_streams=4,
+    )
 
     # vs-mlrt (DPIR)
     # DPIR does need an extra channel

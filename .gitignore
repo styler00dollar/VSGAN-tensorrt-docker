@@ -3,4 +3,6 @@
 *.pyc
 *.mp4
 *.mkv
+*.webm
 *.engine
+*.txt
