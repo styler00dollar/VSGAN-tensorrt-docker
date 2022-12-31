@@ -35,6 +35,9 @@ for f in files:
     f_txt.close()
 
     # only needed for dedup
+    #os.system("vspipe parse.py -p .")
+
+    # only needed for dedup
     os.system("vspipe parse.py -p .")
 
     os.system(
@@ -43,6 +46,11 @@ for f in files:
     os.system(
         f"ffmpeg -y -loglevel error -i {f} -i {out_render_path}  -map 1 -map 0 -map -0:v -codec copy -max_interleave_delta 0 {mux_path}"
     )
+
+    # directly muxing
+    #os.system(
+    #    f"vspipe -c y4m inference_batch.py - | ffmpeg -y -i {f} -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -crf 15 {mux_path}"
+    #)
 
     # deleting temp files
     os.remove(txt_path)
