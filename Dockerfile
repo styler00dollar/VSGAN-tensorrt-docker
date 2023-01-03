@@ -270,6 +270,19 @@ RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && git switch releas
     git clone https://github.com/AkarinVS/L-SMASH-Works && cd L-SMASH-Works/VapourSynth/ && meson build && ninja -C build && ninja -C build install && \
     cd /workspace && rm -rf L-SMASH-Works && ldconfig
 
+# julek
+RUN apt install clang -y
+RUN git clone https://github.com/dnjulek/vapoursynth-julek-plugin --recurse-submodules -j8 && cd vapoursynth-julek-plugin/thirdparty/libjxl && cmake -DCMAKE_CXX_COMPILER=clang++ \
+    -DCMAKE_C_COMPILER=clang -B build -DCMAKE_INSTALL_PREFIX=jxl_install -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DJPEGXL_ENABLE_FUZZERS=OFF \
+    -DJPEGXL_ENABLE_TOOLS=OFF -DJPEGXL_ENABLE_MANPAGES=OFF -DJPEGXL_ENABLE_BENCHMARK=OFF -DJPEGXL_ENABLE_EXAMPLES=OFF -DJPEGXL_ENABLE_JNI=OFF \
+    -DJPEGXL_ENABLE_OPENEXR=OFF -DJPEGXL_ENABLE_TCMALLOC=OFF -DBUILD_SHARED_LIBS=OFF -DJPEGXL_ENABLE_SJPEG=OFF -G Ninja && \
+    cmake --build build && cmake --install build && cd ../.. && cmake -DCMAKE_CXX_COMPILER=clang++ -B build -DCMAKE_BUILD_TYPE=Release -G Ninja && \
+    cmake --build build && cmake --install build && cd /workspace && rm -rf vapoursynth-julek-plugin
+
+# warpsharp
+RUN git clone https://github.com/dubhater/vapoursynth-awarpsharp2 && cd vapoursynth-awarpsharp2 && mkdir build && cd build && meson ../ && ninja && ninja install && \
+    cd /workspace && rm -rf vapoursynth-awarpsharp2
+
 # deleting files
 RUN rm -rf 1.3.231.2 cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth-R61
 
