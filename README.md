@@ -58,7 +58,7 @@ Also used:
 - TensorRT C++ inference with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
 - ddfi with [Mr-Z-2697/ddfi-rife](https://github.com/Mr-Z-2697/ddfi-rife) (auto dedup-duplication, not an arch)
 - nix with [lucasew/nix-on-colab](https://github.com/lucasew/nix-on-colab)
-- custom ffmpeg with [markus-perl/ffmpeg-build-script](https://github.com/markus-perl/ffmpeg-build-script)
+- custom ffmpeg with [styler00dollar/ffmpeg-static-arch-docker](https://github.com/styler00dollar/ffmpeg-static-arch-docker) in docker and [markus-perl/ffmpeg-build-script](https://github.com/markus-perl/ffmpeg-build-script) in colab currently.
 - lsmash with [AkarinVS/L-SMASH-Works](https://github.com/AkarinVS/L-SMASH-Works)
 - wwxd with [dubhater/vapoursynth-wwxd](https://github.com/dubhater/vapoursynth-wwxd)
 - scxvid with [dubhater/vapoursynth-scxvid](https://github.com/dubhater/vapoursynth-scxvid)

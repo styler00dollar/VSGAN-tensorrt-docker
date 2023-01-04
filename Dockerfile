@@ -32,7 +32,7 @@ RUN ln -s /usr/bin/python3 /usr/bin/python && \
     cd /opt/vulkan && git checkout "${VULKAN_VERSION}" && \
     mkdir build && cd build && ../scripts/update_deps.py && \
     cmake -C helper.cmake -DCMAKE_BUILD_TYPE=Release .. && \
-    cmake --build . && make install && ldconfig && \
+    cmake --build . --config Release -- -j$(nproc) && make install && ldconfig && \
     mkdir -p /usr/local/include/vulkan && cp -r Vulkan-Headers/build/install/include/vulkan/* /usr/local/include/vulkan && \
     cp -r Vulkan-Headers/include/* /usr/local/include/vulkan && \
     mkdir -p /usr/local/share/vulkan/registry && \
@@ -41,7 +41,7 @@ RUN ln -s /usr/bin/python3 /usr/bin/python && \
     cd /opt/vulkan-loader && git checkout "${VULKAN_VERSION}" && \
     mkdir build && cd build && ../scripts/update_deps.py && \
     cmake -C helper.cmake -DCMAKE_BUILD_TYPE=Release .. && \
-    cmake --build . && make install && ldconfig && \
+    cmake --build . --config Release -- -j$(nproc) && make install && ldconfig && \
     mkdir -p /usr/local/lib && cp -a loader/*.so* /usr/local/lib && \
     rm -rf /opt/vulkan && rm -rf /opt/vulkan-loader
 
@@ -272,12 +272,9 @@ RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && git switch releas
 
 # julek
 RUN apt install clang -y
-RUN git clone https://github.com/dnjulek/vapoursynth-julek-plugin --recurse-submodules -j8 && cd vapoursynth-julek-plugin/thirdparty/libjxl && cmake -DCMAKE_CXX_COMPILER=clang++ \
-    -DCMAKE_C_COMPILER=clang -B build -DCMAKE_INSTALL_PREFIX=jxl_install -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DJPEGXL_ENABLE_FUZZERS=OFF \
-    -DJPEGXL_ENABLE_TOOLS=OFF -DJPEGXL_ENABLE_MANPAGES=OFF -DJPEGXL_ENABLE_BENCHMARK=OFF -DJPEGXL_ENABLE_EXAMPLES=OFF -DJPEGXL_ENABLE_JNI=OFF \
-    -DJPEGXL_ENABLE_OPENEXR=OFF -DJPEGXL_ENABLE_TCMALLOC=OFF -DBUILD_SHARED_LIBS=OFF -DJPEGXL_ENABLE_SJPEG=OFF -G Ninja && \
-    cmake --build build && cmake --install build && cd ../.. && cmake -DCMAKE_CXX_COMPILER=clang++ -B build -DCMAKE_BUILD_TYPE=Release -G Ninja && \
-    cmake --build build && cmake --install build && cd /workspace && rm -rf vapoursynth-julek-plugin
+RUN git clone https://github.com/dnjulek/vapoursynth-julek-plugin --recurse-submodules -j8 && cd vapoursynth-julek-plugin/thirdparty && mkdir libjxl_build && cd libjxl_build && \
+    cmake -C ../libjxl_cache.cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -G Ninja ../libjxl && cmake --build . && cmake --install . && cd ../.. && \
+    cmake -DCMAKE_CXX_COMPILER=clang++ -B build -DCMAKE_BUILD_TYPE=Release -G Ninja && cmake --build build && cmake --install build && cd /workspace && rm -rf vapoursynth-julek-plugin
 
 # warpsharp
 RUN git clone https://github.com/dubhater/vapoursynth-awarpsharp2 && cd vapoursynth-awarpsharp2 && mkdir build && cd build && meson ../ && ninja && ninja install && \
@@ -300,6 +297,20 @@ RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/downlo
 # install custom opencv for av1
 RUN apt install libtbb2 libgtk2.0-0 -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && \
     pip install https://github.com/styler00dollar/opencv-python/releases/download/4.6.0.3725898/opencv_contrib_python-4.6.0.3725898-cp38-cp38-linux_x86_64.whl 
+
+# glibc outdated workaround, ffmepg needs 2.35
+RUN wget http://mirrors.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.36-0ubuntu4_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.36-0ubuntu4_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.36-0ubuntu4_i386.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.36-0ubuntu4_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.36-0ubuntu4_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl2_1.3.0-2build2_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-2build2_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3_1.3.3+ds-1_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-common_1.3.3+ds-1_all.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1.3.3+ds-1_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu6_amd64.deb && \
+    dpkg -i *.deb && rm -rf *deb
 
 ENV CUDA_MODULE_LOADING=LAZY
 WORKDIR /workspace/tensorrt
