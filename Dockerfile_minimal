@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/tensorrt:22.11-py3
+FROM nvcr.io/nvidia/tensorrt:22.12-py3
 ARG DEBIAN_FRONTEND=noninteractive
 # if you have 404 problems when you build the docker, try to run the upgrade
 #RUN apt-get dist-upgrade -y
