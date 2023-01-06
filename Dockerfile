@@ -135,8 +135,8 @@ RUN apt update -y && \
     apt install pkg-config wget python3-pip git p7zip-full x264 autoconf libtool yasm ffmsindex libffms2-4 libffms2-dev -y && \
     wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.zip && 7z x release-3.0.4.zip && \
     cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j4 && make install && cd .. && rm -rf zimg-release-3.0.4 release-3.0.4.zip && \
-    pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R61.zip && \
-    7z x R61.zip && cd vapoursynth-R61 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
+    pip install Cython && git clone https://github.com/vapoursynth/vapoursynth && cd vapoursynth && ./autogen.sh && \
+    ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.8/lib-dynload/vapoursynth.so && \
     MAKEFLAGS="-j$(nproc)" pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect opencv-python opencv-contrib-python cupy pytorch-msssim thop einops \
     torch torchvision kornia \
@@ -180,7 +180,7 @@ RUN apt install build-essential manpages-dev software-properties-common -y && ad
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11 && \
     # compiling
     git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt/vstrt && mkdir build && \
-    cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R61/include -D USE_NVINFER_PLUGIN=ON && make -j$(nproc) && make install && \
+    cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth/include -D USE_NVINFER_PLUGIN=ON && make -j$(nproc) && make install && \
     cd /workspace && rm -rf /workspace/vs-mlrt
 
 # x265
@@ -281,7 +281,7 @@ RUN git clone https://github.com/dubhater/vapoursynth-awarpsharp2 && cd vapoursy
     cd /workspace && rm -rf vapoursynth-awarpsharp2
 
 # deleting files
-RUN rm -rf 1.3.231.2 cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth-R61
+RUN rm -rf 1.3.231.2 cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth
 
 # move trtexec so it can be globally accessed
 RUN mv /usr/src/tensorrt/bin/trtexec /usr/bin 
