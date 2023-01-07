@@ -4,7 +4,7 @@ import functools
 
 core = vs.core
 core.num_threads = 32
-core.max_cache_size = 4096*8
+core.max_cache_size = 4096 * 8
 
 core.std.LoadPlugin(path="/usr/lib/x86_64-linux-gnu/libffms2.so")
 core.std.LoadPlugin(path="/usr/local/lib/libfmtconv.so")
@@ -44,10 +44,7 @@ def props2csv(
     return core.std.FrameEval(clip, functools.partial(tocsv, clip=clip), prop_src=clip)
 
 
-tmp_dir = "tmp/"
-with open(os.path.join(tmp_dir, "tmp.txt")) as f:
-    video_path = f.readlines()[0]
-clip = core.ffms2.Source(video_path, cache=False)
+clip = core.ffms2.Source(globals()["source"], cache=False)
 offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
 offs1 = core.std.CopyFrameProps(offs1, clip)
 offs1 = core.vmaf.Metric(clip, offs1, 2)
@@ -58,7 +55,7 @@ offs1 = core.std.PlaneStats(offs1)
 offs1 = props2csv(
     offs1,
     props=["_AbsoluteTime", "float_ssim", "PlaneStatsMax"],
-    output=os.path.join(tmp_dir, "infos_running.txt"),
+    output="/workspace/tensorrt/tmp/infos_running.txt",
     titles=[],
 )
 offs1.set_output()

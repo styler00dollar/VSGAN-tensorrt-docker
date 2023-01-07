@@ -4,7 +4,7 @@ import numpy as np
 ssimt = 0.999
 pxdifft = 10240
 consecutivet = 2
-tmp_dir = "tmp/"
+tmp_dir = "/workspace/tensorrt/tmp/"
 
 # https://stackoverflow.com/questions/2361945/detecting-consecutive-integers-in-a-list
 def ranges(nums):
@@ -12,6 +12,7 @@ def ranges(nums):
     gaps = [[s, e] for s, e in zip(nums, nums[1:]) if s + 1 < e]
     edges = iter(nums[:1] + sum(gaps, []) + nums[-1:])
     return list(zip(edges, edges))
+
 
 # frames to delete
 def processInfo():
