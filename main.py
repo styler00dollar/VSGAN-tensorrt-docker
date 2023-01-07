@@ -42,7 +42,7 @@ for f in files:
 
     # directly muxing
     # os.system(
-    #    f"vspipe -c y4m inference_batch.py - | ffmpeg -y -i {f} -thread_queue_size 4096 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -crf 15 {mux_path}"
+    #    f"vspipe -c y4m inference_batch.py - | ffmpeg -y -i {f} -thread_queue_size 2000 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -crf 15 {mux_path}"
     # )
 
     # deleting temp files

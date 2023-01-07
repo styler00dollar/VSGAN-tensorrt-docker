@@ -49,7 +49,7 @@ for f in files:
 
     os.system(f"vspipe /workspace/tensorrt/parse.py --arg source={gmf_path} -p .")
     os.system(
-        f"vspipe -c y4m inference_config_cugan.py --arg source={gmf_path} - | ffmpeg -y -i {f} -thread_queue_size 4096 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -crf 10 -preset slow {mux_path}"
+        f"vspipe -c y4m inference_config_cugan.py --arg source={gmf_path} - | ffmpeg -y -i {f} -thread_queue_size 2000 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -crf 10 -preset slow {mux_path}"
     )
 
-    os.remove(gmf_path)
+    #os.remove(gmf_path)
