@@ -6,7 +6,7 @@ import shutil
 input_dir = "/workspace/tensorrt/input/"
 tmp_dir = "/workspace/tensorrt/tmp"
 output_dir = "/workspace/tensorrt/output/"
-files = glob.glob(input_dir + "/**/*.webm", recursive=True)
+files = glob.glob(input_dir + "/**/*.mkv", recursive=True)
 files.sort()
 
 # creating folders if they dont exist
@@ -48,8 +48,15 @@ for f in files:
     )
 
     os.system(f"vspipe /workspace/tensorrt/parse.py --arg source={gmf_path} -p .")
+
+    # h264
+    #os.system(
+    #    f"vspipe -c y4m inference_config_cugan.py --arg source={gmf_path} - | ffmpeg -y -i {f} -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -crf 10 -preset slow {mux_path}"
+    #)
+
+    # av1_nvenc
     os.system(
-        f"vspipe -c y4m inference_config_cugan.py --arg source={gmf_path} - | ffmpeg -y -i {f} -thread_queue_size 2000 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -crf 10 -preset slow {mux_path}"
+       f"vspipe -c y4m inference_batch.py --arg source={gmf_path} - | ffmpeg -y -i {f} -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -vcodec av1_nvenc -scodec copy -cq 20 -preset p2 {mux_path}"
     )
 
     #os.remove(gmf_path)
