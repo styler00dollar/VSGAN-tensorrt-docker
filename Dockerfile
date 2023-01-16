@@ -140,8 +140,9 @@ RUN apt update -y && \
     ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.8/lib-dynload/vapoursynth.so && \
     MAKEFLAGS="-j$(nproc)" pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect opencv-python opencv-contrib-python cupy pytorch-msssim thop einops \
     torch torchvision kornia \
-    mmcv-full==1.7.0 -f https://download.openmmlab.com/mmcv/dist/cu117/torch1.13.0/index.html\
+    mmcv-full==1.7.0 -f https://download.openmmlab.com/mmcv/dist/cu117/torch1.13.0/index.html \
     https://github.com/pytorch/TensorRT/releases/download/v1.3.0/torch_tensorrt-1.3.0-cp38-cp38-linux_x86_64.whl \
+    --extra-index-url https://download.pytorch.org/whl/cu117 \
     onnx onnxruntime-gpu && \
     # not deleting vapoursynth-R61 since vs-mlrt needs it
     rm -rf R61.zip && \
@@ -184,11 +185,11 @@ RUN apt install build-essential manpages-dev software-properties-common -y && ad
     cd /workspace && rm -rf /workspace/vs-mlrt
 
 # x265
-RUN git clone https://github.com/AmusementClub/x265 /workspace/x265 && cd /workspace/x265/source/ && mkdir build && cd build && \
-    cmake .. -DNATIVE_BUILD=ON -DSTATIC_LINK_CRT=ON -DENABLE_AVISYNTH=OFF && make -j$(nproc) && make install && \
-    cp /workspace/x265/source/build/x265 /usr/bin/x265 && \
-    cp /workspace/x265/source/build/x265 /usr/local/bin/x265 && \
-    cd /workspace && rm -rf /workspace/x265
+#RUN git clone https://github.com/AmusementClub/x265 /workspace/x265 && cd /workspace/x265/source/ && mkdir build && cd build && \
+#    cmake .. -DNATIVE_BUILD=ON -DSTATIC_LINK_CRT=ON -DENABLE_AVISYNTH=OFF && make -j$(nproc) && make install && \
+#    cp /workspace/x265/source/build/x265 /usr/bin/x265 && \
+#    cp /workspace/x265/source/build/x265 /usr/local/bin/x265 && \
+#    cd /workspace && rm -rf /workspace/x265
 
 # descale
 RUN git clone https://github.com/Irrational-Encoding-Wizardry/descale && cd descale && meson build && ninja -C build && ninja -C build install && \
@@ -297,6 +298,51 @@ RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/downlo
 # install custom opencv for av1
 RUN apt install libtbb2 libgtk2.0-0 -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && \
     pip install https://github.com/styler00dollar/opencv-python/releases/download/4.6.0.3725898/opencv_contrib_python-4.6.0.3725898-cp38-cp38-linux_x86_64.whl 
+
+########################
+# av1an
+RUN apt install curl libssl-dev mkvtoolnix mkvtoolnix-gui -y
+ENV PATH="/root/.cargo/bin:$PATH"
+
+# av1an
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+    . $HOME/.cargo/env && \
+    apt install clang-12 nasm libavutil-dev libavformat-dev libavfilter-dev -y && \
+    git clone https://github.com/styler00dollar/Av1an && \
+    cd Av1an && cargo build --release --features ffmpeg_static && \
+    mv /workspace/Av1an/target/release/av1an /usr/bin && \
+    cd /workspace && rm -rf Av1an && apt-get autoremove -y && apt-get clean
+
+RUN git clone https://code.videolan.org/videolan/x264.git && \
+  cd x264 && ./configure --enable-pic --enable-static --enable-avx512 && make -j$(nproc) install
+
+# -w-macro-params-legacy to not log lots of asm warnings
+# https://bitbucket.org/multicoreware/x265_git/issues/559/warnings-when-assembling-with-nasm-215
+RUN git clone https://bitbucket.org/multicoreware/x265_git/ && cd x265_git/build/linux && \
+  cmake -G "Unix Makefiles" -DCMAKE_C_FLAGS="-mavx512f" -DCMAKE_CXX_FLAGS="-mavx512f" -DENABLE_SHARED=OFF -DENABLE_AGGRESSIVE_CHECKS=ON ../../source -DCMAKE_ASM_NASM_FLAGS=-w-macro-params-legacy && \
+  make -j$(nproc) install
+
+RUN git clone https://github.com/xiph/rav1e && \
+    cd rav1e && \
+    cargo build --release && \
+    strip ./target/release/rav1e && \
+    mv ./target/release/rav1e /usr/local/bin && \
+    cd .. && rm -rf ./rav1e
+
+RUN git clone https://gitlab.com/AOMediaCodec/SVT-AV1/ && \
+  cd SVT-AV1 && \
+  sed -i 's/picture_copy(/svt_av1_picture_copy(/g' \
+    Source/Lib/Common/Codec/EbPictureOperators.c \
+    Source/Lib/Common/Codec/EbPictureOperators.h \
+    Source/Lib/Encoder/Codec/EbFullLoop.c \
+    Source/Lib/Encoder/Codec/EbProductCodingLoop.c && \
+  cd Build && \
+  cmake .. -G"Unix Makefiles" -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && \
+  make -j$(nproc) install
+
+RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
+  cd aom && \
+  mkdir build_tmp && cd build_tmp && cmake -DCMAKE_CXX_FLAGS="-O3 -march=native -pipe" -DBUILD_SHARED_LIBS=0 -DENABLE_TESTS=0 -DENABLE_NASM=on -DCMAKE_INSTALL_LIBDIR=lib .. && make -j$(nproc) install
 
 # glibc outdated workaround, ffmepg needs 2.35
 RUN wget http://mirrors.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.36-0ubuntu4_amd64.deb \
