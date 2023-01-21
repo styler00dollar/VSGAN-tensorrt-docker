@@ -57,6 +57,9 @@ def inference_clip(video_path="", clip=None):
         # vfr video (automatically set num and den)
         # clip = core.ffms2.Source(source=video_path, fpsnum = -1, fpsden = 1, cache=False)
 
+        # lsmash
+        # clip = core.lsmas.LWLibavSource(source=video_path)
+        
         # resizing with descale
         # Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale
         #clip = core.descale.Debilinear(clip, 1280, 720)
