@@ -298,6 +298,10 @@ Rife needs 8 channels.
 ```
 trtexec --fp16 --onnx=rife.onnx --minShapes=input:1x8x64x64 --optShapes=input:1x8x720x1280 --maxShapes=input:1x8x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --buildOnly
 ```
+rvpV2 needs 6 channels, but does not support variable shapes.
+```
+trtexec --fp16 --onnx=rvp2.onnx --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --buildOnly
+```
 and put that engine path into `inference_config.py`. Only do FP16 if your GPU does support it. 
 
 **Warnings**: 

@@ -18,6 +18,7 @@ from src.sepconv_enhanced import sepconv
 from src.IFUNet import IFUNet
 from src.stmfnet import STMFNet
 from src.rife_trt import rife_trt
+from src.cain_trt import cain_trt
 
 # upscale imports
 from src.upscale_inference import upscale_inference
@@ -144,6 +145,8 @@ def inference_clip(video_path="", clip=None):
     #)
 
     # clip = rife_trt(clip, multi = 2, scale = 1.0, device_id = 0, num_streams = 2, engine_path = "/workspace/tensorrt/rife46.engine")
+
+    # clip = cain_trt(clip, device_id = 0, num_streams = 4, engine_path = "/workspace/tensorrt/rvp.engine")
 
     ######
     # UPSCALING WITH TENSORRT
