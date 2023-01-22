@@ -296,7 +296,7 @@ trtexec --fp16 --onnx=dpir_drunet_color.onnx --minShapes=input:1x4x8x8 --optShap
 ```
 Rife needs 8 channels.
 ```
-trtexec --fp16 --onnx=rife.onnx --minShapes=input:1x8x64x64 --optShapes=input:1x8x720x1280 --maxShapes=input:1x8x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --buildOnly
+trtexec --fp16 --onnx=rife.onnx --minShapes=input:1x8x64x64 --optShapes=input:1x8x720x1280 --maxShapes=input:1x8x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --buildOnly --preview=+fasterDynamicShapes0805
 ```
 rvpV2 needs 6 channels, but does not support variable shapes.
 ```
