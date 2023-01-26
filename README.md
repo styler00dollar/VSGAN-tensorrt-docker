@@ -331,8 +331,7 @@ To quickly explain what ddfi is, the repository [Mr-Z-2697/ddfi-rife](https://gi
 
 Visual examples from that repository:
 
-![IMG](https://github.com/Mr-Z-2697/ddfi/blob/main/example/ddfi.webp?raw=true)
-![IMG](https://github.com/Mr-Z-2697/ddfi/blob/main/example/simp.webp?raw=true)
+https://user-images.githubusercontent.com/74594146/142829178-ff08b96f-9ca7-45ab-82f0-4e95be045f2d.mp4
 
 To use it, first you need to edit `ddfi.py` to select your interpolator of choise and then also apply the desired framerate. The official code uses 8x and I suggest you do so too. Small example:
 ```python
