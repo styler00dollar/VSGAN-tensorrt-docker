@@ -116,7 +116,7 @@ RUN apt-get update -y && apt-get install libnvinfer8 libnvonnxparsers8 libnvpars
 #    rm -rf nv-tensorrt-repo-ubuntu2004-cuda11.4-trt8.2.5.1-ga-20220505_1-1_amd64.deb && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 # download it from nvidias website
 #COPY tensorrt-8.2.5.1-cp38-none-linux_x86_64.whl tensorrt-8.2.5.1-cp38-none-linux_x86_64.whl
-#RUN pip install tensorrt-8.2.5.1-cp38-none-linux_x86_64.whl && rm -rf tensorrt-8.2.5.1-cp38-none-linux_x86_64.whl && pip cache purge
+#RUN pip install tensorrt-8.2.5.1-cp38-none-linux_x86_64.whl && rm -rf tensorrt-8.2.5.1-cp38-none-linux_x86_64.whl 
 ######################
 
 # cmake
@@ -130,27 +130,34 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.
 # currently not on 3.10: onnx onnxruntime onnxruntime-gpu
 # python dependencies: python3 python3.8 python3.8-venv python3.8-dev
 
+ENV PATH=/usr/local/cuda-11.4/bin:$PATH
 RUN apt update -y && \
     #apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa -y && \
     apt install pkg-config wget python3-pip git p7zip-full x264 autoconf libtool yasm ffmsindex libffms2-4 libffms2-dev -y && \
     wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.zip && 7z x release-3.0.4.zip && \
     cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j4 && make install && cd .. && rm -rf zimg-release-3.0.4 release-3.0.4.zip && \
-    pip install Cython && git clone https://github.com/vapoursynth/vapoursynth && cd vapoursynth && ./autogen.sh && \
+    pip install --upgrade pip && pip install Cython && git clone https://github.com/vapoursynth/vapoursynth && cd vapoursynth && ./autogen.sh && \
     ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.8/lib-dynload/vapoursynth.so && \
-    MAKEFLAGS="-j$(nproc)" pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect opencv-python opencv-contrib-python cupy pytorch-msssim thop einops \
+    apt install sudo -y && sudo -H MAKEFLAGS="-j$(nproc)" pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect opencv-python opencv-contrib-python pytorch-msssim thop einops \
+    nvidia-pyindex tensorrt https://github.com/pytorch/TensorRT/releases/download/v1.3.0/torch_tensorrt-1.3.0-cp38-cp38-linux_x86_64.whl \
     torch torchvision kornia \
-    mmcv-full==1.7.0 -f https://download.openmmlab.com/mmcv/dist/cu117/torch1.13.0/index.html \
-    https://github.com/pytorch/TensorRT/releases/download/v1.3.0/torch_tensorrt-1.3.0-cp38-cp38-linux_x86_64.whl \
+    mmcv-full==1.7.1 -f https://download.openmmlab.com/mmcv/dist/cu117/torch1.13.0/index.html \
     --extra-index-url https://download.pytorch.org/whl/cu117 \
-    onnx onnxruntime-gpu && \
-    # not deleting vapoursynth-R61 since vs-mlrt needs it
-    rm -rf R61.zip && \
-    apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip cache purge
+    onnx onnxruntime-gpu && pip install pycuda cupy && \
+    apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y 
 
 # color transfer
-RUN pip install docutils && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py install && \
-    cd /workspace && rm -rf color-matcher && pip cache purge
+RUN apt install sudo -y && sudo -H pip install docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && sudo -H pip install . && \
+    cd /workspace && rm -rf color-matcher 
+
+# installing onnx tensorrt with a workaround, error with import otherwise
+# https://github.com/onnx/onnx-tensorrt/issues/643
+# also disables pip cache purge
+RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
+    cd onnx-tensorrt && \
+    cp -r onnx_tensorrt /usr/local/lib/python3.8/dist-packages && \
+    cd .. && rm -rf onnx-tensorrt
 
 # imagemagick for imread
 RUN apt-get install checkinstall libwebp-dev libopenjp2-7-dev librsvg2-dev libde265-dev -y && git clone https://github.com/ImageMagick/ImageMagick && cd ImageMagick && \
@@ -159,20 +166,12 @@ RUN apt-get install checkinstall libwebp-dev libopenjp2-7-dev librsvg2-dev libde
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 
 # installing tensorflow because of FILM
-RUN pip install tensorflow tensorflow-gpu tensorflow_addons gin-config && pip3 cache purge
-
-# installing onnx tensorrt with a workaround, error with import otherwise
-# https://github.com/onnx/onnx-tensorrt/issues/643
-# also disables pip cache purge
-RUN pip install nvidia-pyindex nvidia-tensorrt pycuda && git clone https://github.com/onnx/onnx-tensorrt.git && \
-    cd onnx-tensorrt && \
-    cp -r onnx_tensorrt /usr/local/lib/python3.8/dist-packages && \
-    cd .. && rm -rf onnx-tensorrt
+RUN sudo -H pip install tensorflow tensorflow_addons gin-config
 
 # vs plugings from others
 # https://github.com/HolyWu/vs-swinir
 # https://github.com/HolyWu/vs-basicvsrpp
-RUN pip install vsswinir vsbasicvsrpp
+RUN sudo -H pip install vsswinir vsbasicvsrpp
 
 # vs-mlrt
 # upgrading g++
@@ -202,16 +201,16 @@ RUN apt install mpv -y && apt-get update && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 
 # pycuda and numpy hotfix
-RUN pip install numpy==1.21 --force-reinstall
-RUN pip install pycuda --force-reinstall
+#RUN sudo -H pip install numpy==1.21 --force-reinstall
+#RUN sudo -H pip install pycuda --force-reinstall
 
 ########################
 # vulkan
 RUN apt install vulkan-utils libvulkan1 libvulkan-dev -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 
-RUN wget https://sdk.lunarg.com/sdk/download/1.3.231.2/linux/vulkansdk-linux-x86_64-1.3.231.2.tar.gz && tar -zxvf vulkansdk-linux-x86_64-1.3.231.2.tar.gz && \
-    rm -rf vulkansdk-linux-x86_64-1.3.231.2.tar.gz
-ENV VULKAN_SDK=/workspace/1.3.231.2/x86_64/
+RUN wget https://sdk.lunarg.com/sdk/download/1.3.236.0/linux/vulkansdk-linux-x86_64-1.3.236.0.tar.gz && tar -zxvf vulkansdk-linux-x86_64-1.3.236.0.tar.gz && \
+    rm -rf vulkansdk-linux-x86_64-1.3.236.0.tar.gz
+ENV VULKAN_SDK=/workspace/1.3.236.0/x86_64/
 
 # rife ncnn
 RUN apt install nasm -y && wget https://github.com/Netflix/vmaf/archive/refs/tags/v2.3.1.tar.gz && \
@@ -282,7 +281,7 @@ RUN git clone https://github.com/dubhater/vapoursynth-awarpsharp2 && cd vapoursy
     cd /workspace && rm -rf vapoursynth-awarpsharp2
 
 # deleting files
-RUN rm -rf 1.3.231.2 cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth
+RUN rm -rf 1.3.236.0 cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth
 
 # move trtexec so it can be globally accessed
 RUN mv /usr/src/tensorrt/bin/trtexec /usr/bin 
@@ -297,30 +296,29 @@ RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/downlo
 
 # install custom opencv for av1
 RUN apt install libtbb2 libgtk2.0-0 -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && \
-    pip install https://github.com/styler00dollar/opencv-python/releases/download/4.6.0.3725898/opencv_contrib_python-4.6.0.3725898-cp38-cp38-linux_x86_64.whl 
+    sudo -H pip install https://github.com/styler00dollar/opencv-python/releases/download/4.6.0.3725898/opencv_contrib_python-4.6.0.3725898-cp38-cp38-linux_x86_64.whl 
 
 ########################
 # av1an
-RUN apt install curl libssl-dev mkvtoolnix mkvtoolnix-gui -y
+RUN apt install curl libssl-dev mkvtoolnix mkvtoolnix-gui clang-12 nasm libavutil-dev libavformat-dev libavfilter-dev -y && apt-get autoremove -y && apt-get clean
 ENV PATH="/root/.cargo/bin:$PATH"
 
 # av1an
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
     . $HOME/.cargo/env && \
-    apt install clang-12 nasm libavutil-dev libavformat-dev libavfilter-dev -y && \
     git clone https://github.com/styler00dollar/Av1an && \
     cd Av1an && cargo build --release --features ffmpeg_static && \
     mv /workspace/Av1an/target/release/av1an /usr/bin && \
-    cd /workspace && rm -rf Av1an && apt-get autoremove -y && apt-get clean
+    cd /workspace && rm -rf Av1an 
 
 RUN git clone https://code.videolan.org/videolan/x264.git && \
-  cd x264 && ./configure --enable-pic --enable-static --enable-avx512 && make -j$(nproc) install
+  cd x264 && ./configure --enable-pic --enable-static --enable-avx512 && make -j$(nproc) install && cd .. && rm -rf x264
 
 # -w-macro-params-legacy to not log lots of asm warnings
 # https://bitbucket.org/multicoreware/x265_git/issues/559/warnings-when-assembling-with-nasm-215
 RUN git clone https://bitbucket.org/multicoreware/x265_git/ && cd x265_git/build/linux && \
   cmake -G "Unix Makefiles" -DCMAKE_C_FLAGS="-mavx512f" -DCMAKE_CXX_FLAGS="-mavx512f" -DENABLE_SHARED=OFF -DENABLE_AGGRESSIVE_CHECKS=ON ../../source -DCMAKE_ASM_NASM_FLAGS=-w-macro-params-legacy && \
-  make -j$(nproc) install
+  make -j$(nproc) install && cd /workspace/ && rm -rf x265_git
 
 RUN git clone https://github.com/xiph/rav1e && \
     cd rav1e && \
@@ -338,11 +336,12 @@ RUN git clone https://gitlab.com/AOMediaCodec/SVT-AV1/ && \
     Source/Lib/Encoder/Codec/EbProductCodingLoop.c && \
   cd Build && \
   cmake .. -G"Unix Makefiles" -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && \
-  make -j$(nproc) install
+  make -j$(nproc) install && cd .. && rm -rf SVT-AV1
 
 RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
   cd aom && \
-  mkdir build_tmp && cd build_tmp && cmake -DCMAKE_CXX_FLAGS="-O3 -march=native -pipe" -DBUILD_SHARED_LIBS=0 -DENABLE_TESTS=0 -DENABLE_NASM=on -DCMAKE_INSTALL_LIBDIR=lib .. && make -j$(nproc) install
+  mkdir build_tmp && cd build_tmp && cmake -DCMAKE_CXX_FLAGS="-O3 -march=native -pipe" -DBUILD_SHARED_LIBS=0 -DENABLE_TESTS=0 -DENABLE_NASM=on -DCMAKE_INSTALL_LIBDIR=lib .. && \
+  make -j$(nproc) install && cd /workspace && rm -rf aom
 
 # glibc outdated workaround, ffmepg needs 2.35
 RUN wget http://mirrors.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.36-0ubuntu4_amd64.deb \
@@ -357,6 +356,7 @@ RUN wget http://mirrors.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.36-0ubuntu4_
     http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1.3.3+ds-1_amd64.deb \
     http://mirrors.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu6_amd64.deb && \
     dpkg -i *.deb && rm -rf *deb
+
 
 ENV CUDA_MODULE_LOADING=LAZY
 WORKDIR /workspace/tensorrt
