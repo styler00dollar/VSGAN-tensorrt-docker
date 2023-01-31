@@ -37,6 +37,8 @@ from src.scunet import scunet_inference
 
 from src.scene_detect import scene_detect
 
+from src.color_transfer import vs_color_match
+
 core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 core = vs.core
@@ -64,6 +66,9 @@ def inference_clip(video_path="", clip=None):
         # resizing with descale
         # Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale
         #clip = core.descale.Debilinear(clip, 1280, 720)
+
+    # Need reference for doing color transfer
+    original_clip = clip
 
     ###############################################
     # SIMILARITY
@@ -266,6 +271,14 @@ def inference_clip(video_path="", clip=None):
     #     engine_path="/content/model.engine",
     #     num_streams=3,
     # )
+
+    ####
+    # Color Transfer
+    ####
+
+    # original_clip = original_clip.resize.Spline16(format=vs.RGB24, matrix_in_s="470bg")
+    # clip = clip.resize.Spline16(format=vs.RGB24, matrix_in_s="470bg")
+    # clip = vs_color_match(clip, original_clip, method="mkl")
 
     ###############################################
     # OUTPUT
