@@ -17,11 +17,10 @@ def vs_color_match(clip, reference_clip, method=None):
 
     def do_color_transfer(n, f):
         fout = f[1].copy()
-        if n % 2 == 0:
-            before_cm = frame_to_cm(f[0])
-            after_cm = frame_to_cm(f[1])
-            fixed = cm.transfer(after_cm, ref=before_cm, method=method)
-            cm_to_frame(fixed, fout)
+        before_cm = frame_to_cm(f[0])
+        after_cm = frame_to_cm(f[1])
+        fixed = cm.transfer(after_cm, ref=before_cm, method=method)
+        cm_to_frame(fixed, fout)
         return fout
 
     return vs.core.std.ModifyFrame(clip=clip, clips=[reference_clip, clip], selector=do_color_transfer)
