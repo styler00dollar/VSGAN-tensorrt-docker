@@ -691,6 +691,7 @@ A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads+ffv1) (rife46) | 86 | 86 | 43
 6700xt (vs_trheads=4, num_threads=2) | ? / 129.7* | ? / 60.4* | ? / 28*
 
 * Benchmarks made with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union) with threading and partial TensorRT and without setting `tactic` to `JIT_CONVOLUTIONS` and `EDGE_MASK_CONVOLUTIONS` due to performance penalty. I added [a modified version](https://github.com/styler00dollar/vs-gmfss_union) as a plugin to VSGAN, but I need to add enhancements to my own repo later.
+
 GMFSS_union | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
 4090 (num_threads=8, num_streams=4, RGBH, TRT8.5) | ? | 36.8 | 12.9
