@@ -172,6 +172,8 @@ RUN sudo -H pip install tensorflow tensorflow_addons gin-config
 # https://github.com/HolyWu/vs-swinir
 # https://github.com/HolyWu/vs-basicvsrpp
 RUN sudo -H pip install vsswinir vsbasicvsrpp
+# modified version from https://github.com/HolyWu/vs-gmfss_union
+RUN git clone https://github.com/styler00dollar/vs-gmfss_union && cd vs-gmfss_union && pip install .
 
 # vs-mlrt
 # upgrading g++
@@ -263,11 +265,13 @@ RUN git clone https://github.com/dubhater/vapoursynth-wwxd && cd vapoursynth-wwx
 
 # lsmash
 # compiling ffmpeg because apt packages are too old (ffmpeg4.4 because 5 fails to compile)
+# but branch ffmpeg-4.5 compiles with ffmpeg5 for whatever reason
 # using shared to avoid -fPIC https://ffmpeg.org/pipermail/libav-user/2014-December/007720.html
-RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && git switch release/4.4 && git checkout de1132a89113b131831d8edde75214372c983f32 && \
+# RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && git switch release/4.4 && git checkout de1132a89113b131831d8edde75214372c983f32
+RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && \
     CFLAGS=-fPIC ./configure --enable-shared --disable-static --enable-pic && make -j$(nproc) && make install && ldconfig && cd /workspace && rm -rf FFmpeg && \
     git clone https://github.com/l-smash/l-smash && cd l-smash && CFLAGS=-fPIC ./configure --disable-static --enable-shared  && make -j$(nproc) && make install && cd /workspace && rm -rf l-smash && \
-    git clone https://github.com/AkarinVS/L-SMASH-Works && cd L-SMASH-Works/VapourSynth/ && meson build && ninja -C build && ninja -C build install && \
+    git clone https://github.com/AkarinVS/L-SMASH-Works && cd L-SMASH-Works && git switch ffmpeg-4.5 && cd VapourSynth/ && meson build && ninja -C build && ninja -C build install && \
     cd /workspace && rm -rf L-SMASH-Works && ldconfig
 
 # julek
@@ -294,9 +298,9 @@ RUN mv /usr/src/tensorrt/bin/trtexec /usr/bin
 RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/ffmpeg && \
     chmod +x ffmpeg && rm -rf /usr/local/bin/ffmpeg && mv ffmpeg /usr/local/bin/ffmpeg
 
-# install custom opencv for av1
+# install custom opencv
 RUN apt install libtbb2 libgtk2.0-0 -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && \
-    sudo -H pip install https://github.com/styler00dollar/opencv-python/releases/download/4.6.0.3725898/opencv_contrib_python-4.6.0.3725898-cp38-cp38-linux_x86_64.whl 
+    sudo -H pip install https://github.com/styler00dollar/opencv-python/releases/download/4.7.0.79e1384/opencv_contrib_python-4.7.0.79e1384-cp38-cp38-linux_x86_64.whl
 
 ########################
 # av1an
