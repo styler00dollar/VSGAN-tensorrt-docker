@@ -51,7 +51,7 @@ Currently working networks:
 - GMFupSS with [98mxr/GMFupSS](https://github.com/98mxr/GMFupSS)
 - ST-MFNet with [danielism97/ST-MFNet](https://github.com/danielism97/ST-MFNet)
 - VapSR with [zhoumumu/VapSR](https://github.com/zhoumumu/VapSR)
-- GMFSS_union with [98mxr/GMFSS_union](https://github.com/98mxr/GMFSS_union)
+- GMFSS_union with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union), [styler00dollar/vs-gmfss_union](https://github.com/styler00dollar/vs-gmfss_union), [98mxr/GMFSS_union](https://github.com/98mxr/GMFSS_union)
 - AI scene detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer), [lucidrains/TimeSformer-pytorch](https://github.com/lucidrains/TimeSformer-pytorch) and [OpenGVLab/UniFormerV2](https://github.com/OpenGVLab/UniFormerV2)
 
 Also used:
@@ -690,14 +690,10 @@ A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads) (rife46) | 154 | 86 | 43
 A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads+ffv1) (rife46) | 86 | 86 | 43
 6700xt (vs_trheads=4, num_threads=2) | ? / 129.7* | ? / 60.4* | ? / 28*
 
-GMFupSS | 480p | 720p | 1080p 
+* Benchmarks made with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union) with threading and partial TensorRT and without setting `tactic` to `JIT_CONVOLUTIONS` and `EDGE_MASK_CONVOLUTIONS` due to performance penalty. I added [a modified version](https://github.com/styler00dollar/vs-gmfss_union) as a plugin to VSGAN, but I need to add enhancements to my own repo later.
+GMFSS_union | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
-T4 (Colab / 8CPU) | 8.1 | 3.4 | 1.3
-T4 (Colab / 8CPU) (partial fp16) | 13 | 5.2 | 2.3
-A100 (Colab / 12CPU) | 23 | 14 | 6.2
-4090 (12 vs threads) | 27 | 22 | 8.6
-4090 (12 vs threads + thread_queue_size) | 32 | 21 | 8.6
-4090³ (num_threads=4, partial fp16) | ? | ? / 34.4* | ? / 13.1*
+4090 (num_threads=8, num_streams=4, RGBH, TRT8.5) | ? | 36.8 | 12.9
 
 EGVSR (4x, interval=5) | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----

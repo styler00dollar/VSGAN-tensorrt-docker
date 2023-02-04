@@ -11,6 +11,7 @@ from src.rife import RIFE
 from src.IFRNet import IFRNet
 from src.GMFupSS import GMFupSS
 from src.GMFSS_union import GMFSS_union
+from vsgmfss_union import gmfss_union
 from src.eisai import EISAI
 from src.film import FILM
 from src.M2M import M2M
@@ -128,9 +129,9 @@ def inference_clip(video_path="", clip=None):
     # IFRNet: model="small" or "large"
     # model_inference = IFRNet(model="small", fp16=False)
 
+    # use gmfss_union instead for more speed
     # model_inference = GMFupSS(partial_fp16=False)
-
-    #model_inference = GMFSS_union(partial_fp16=False)
+    # model_inference = GMFSS_union(partial_fp16=False)
 
     # model_inference = EISAI() # 960x540
 
@@ -152,6 +153,8 @@ def inference_clip(video_path="", clip=None):
     # clip = rife_trt(clip, multi = 2, scale = 1.0, device_id = 0, num_streams = 2, engine_path = "/workspace/tensorrt/rife46.engine")
 
     # clip = cain_trt(clip, device_id = 0, num_streams = 4, engine_path = "/workspace/tensorrt/rvp.engine")
+
+    # clip = gmfss_union(clip, num_streams=4, trt=True, factor_num=2, ensemble=False, sc=True, trt_cache_path="/workspace/tensorrt/")
 
     ######
     # UPSCALING WITH TENSORRT
