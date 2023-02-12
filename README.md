@@ -305,7 +305,7 @@ trtexec --fp16 --onnx=rvp2.onnx --saveEngine=model.engine --tacticSources=+CUDNN
 and put that engine path into `inference_config.py`. Only do FP16 if your GPU does support it. 
 
 **Warnings**: 
-- You need to use the FP32 onnx, even if you want FP16, specify `--fp16` for FP16.
+- If you use the FP16 onnx you need to use `RGBH` colorspace, if you use FP32 onnx you need to use `RGBS` colorspace in `inference_config.py` 
 - Engines are system specific, don't use across multiple systems
 - Don't use reuse engines for different GPUs.
 - If you run out of memory, then you need to adjust the resolutions in that command. If your video is bigger than what you can input in the command, use tiling.
