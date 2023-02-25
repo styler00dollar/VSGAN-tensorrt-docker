@@ -84,7 +84,7 @@ Some important things:
 ## Usage
 ```bash
 # install docker, command for arch
-yay -S docker nvidia-docker nvidia-container-toolkit docker-compose
+yay -S docker nvidia-docker nvidia-container-toolkit docker-compose docker-buildx
 
 # Download prebuild image from dockerhub (recommended)
 docker pull styler00dollar/vsgan_tensorrt:latest
