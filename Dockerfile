@@ -1,7 +1,7 @@
 # installing vulkan
 #https://github.com/bitnimble/docker-vulkan/blob/master/docker/Dockerfile.ubuntu20.04
 #https://gitlab.com/nvidia/container-images/vulkan/-/blob/ubuntu16.04/Dockerfile
-FROM ubuntu:20.04 as vulkan-khronos
+FROM ubuntu:22.04 as vulkan-khronos
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
@@ -44,9 +44,10 @@ RUN ln -s /usr/bin/python3 /usr/bin/python && \
     mkdir -p /usr/local/lib && cp -a loader/*.so* /usr/local/lib && \
     rm -rf /opt/vulkan && rm -rf /opt/vulkan-loader
 
-# https://gitlab.com/nvidia/container-images/cuda/blob/master/dist/11.4.2/ubuntu2004/base/Dockerfile
-FROM ubuntu:20.04 as base
+# https://gitlab.com/nvidia/container-images/cuda/blob/master/dist/11.4.2/ubuntu2204/base/Dockerfile
+FROM ubuntu:22.04 as base
 ARG DEBIAN_FRONTEND=noninteractive
+
 COPY --from=vulkan-khronos /usr/local/bin /usr/local/bin
 COPY --from=vulkan-khronos /usr/local/lib /usr/local/lib
 COPY --from=vulkan-khronos /usr/local/include/vulkan /usr/local/include/vulkan
@@ -62,8 +63,8 @@ ARG TARGETARCH
 LABEL maintainer "NVIDIA CORPORATION <cudatools@nvidia.com>"
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg2 curl ca-certificates && \
-    curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/${NVARCH}/3bf863cc.pub | apt-key add - && \
-    echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/${NVARCH} /" > /etc/apt/sources.list.d/cuda.list && \
+    curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/${NVARCH}/3bf863cc.pub | apt-key add - && \
+    echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/${NVARCH} /" > /etc/apt/sources.list.d/cuda.list && \
     apt-get purge --autoremove -y curl \
     && rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -92,7 +93,7 @@ ENV NVIDIA_DRIVER_CAPABILITIES all
 
 WORKDIR workspace
 # wget
-RUN apt-get -y update && apt install wget fftw3-dev python3 python3.8 python3.8-venv python3.8-dev python3-pip python-is-python3 -y && \
+RUN apt-get -y update && apt install wget fftw3-dev python3 python3.10 python3.10-venv python3.10-dev python3-pip python-is-python3 -y && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 RUN pip3 install --upgrade pip
 
@@ -108,21 +109,19 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.
     cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-3.23 /usr/local/share/
 
 # installing vapoursynth and torch
-# for newer ubuntu: python-is-python3 libffms2-5
-# currently not on 3.10: onnx onnxruntime onnxruntime-gpu
 # python dependencies: python3 python3.8 python3.8-venv python3.8-dev
 
 ENV PATH=/usr/local/cuda-11.4/bin:$PATH
 RUN apt update -y && \
     #apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa -y && \
-    apt install pkg-config wget python3-pip git p7zip-full x264 autoconf libtool yasm ffmsindex libffms2-4 libffms2-dev -y && \
+    apt install pkg-config wget python3-pip git p7zip-full x264 autoconf libtool yasm ffmsindex libffms2-5 libffms2-dev -y && \
     wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.zip && 7z x release-3.0.4.zip && \
     cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j4 && make install && cd .. && rm -rf zimg-release-3.0.4 release-3.0.4.zip && \
     pip install --upgrade pip && pip install Cython && git clone https://github.com/vapoursynth/vapoursynth && cd vapoursynth && ./autogen.sh && \
     ./configure && make && make install && cd .. && ldconfig && \
-    ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.8/lib-dynload/vapoursynth.so && \
+    ln -s /usr/local/lib/python3.10/site-packages/vapoursynth.so /usr/lib/python3.10/lib-dynload/vapoursynth.so && \
     apt install sudo -y && sudo -H MAKEFLAGS="-j$(nproc)" pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect opencv-python opencv-contrib-python pytorch-msssim thop einops \
-    nvidia-pyindex tensorrt https://github.com/pytorch/TensorRT/releases/download/v1.3.0/torch_tensorrt-1.3.0-cp38-cp38-linux_x86_64.whl \
+    nvidia-pyindex tensorrt https://github.com/pytorch/TensorRT/releases/download/v1.3.0/torch_tensorrt-1.3.0-cp310-cp310-linux_x86_64.whl \
     torch torchvision kornia \
     mmcv-full==1.7.1 -f https://download.openmmlab.com/mmcv/dist/cu117/torch1.13.0/index.html \
     --extra-index-url https://download.pytorch.org/whl/cu117 \
@@ -138,7 +137,7 @@ RUN apt install sudo -y && sudo -H pip install docutils pygments && git clone ht
 # also disables pip cache purge
 RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
     cd onnx-tensorrt && \
-    cp -r onnx_tensorrt /usr/local/lib/python3.8/dist-packages && \
+    cp -r onnx_tensorrt /usr/local/lib/python3.10/dist-packages && \
     cd .. && rm -rf onnx-tensorrt
 
 # imagemagick for imread
@@ -179,7 +178,7 @@ RUN apt install mpv -y && apt-get update && \
 
 ########################
 # vulkan
-RUN apt install vulkan-utils libvulkan1 libvulkan-dev -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
+RUN apt install vulkan-tools libvulkan1 libvulkan-dev -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 
 RUN wget https://sdk.lunarg.com/sdk/download/1.3.239.0/linux/vulkansdk-linux-x86_64-1.3.239.0.tar.gz && tar -zxvf vulkansdk-linux-x86_64-1.3.239.0.tar.gz && \
     rm -rf vulkansdk-linux-x86_64-1.3.239.0.tar.gz
@@ -245,11 +244,11 @@ RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && \
     git clone https://github.com/AkarinVS/L-SMASH-Works && cd L-SMASH-Works && git switch ffmpeg-4.5 && cd VapourSynth/ && meson build && ninja -C build && ninja -C build install && \
     cd /workspace && rm -rf L-SMASH-Works && ldconfig
 
-# julek
-RUN apt install clang -y
-RUN git clone https://github.com/dnjulek/vapoursynth-julek-plugin --recurse-submodules -j8 && cd vapoursynth-julek-plugin/thirdparty && mkdir libjxl_build && cd libjxl_build && \
-    cmake -C ../libjxl_cache.cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -G Ninja ../libjxl && cmake --build . && cmake --install . && cd ../.. && \
-    cmake -DCMAKE_CXX_COMPILER=clang++ -B build -DCMAKE_BUILD_TYPE=Release -G Ninja && cmake --build build && cmake --install build && cd /workspace && rm -rf vapoursynth-julek-plugin
+# julek (currently compile issues)
+#RUN apt install clang -y
+#RUN git clone https://github.com/dnjulek/vapoursynth-julek-plugin --recurse-submodules -j8 && cd vapoursynth-julek-plugin/thirdparty && mkdir libjxl_build && cd libjxl_build && \
+#    cmake -C ../libjxl_cache.cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -G Ninja ../libjxl && cmake --build . && cmake --install . && cd ../.. && \
+#    cmake -DCMAKE_CXX_COMPILER=clang++ -B build -DCMAKE_BUILD_TYPE=Release -G Ninja && cmake --build build && cmake --install build && cd /workspace && rm -rf vapoursynth-julek-plugin
 
 # warpsharp
 RUN git clone https://github.com/dubhater/vapoursynth-awarpsharp2 && cd vapoursynth-awarpsharp2 && mkdir build && cd build && meson ../ && ninja && ninja install && \
@@ -266,7 +265,7 @@ RUN mv /usr/src/tensorrt/bin/trtexec /usr/bin
 #RUN wget "https://download.pytorch.org/models/vgg19-dcbb9e9d.pth" -P /root/.cache/torch/hub/checkpoints/
 
 # using own custom compiled ffmpeg
-RUN wget https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/ffmpeg && \
+RUN wget https://github.com/styler00dollar/ffmpeg-static-arch-docker/releases/download/04d-03m-23y-py310/ffmpeg && \
     chmod +x ffmpeg && rm -rf /usr/local/bin/ffmpeg && mv ffmpeg /usr/local/bin/ffmpeg
 
 # install custom opencv
