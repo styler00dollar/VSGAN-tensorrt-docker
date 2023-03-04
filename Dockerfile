@@ -67,9 +67,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get purge --autoremove -y curl \
     && rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    cuda \
-    cuda-cudart-12-0 \
-    cuda-compat-12-0 \
+    cuda-12-1 \
+    cuda-cudart-12-1 \
+    cuda-compat-12-1 \
     && rm -rf /var/lib/apt/lists/*
 RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf \
     && echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
@@ -126,7 +126,7 @@ RUN apt update -y && \
     torch torchvision kornia \
     mmcv-full==1.7.1 -f https://download.openmmlab.com/mmcv/dist/cu117/torch1.13.0/index.html \
     --extra-index-url https://download.pytorch.org/whl/cu117 \
-    onnx onnxruntime-gpu && pip install pycuda cupy && \
+    onnx onnxruntime-gpu && pip install pycuda && git clone https://github.com/cupy/cupy && cd cupy && git submodule update --init && pip install . && cd .. && rm -rf cupy && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y 
 
 # color transfer
@@ -334,3 +334,8 @@ RUN wget http://mirrors.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.36-0ubuntu4_
 
 ENV CUDA_MODULE_LOADING=LAZY
 WORKDIR /workspace/tensorrt
+
+# windows hotfix
+RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1 /usr/lib/x86_64-linux-gnu/libcuda.so.1
+RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvcuvid.so.1
+RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvidia* /usr/lib/x86_64-linux-gnu/libcuda*
