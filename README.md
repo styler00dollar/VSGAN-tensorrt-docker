@@ -104,6 +104,12 @@ DOCKER_BUILDKIT=1 docker build --no-cache -t styler00dollar/vsgan_tensorrt:lates
 # into it with `cd tensorrt`
 docker-compose run --rm vsgan_tensorrt
 
+# if you have `unauthorized: authentication required` problems, download the docker with 
+git clone https://github.com/NotGlop/docker-drag
+cd docker-drag
+python docker_pull.py styler00dollar/vsgan_tensorrt:latest
+docker load -i styler00dollar_vsgan_tensorrt.tar
+
 # run docker with the sh startup script (linux)
 sh start_docker.sh
 
