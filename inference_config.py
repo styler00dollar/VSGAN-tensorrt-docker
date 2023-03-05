@@ -49,7 +49,7 @@ core.std.LoadPlugin(path="/usr/lib/x86_64-linux-gnu/libffms2.so")
 core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 core.std.LoadPlugin(path="/usr/local/lib/libscxvid.so")
 core.std.LoadPlugin(path="/usr/local/lib/libwwxd.so")
-
+core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so")
 
 def inference_clip(video_path="", clip=None):
     # ddfi is passing clip
@@ -283,6 +283,12 @@ def inference_clip(video_path="", clip=None):
     # clip = clip.resize.Spline16(format=vs.RGB24, matrix_in_s="470bg")
     # clip = vs_color_match(clip, original_clip, method="mkl")
 
+    ###
+    # Other
+    ###
+    # does not accept rgb clip, convert to yuv first
+    # clip = core.warp.AWarpSharp2(clip, thresh=128, blur=2, type=0, depth=[16, 8, 8], chroma=0, opt=True, planes=[0,1,2], cplace="mpeg1")
+    
     ###############################################
     # OUTPUT
     ###############################################
