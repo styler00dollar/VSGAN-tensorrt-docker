@@ -700,7 +700,7 @@ A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads+ffv1) (rife46) | 86 | 86 | 43
 
 GMFSS_union | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
-4090 (num_threads=8, num_streams=4, RGBH, TRT8.5) | ? | ? / 36.8* | ? / 12.9*
+4090 (num_threads=4, num_streams=4, RGBH, TRT8.6, matmul_precision=medium) | ? | ? / 44.9* | ? / 15.4*
 
 EGVSR (4x, interval=5) | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
