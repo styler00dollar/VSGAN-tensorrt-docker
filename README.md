@@ -294,7 +294,7 @@ Comparison to traditional methods:
 ## vs-mlrt (C++ TRT)
 You need to convert onnx models into engines. You need to do that on the same system where you want to do inference. Download onnx models from [here]( https://github.com/AmusementClub/vs-mlrt/releases/download/v7/models.v7.7z) or from [my Github page](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models). You can technically just use any ONNX model you want or convert a pth into onnx with [convert_esrgan_to_onnx.py](https://github.com/styler00dollar/VSGAN-tensorrt-docker/blob/main/convert_esrgan_to_onnx.py) or [convert_compact_to_onnx.py](https://github.com/styler00dollar/VSGAN-tensorrt-docker/blob/main/convert_compact_to_onnx.py). Inside the docker, you do one of the following commands:
 
-Good default choise:
+Good default choice:
 ```
 trtexec --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference
 ```
@@ -361,7 +361,7 @@ Visual examples from that repository:
 
 https://user-images.githubusercontent.com/74594146/142829178-ff08b96f-9ca7-45ab-82f0-4e95be045f2d.mp4
 
-To use it, first you need to edit `ddfi.py` to select your interpolator of choise and then also apply the desired framerate. The official code uses 8x and I suggest you do so too. Small example:
+To use it, first you need to edit `ddfi.py` to select your interpolator of choice and then also apply the desired framerate. The official code uses 8x and I suggest you do so too. Small example:
 ```python
 clip = core.misc.SCDetect(clip=clip, threshold=0.100)
 clip = core.rife.RIFE(clip, model=9, sc=True, skip=False, multiplier=8)
