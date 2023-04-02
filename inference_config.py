@@ -27,7 +27,7 @@ from src.pan import PAN_inference
 from src.realbasicvsr import realbasicvsr_inference
 from src.egvsr import egvsr_inference
 from src.cugan import cugan_inference
-from vsbasicvsrpp import BasicVSRPP
+from vsbasicvsrpp import basicvsrpp
 from vsswinir import SwinIR
 from src.SRVGGNetCompact import compact_inference
 
@@ -209,19 +209,8 @@ def inference_clip(video_path="", clip=None):
     ######
 
     # BasicVSR++
-    # 0 = REDS, 1 = Vimeo-90K (BI), 2 = Vimeo-90K (BD), 3 = NTIRE 2021 - Track 1, 4 = NTIRE 2021 - Track 2, 5 = NTIRE 2021 - Track 3
-    # clip = BasicVSRPP(
-    #    clip,
-    #    model=1,
-    #    interval=30,
-    #    tile_x=0,
-    #    tile_y=0,
-    #    tile_pad=16,
-    #    device_type="cuda",
-    #    device_index=0,
-    #    fp16=False,
-    #    cpu_cache=False,
-    # )
+    # model list: https://github.com/HolyWu/vs-basicvsrpp/blob/0ad97ca908707d883922f092428337972a8d0215/vsbasicvsrpp/__init__.py#L42
+    # basicvsrpp(clip, model = 1, length = 15, cpu_cache = False, tile_w = 0, tile_h = 0, tile_pad = 16)
 
     # SwinIR
     # clip = SwinIR(clip, task="lightweight_sr", scale=2)
