@@ -210,7 +210,7 @@ def inference_clip(video_path="", clip=None):
 
     # BasicVSR++
     # model list: https://github.com/HolyWu/vs-basicvsrpp/blob/0ad97ca908707d883922f092428337972a8d0215/vsbasicvsrpp/__init__.py#L42
-    # basicvsrpp(clip, model = 1, length = 15, cpu_cache = False, tile_w = 0, tile_h = 0, tile_pad = 16)
+    # clip = basicvsrpp(clip, model = 1, length = 15, cpu_cache = False, tile_w = 0, tile_h = 0, tile_pad = 16)
 
     # SwinIR
     # clip = SwinIR(clip, task="lightweight_sr", scale=2)
