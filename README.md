@@ -82,6 +82,8 @@ Some important things:
 <div id='usage'/>
 
 ## Usage
+**PSA FOR WINDOWS USERS: Docker Desktop 4.17.1 is broken. Download either [4.16.3](https://desktop.docker.com/win/main/amd64/96739/Docker%20Desktop%20Installer.exe) or [4.17.0](https://desktop.docker.com/win/main/amd64/99724/Docker%20Desktop%20Installer.exe). Both worked on my Windows 10. I would recommend to use 4.16.3, since another person confirmed it to work on Windows 11. 4.17.1 (which is currently latest) results in Docker not starting which is mentioned in [this issue](https://github.com/styler00dollar/VSGAN-tensorrt-docker/issues/34).**
+
 ```bash
 # install docker, command for arch
 yay -S docker nvidia-docker nvidia-container-toolkit docker-compose docker-buildx
