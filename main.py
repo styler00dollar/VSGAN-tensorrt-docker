@@ -32,12 +32,12 @@ for f in files:
     )
 
     # only needed for dedup
-    #os.system(f"vspipe /workspace/tensorrt/parse.py --arg source={f} -p .")
+    # os.system(f"vspipe /workspace/tensorrt/parse.py --arg source={f} -p .")
 
-    #os.system(f"vspipe -c y4m inference_batch.py - | ffmpeg -i pipe: {out_render_path}")
-    #os.system(
+    # os.system(f"vspipe -c y4m inference_batch.py - | ffmpeg -i pipe: {out_render_path}")
+    # os.system(
     #    f"ffmpeg -y -loglevel error -i {f} -i {out_render_path}  -map 1 -map 0 -map -0:v -codec copy -max_interleave_delta 0 {mux_path}"
-    #)
+    # )
 
     ###### example presets ######
     # speeds are resizised 4k footage with 7950x
@@ -48,45 +48,45 @@ for f in files:
 
     ### slower ###
     # x265 crf10 preset slow [4fps]
-    #os.system(
+    # os.system(
     #   f"vspipe -c y4m inference_batch.py --arg source={f} - | ffmpeg -y -i {f} -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -vcodec libx265 -crf 10 -preset slow {mux_path}"
-    #)
+    # )
 
     # aom av1 (for quality/filesize but slow, encoder has banding issues without grain table) [3fps]
-    #os.system(
+    # os.system(
     #   f"vspipe -c y4m inference_batch.py --arg source={f} - | ffmpeg -y -i {f} -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -vcodec libaom-av1 -cpu-used 6 -lag-in-frames 48 -arnr-max-frames 4 -arnr-strength 1 -enable-cdef 1 -enable-restoration 0 -tune ssim -aom-params film-grain-table='/workspace/tensorrt/grain.tbl',input-depth=10,fp-mt=1,keyint=240 -crf 10 -tile-columns 1 -tile-rows 1 -row-mt 1 {mux_path}"
-    #)
+    # )
 
     ### medium ###
     # x265 crf10 default preset [13fps]
-    #os.system(
+    # os.system(
     #   f"vspipe -c y4m inference_batch.py --arg source={f} - | ffmpeg -y -i {f} -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -vcodec libx265 -crf 10 {mux_path}"
-    #)
+    # )
 
     ### faster ###
     # x264 crf10 default preset [43fps]
-    #os.system(
+    # os.system(
     #   f"vspipe -c y4m inference_batch.py --arg source={f} - | ffmpeg -y -i {f} -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -crf 10 {mux_path}"
-    #)
+    # )
 
     # x264 crf10 preset slow [31fps]
     os.system(
-       f"vspipe -c y4m inference_batch.py --arg source={f} - | ffmpeg -y -i {f} -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -crf 10 -preset slow {mux_path}"
+        f"vspipe -c y4m inference_batch.py --arg source={f} - | ffmpeg -y -i {f} -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -crf 10 -preset slow {mux_path}"
     )
 
     # svt av1 (encoder has banding issues) [38fps]
-    #os.system(
+    # os.system(
     #   f"vspipe -c y4m inference_batch.py --arg source={f} - | ffmpeg -y -i {f} -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -vcodec libsvtav1 -svtav1-params tune=0,enable-overlays=1,enable-qm=1 -preset 8 -crf 10 {mux_path}"
-    #)
+    # )
 
     # av1_nvenc (only rtx4000, this hw encoder has banding issues. High bit depth may help. -qp for further filesize adjustment) [54fps]
-    #os.system(
+    # os.system(
     #   f"vspipe -c y4m inference_batch.py --arg source={f} - | ffmpeg -y -i {f} -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -vcodec av1_nvenc -scodec copy -cq 1 -preset p7 -multipass 2 -tune hq -highbitdepth 1 {mux_path}"
-    #)
+    # )
 
-    #os.system(
+    # os.system(
     #   f"vspipe -c y4m inference_batch.py --arg source={f} - | ffmpeg -y -i pipe: %05d.png"
-    #)
+    # )
 
     # deleting temp files
-    #os.remove(txt_path)
+    # os.remove(txt_path)

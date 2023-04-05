@@ -1,6 +1,7 @@
 from torch import nn as nn
 from torch.nn import functional as F
 
+
 # https://github.com/xinntao/Real-ESRGAN/blob/master/realesrgan/archs/srvgg_arch.py
 class SRVGGNetCompact(nn.Module):
     def __init__(

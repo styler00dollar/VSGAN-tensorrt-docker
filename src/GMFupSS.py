@@ -4,6 +4,7 @@ import vapoursynth as vs
 from .GMFupSS_arch import Model_inference
 import torch
 
+
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class GMFupSS:
     def __init__(self, partial_fp16=False):

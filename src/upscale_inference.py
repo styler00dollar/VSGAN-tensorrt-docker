@@ -5,6 +5,7 @@ import functools
 import torch
 from .realesrganner import RealESRGANer
 
+
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 def upscale_inference(
     upscale_model_inference,

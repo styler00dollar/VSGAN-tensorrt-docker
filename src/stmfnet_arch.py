@@ -1691,7 +1691,6 @@ model_urls = {
 
 class Conv3DSimple(nn.Conv3d):
     def __init__(self, in_planes, out_planes, midplanes=None, stride=1, padding=1):
-
         super(Conv3DSimple, self).__init__(
             in_channels=in_planes,
             out_channels=out_planes,
@@ -1739,7 +1738,6 @@ class Conv2Plus1D(nn.Sequential):
 
 class Conv3DNoTemporal(nn.Conv3d):
     def __init__(self, in_planes, out_planes, midplanes=None, stride=1, padding=1):
-
         super(Conv3DNoTemporal, self).__init__(
             in_channels=in_planes,
             out_channels=out_planes,
@@ -1756,7 +1754,6 @@ class Conv3DNoTemporal(nn.Conv3d):
 
 class SEGating(nn.Module):
     def __init__(self, inplanes, reduction=16):
-
         super().__init__()
 
         self.pool = nn.AdaptiveAvgPool3d(1)
@@ -1766,14 +1763,12 @@ class SEGating(nn.Module):
         )
 
     def forward(self, x):
-
         out = self.pool(x)
         y = self.attn_layer(out)
         return x * y
 
 
 class BasicBlock(nn.Module):
-
     expansion = 1
 
     def __init__(self, inplanes, planes, conv_builder, stride=1, downsample=None):
@@ -1811,7 +1806,6 @@ class Bottleneck(nn.Module):
     expansion = 4
 
     def __init__(self, inplanes, planes, conv_builder, stride=1, downsample=None):
-
         super(Bottleneck, self).__init__()
         midplanes = (inplanes * planes * 3 * 3 * 3) // (inplanes * 3 * 3 + 3 * planes)
 
@@ -2219,7 +2213,6 @@ class FoldUnfold:
     """
 
     def __init__(self, height, width, patch_size, overlap):
-
         if height % 2 or width % 2 or patch_size % 2 or overlap % 2:
             print(
                 "only defined for even values of height, width, patch_size size and overlap, odd values will reconstruct incorrectly"
@@ -4160,7 +4153,6 @@ class KernelEstimation(torch.nn.Module):
 
 class STMFNet_Model(torch.nn.Module):
     def __init__(self):
-
         super(STMFNet_Model, self).__init__()
 
         class Metric(torch.nn.Module):

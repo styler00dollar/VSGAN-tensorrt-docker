@@ -544,7 +544,6 @@ class BasicEncoder(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
-
         # if input is list, combine batch dimension
         is_list = isinstance(x, tuple) or isinstance(x, list)
         if is_list:
@@ -620,7 +619,6 @@ class BasicEncoder1(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
-
         # if input is list, combine batch dimension
         is_list = isinstance(x, tuple) or isinstance(x, list)
         if is_list:
@@ -695,7 +693,6 @@ class SmallEncoder(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
-
         # if input is list, combine batch dimension
         is_list = isinstance(x, tuple) or isinstance(x, list)
         if is_list:
@@ -1196,6 +1193,7 @@ def cupy_kernel(strFunction, objVariables):
 
 # end
 
+
 # @cupy.memoize(for_each_device=True)
 def cupy_launch(strFunction, strKernel):
     return cupy.cuda.compile_with_cache(strKernel).get_function(strFunction)
@@ -1424,6 +1422,7 @@ class ModuleSoftsplat(torch.nn.Module):
 
 ####################### WARPING #######################
 
+
 # expects batched tensors, considered low-level operation
 # img: bs, ch, h, w
 # flow: bs, xy (pix displace), h, w
@@ -1431,13 +1430,9 @@ def flow_backwarp(
     img, flow, resample="bilinear", padding_mode="border", align_corners=False
 ):
     if len(img.shape) != 4:
-        img = img[
-            None,
-        ]
+        img = img[None,]
     if len(flow.shape) != 4:
-        flow = flow[
-            None,
-        ]
+        flow = flow[None,]
     q = (
         2
         * flow
@@ -1474,6 +1469,7 @@ def flow_backwarp(
 
 backwarp = flow_warp = flow_backwarp
 
+
 # mode: sum, avg, lin, softmax
 # lin/softmax w/out metric defaults to avg
 # must use gpu, move back to cpu if retain_device
@@ -1491,17 +1487,11 @@ def flow_forewarp(
     elif mode in ["sm", "softmax"]:
         mode = "softmax" if metric is not None else "average"
     if len(img.shape) != 4:
-        img = img[
-            None,
-        ]
+        img = img[None,]
     if len(flow.shape) != 4:
-        flow = flow[
-            None,
-        ]
+        flow = flow[None,]
     if metric is not None and len(metric.shape) != 4:
-        metric = metric[
-            None,
-        ]
+        metric = metric[None,]
     flow = flow.flip(dims=(1,))
     if img.dtype != torch.float32:
         img = img.type(torch.float32)
@@ -1537,6 +1527,7 @@ def flow_forewarp(
 
 forewarp = flow_forewarp
 
+
 # resizing utility
 def flow_resize(flow, size, mode="nearest", align_corners=False):
     # flow: bs,xy,h,w
@@ -1544,9 +1535,7 @@ def flow_resize(flow, size, mode="nearest", align_corners=False):
     if flow.dtype != torch.float:
         flow = flow.float()
     if len(flow.shape) == 3:
-        flow = flow[
-            None,
-        ]
+        flow = flow[None,]
     if flow.shape[-2:] == size:
         return flow
     return (
@@ -1595,14 +1584,40 @@ _farneback = lambda a, b: np.moveaxis(
     None,
 ]
 _dtvl1_ = cv2.optflow.createOptFlow_DualTVL1()
-_dtvl1 = lambda a, b: np.moveaxis(_dtvl1_.calc(a, b, None,), 2, 0)[
+_dtvl1 = lambda a, b: np.moveaxis(
+    _dtvl1_.calc(
+        a,
+        b,
+        None,
+    ),
+    2,
+    0,
+)[
     None,
 ]
-_simple = lambda a, b: np.moveaxis(cv2.optflow.calcOpticalFlowSF(a, b, 3, 5, 5,), 2, 0)[
+_simple = lambda a, b: np.moveaxis(
+    cv2.optflow.calcOpticalFlowSF(
+        a,
+        b,
+        3,
+        5,
+        5,
+    ),
+    2,
+    0,
+)[
     None,
 ]
 _pca_ = cv2.optflow.createOptFlow_PCAFlow()
-_pca = lambda a, b: np.moveaxis(_pca_.calc(a, b, None,), 2, 0)[
+_pca = lambda a, b: np.moveaxis(
+    _pca_.calc(
+        a,
+        b,
+        None,
+    ),
+    2,
+    0,
+)[
     None,
 ]
 _drlof = lambda a, b: np.moveaxis(
@@ -1617,7 +1632,15 @@ _drlof = lambda a, b: np.moveaxis(
     None,
 ]
 _deepflow_ = cv2.optflow.createOptFlow_DeepFlow()
-_deepflow = lambda a, b: np.moveaxis(_deepflow_.calc(a, b, None,), 2, 0)[
+_deepflow = lambda a, b: np.moveaxis(
+    _deepflow_.calc(
+        a,
+        b,
+        None,
+    ),
+    2,
+    0,
+)[
     None,
 ]
 
@@ -2137,6 +2160,7 @@ def batch_edt(img, block=1024):
 # returns: (bs,)
 # normalized s.t. metric is same across proportional image scales
 
+
 # average of two asymmetric distances
 # normalized by diameter and area
 def batch_chamfer_distance(gt, pred, block=1024, return_more=False):
@@ -2248,6 +2272,7 @@ from argparse import Namespace
 # largs: data loading args
 # margs: model args
 # targs: training args
+
 
 # typically used to read dataset filters
 def read_filter(fn, cast=None, sort=True, sort_key=None):

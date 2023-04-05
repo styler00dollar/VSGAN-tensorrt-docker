@@ -5,6 +5,7 @@ from .GMFSS_union_arch import Model_inference
 import torch
 import traceback
 
+
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class GMFSS_union:
     def __init__(self, partial_fp16=False):

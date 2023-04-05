@@ -13,7 +13,6 @@ def rife_trt(
     num_streams: int = 1,
     engine_path: str = "",
 ):
-
     initial = core.std.Interleave([clip] * (multi - 1))
 
     terminal = clip.std.DuplicateFrames(frames=clip.num_frames - 1).std.Trim(first=1)

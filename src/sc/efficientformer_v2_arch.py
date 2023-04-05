@@ -535,7 +535,6 @@ class AttnFFN(nn.Module):
         resolution=7,
         stride=None,
     ):
-
         super().__init__()
 
         self.token_mixer = Attention4D(

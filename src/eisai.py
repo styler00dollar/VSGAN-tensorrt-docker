@@ -5,6 +5,7 @@ from .eisai_arch import SoftsplatLite, DTM, RAFT, interpolate
 import torch
 from .download import check_and_download
 
+
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class EISAI:
     def __init__(self):

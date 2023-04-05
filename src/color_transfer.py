@@ -23,10 +23,13 @@ def vs_color_match(clip, reference_clip, method=None):
         cm_to_frame(fixed, fout)
         return fout
 
-    return vs.core.std.ModifyFrame(clip=clip, clips=[reference_clip, clip], selector=do_color_transfer)
+    return vs.core.std.ModifyFrame(
+        clip=clip, clips=[reference_clip, clip], selector=do_color_transfer
+    )
 
 
 # Adapted from color-matcher's io handlers
+
 
 def cm_to_frame(img: np.ndarray, frame):
     int_img = Normalizer(img).uint8_norm()
@@ -38,8 +41,5 @@ def cm_to_frame(img: np.ndarray, frame):
 
 
 def frame_to_cm(frame: str = None) -> np.ndarray:
-    arr = np.dstack([
-        np.asarray(frame[p])
-        for p in [0, 1, 2]
-    ])
+    arr = np.dstack([np.asarray(frame[p]) for p in [0, 1, 2]])
     return Normalizer(arr).type_norm()

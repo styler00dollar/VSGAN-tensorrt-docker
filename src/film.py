@@ -13,6 +13,7 @@ from contextlib import contextmanager
 import os
 import sys
 
+
 # https://stackoverflow.com/questions/5081657/how-do-i-prevent-a-c-shared-library-to-print-on-stdout-in-python
 @contextmanager
 def stdout_redirected(to=os.devnull):

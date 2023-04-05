@@ -5,6 +5,7 @@ import torch
 from .rife_arch import IFNet
 from .download import check_and_download
 
+
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class RIFE:
     def __init__(self, scale, fastmode, ensemble, model_version, fp16):

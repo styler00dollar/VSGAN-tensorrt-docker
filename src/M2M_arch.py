@@ -1930,7 +1930,6 @@ class EncDec(torch.nn.Module):
         self.sigmoid = torch.nn.Sigmoid()
 
     def forward(self, flow0, flow1, im0, im1, c0, c1):
-
         N_, C_, H_, W_ = im0.shape
 
         wim1 = backwarp(im1, flow0)
@@ -2082,7 +2081,6 @@ class M2M_PWC(torch.nn.Module):
                 self.motion_encdec = EncDec(branch)
 
             def forward(self, flow0, flow1, im0, im1, ratio):
-
                 flow0 = ratio * torch.nn.functional.interpolate(
                     input=flow0,
                     scale_factor=ratio,
@@ -2163,7 +2161,6 @@ class M2M_PWC(torch.nn.Module):
         tenFwd, tenBwd, WeiMF, WeiMB = self.MRN(tenFwd, tenBwd, im0, im1, ratio)
 
         for fltTime_ in fltTimes:
-
             im0 = im0_o.repeat(1, self.branch, 1, 1)
             im1 = im1_o.repeat(1, self.branch, 1, 1)
             tenStd = tenStd_.repeat(1, self.branch, 1, 1)

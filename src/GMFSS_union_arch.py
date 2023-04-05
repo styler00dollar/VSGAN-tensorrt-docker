@@ -684,7 +684,6 @@ class FeatureTransformer(nn.Module):
         attn_num_splits=None,
         **kwargs,
     ):
-
         b, c, h, w = feature0.shape
         assert self.d_model == c
 
@@ -1137,7 +1136,6 @@ class GMFlow(nn.Module):
         pred_bidir_flow=False,
         **kwargs,
     ):
-
         img0, img1 = normalize_img(img0, img1)  # [B, 3, H, W]
 
         # resolution low to high
@@ -2410,7 +2408,7 @@ class AnimeInterp(nn.Module):
                 torch.cat([feat1t1, feat2t1], dim=1).half(),
                 torch.cat([feat1t2, feat2t2], dim=1).half(),
                 torch.cat([feat1t3, feat2t3], dim=1).half(),
-                merged.half()
+                merged.half(),
             )
             It_warp = It_warp.float()
 
@@ -2420,7 +2418,7 @@ class AnimeInterp(nn.Module):
                 torch.cat([feat1t1, feat2t1], dim=1),
                 torch.cat([feat1t2, feat2t2], dim=1),
                 torch.cat([feat1t3, feat2t3], dim=1),
-                merged
+                merged,
             )
 
         return torch.clamp(It_warp, 0, 1)

@@ -19,6 +19,7 @@ core.max_cache_size = 4096
 
 tmp_dir = "tmp/"
 
+
 # frames to delete
 def processInfo():
     with open(os.path.join(tmp_dir, "infos_running.txt"), "r") as f:

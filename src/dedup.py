@@ -6,6 +6,7 @@ pxdifft = 10240
 consecutivet = 2
 tmp_dir = "/workspace/tensorrt/tmp/"
 
+
 # https://stackoverflow.com/questions/2361945/detecting-consecutive-integers-in-a-list
 def ranges(nums):
     nums = sorted(set(nums))

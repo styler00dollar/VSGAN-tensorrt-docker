@@ -7,6 +7,7 @@ import sys
 from contextlib import contextmanager
 from .download import check_and_download
 
+
 # https://stackoverflow.com/questions/5081657/how-do-i-prevent-a-c-shared-library-to-print-on-stdout-in-python
 @contextmanager
 def stdout_redirected(to=os.devnull):

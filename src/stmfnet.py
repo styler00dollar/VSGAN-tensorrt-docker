@@ -5,6 +5,7 @@ import torch
 from .stmfnet_arch import STMFNet_Model
 from .download import check_and_download
 
+
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class STMFNet:
     def __init__(self):

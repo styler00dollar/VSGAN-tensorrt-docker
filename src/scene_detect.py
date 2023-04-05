@@ -47,7 +47,7 @@ def scene_detect(
     fp16: bool = True,
     onnx: bool = True,
     onnx_path: str = "sc_efficientformerv2_s0+rife46_84119_224_fp16_op16.onnx",
-    onnx_res: int = 224
+    onnx_res: int = 224,
 ) -> vs.VideoNode:
     core = vs.core
     use_rife = False

@@ -4,6 +4,7 @@ import vapoursynth as vs
 import functools
 import torch
 
+
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 def vfi_inference(
     model_inference, clip: vs.VideoNode, multi=2, metric_thresh=0.999

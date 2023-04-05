@@ -1019,7 +1019,7 @@ def CT_alt(im=None, window_size=3):
     # Do the pixel comparisons
     # for u, v in offsets:
     #     Census = (Census << 1) | (im[v:v+h-2, u:u+w-2] >= cp)
-    for (row, col) in offsets:
+    for row, col in offsets:
         Census = (Census << 1) | (
             image[
                 row : row + rows - half_window_size * 2,
@@ -1318,7 +1318,6 @@ def apply_transfer(
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", type=str, help="You take colors from this image.")
     parser.add_argument("-t", type=str, help="You apply colors to this image.")

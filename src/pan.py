@@ -10,6 +10,7 @@ import torch.nn.init as init
 import numpy as np
 from .download import check_and_download
 
+
 # for RCAN
 def default_conv(in_channels, out_channels, kernel_size, bias=True):
     return nn.Conv2d(
@@ -126,13 +127,11 @@ class PA(nn.Module):
     """PA is pixel attention"""
 
     def __init__(self, nf):
-
         super(PA, self).__init__()
         self.conv = nn.Conv2d(nf, nf, 1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-
         y = self.conv(x)
         y = self.sigmoid(y)
         out = torch.mul(x, y)
@@ -142,7 +141,6 @@ class PA(nn.Module):
 
 class PAConv(nn.Module):
     def __init__(self, nf, k_size=3):
-
         super(PAConv, self).__init__()
         self.k2 = nn.Conv2d(nf, nf, 1)  # 1x1 convolution nf->nf
         self.sigmoid = nn.Sigmoid()
@@ -154,7 +152,6 @@ class PAConv(nn.Module):
         )  # 3x3 convolution
 
     def forward(self, x):
-
         y = self.k2(x)
         y = self.sigmoid(y)
 
@@ -242,7 +239,6 @@ class PAN(nn.Module):
         self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
 
     def forward(self, x):
-
         fea = self.conv_first(x)
         trunk = self.trunk_conv(self.SCPA_trunk(fea))
         fea = fea + trunk

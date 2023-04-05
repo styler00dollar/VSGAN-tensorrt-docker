@@ -5,6 +5,7 @@ from .IFUNet_arch import IFUNetModel
 import torch
 from .download import check_and_download
 
+
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class IFUNet:
     def __init__(self):

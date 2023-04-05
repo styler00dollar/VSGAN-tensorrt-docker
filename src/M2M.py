@@ -5,6 +5,7 @@ import torch
 from .M2M_arch import M2M_PWC
 from .download import check_and_download
 
+
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class M2M:
     def __init__(self):

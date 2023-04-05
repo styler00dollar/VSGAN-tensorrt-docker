@@ -4,6 +4,7 @@ import vapoursynth as vs
 import torch
 from .download import check_and_download
 
+
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 class IFRNet:
     def __init__(self, model, fp16):
