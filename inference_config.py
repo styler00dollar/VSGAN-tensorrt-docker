@@ -1,5 +1,6 @@
 import sys
 import os
+
 sys.path.append("/workspace/tensorrt/")
 import vapoursynth as vs
 
@@ -20,6 +21,7 @@ from src.IFUNet import IFUNet
 from src.stmfnet import STMFNet
 from src.rife_trt import rife_trt
 from src.cain_trt import cain_trt
+from src.GMFSS_Fortuna_union import GMFSS_Fortuna_union
 
 # upscale imports
 from src.upscale_inference import upscale_inference
@@ -51,6 +53,7 @@ core.std.LoadPlugin(path="/usr/local/lib/libscxvid.so")
 core.std.LoadPlugin(path="/usr/local/lib/libwwxd.so")
 core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so")
 
+
 def inference_clip(video_path="", clip=None):
     # ddfi is passing clip
     if clip is None:
@@ -63,10 +66,10 @@ def inference_clip(video_path="", clip=None):
 
         # lsmash
         # clip = core.lsmas.LWLibavSource(source=video_path)
-        
+
         # resizing with descale
         # Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale
-        #clip = core.descale.Debilinear(clip, 1280, 720)
+        # clip = core.descale.Debilinear(clip, 1280, 720)
 
     # Need reference for doing color transfer
     original_clip = clip
@@ -90,11 +93,11 @@ def inference_clip(video_path="", clip=None):
     # clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98, fp16=False)
 
     # dedup (requires you to call "vspipe parse.py -p ." to generate infos_running.txt and tmp.txt)
-    #from src.dedup import get_dedup_frames
-    #frames_duplicated, frames_duplicating = get_dedup_frames()
-    #clip = core.std.DeleteFrames(clip, frames_duplicated)
+    # from src.dedup import get_dedup_frames
+    # frames_duplicated, frames_duplicating = get_dedup_frames()
+    # clip = core.std.DeleteFrames(clip, frames_duplicated)
     # do upscaling here
-    #clip = core.std.DuplicateFrames(clip, frames_duplicating)
+    # clip = core.std.DuplicateFrames(clip, frames_duplicating)
     ###############################################
     # COLORSPACE
     ###############################################
@@ -112,7 +115,7 @@ def inference_clip(video_path="", clip=None):
     # in rare cases it can happen that image range is not 0-1 and that resulting in big visual problems, clamp input
     clip = core.akarin.Expr(clip, "x 0 1 clamp")
     # clip = core.std.Limiter(clip, max=1, planes=[0,1,2])
-    #clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98)
+    # clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98)
 
     ######
     # VFI
@@ -146,9 +149,11 @@ def inference_clip(video_path="", clip=None):
 
     # model_inference = STMFNet()  # only 2x supported because architecture only outputs one image
 
-    #clip = vfi_inference(
+    # model_inference = GMFSS_Fortuna_union()
+
+    # clip = vfi_inference(
     #    model_inference=model_inference, clip=clip, multi=2, metric_thresh=0.999
-    #)
+    # )
 
     # clip = rife_trt(clip, multi = 2, scale = 1.0, device_id = 0, num_streams = 2, engine_path = "/workspace/tensorrt/rife46.engine")
 
@@ -163,8 +168,8 @@ def inference_clip(video_path="", clip=None):
     clip = core.trt.Model(
         clip,
         engine_path="/workspace/tensorrt/cugan.engine",
-        #tilesize=[854, 480],
-        overlap=[0 ,0],
+        # tilesize=[854, 480],
+        overlap=[0, 0],
         num_streams=4,
     )
 
@@ -277,7 +282,7 @@ def inference_clip(video_path="", clip=None):
     ###
     # does not accept rgb clip, convert to yuv first
     # clip = core.warp.AWarpSharp2(clip, thresh=128, blur=2, type=0, depth=[16, 8, 8], chroma=0, opt=True, planes=[0,1,2], cplace="mpeg1")
-    
+
     ###############################################
     # OUTPUT
     ###############################################
