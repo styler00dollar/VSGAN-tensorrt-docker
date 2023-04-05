@@ -22,6 +22,7 @@ from src.stmfnet import STMFNet
 from src.rife_trt import rife_trt
 from src.cain_trt import cain_trt
 from src.GMFSS_Fortuna_union import GMFSS_Fortuna_union
+from src.GMFSS_Fortuna import GMFSS_Fortuna
 
 # upscale imports
 from src.upscale_inference import upscale_inference
@@ -150,6 +151,8 @@ def inference_clip(video_path="", clip=None):
     # model_inference = STMFNet()  # only 2x supported because architecture only outputs one image
 
     # model_inference = GMFSS_Fortuna_union()
+
+    # model_inference = GMFSS_Fortuna()
 
     # clip = vfi_inference(
     #    model_inference=model_inference, clip=clip, multi=2, metric_thresh=0.999
