@@ -2360,7 +2360,7 @@ class Model:
         self.fusionnet.to(device)
 
     def load_model(self):
-        flownet_path = "models/GMFSS_fortuna_union_flownet.pkl"
+        flownet_path = "models/GMFSS_fortuna_flownet.pkl"
         check_and_download(flownet_path)
         self.flownet.load_state_dict(torch.load(flownet_path))
 
