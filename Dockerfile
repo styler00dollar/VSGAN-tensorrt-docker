@@ -1,3 +1,4 @@
+
 ############################
 # Vulkan
 #https://github.com/bitnimble/docker-vulkan/blob/master/docker/Dockerfile.ubuntu20.04
@@ -302,9 +303,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update && apt install wget git python3 python3.10 python3.10-venv python3.10-dev python3-pip python-is-python3 -y && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 RUN pip3 install --upgrade pip
-RUN pip3 install https://download.pytorch.org/whl/nightly/pytorch_triton-2.1.0%2Be650d3708b-cp310-cp310-linux_x86_64.whl \
-    https://download.pytorch.org/whl/nightly/cu118/torch-2.1.0.dev20230328%2Bcu118-cp310-cp310-linux_x86_64.whl \ 
-    https://download.pytorch.org/whl/nightly/cu118/torchvision-0.16.0.dev20230328%2Bcu118-cp310-cp310-linux_x86_64.whl
+RUN pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu118
 RUN git clone https://github.com/open-mmlab/mmcv --recursive && cd mmcv && MMCV_WITH_OPS=1 python setup.py build_ext && MMCV_WITH_OPS=1 python setup.py bdist_wheel
 
 ############################
@@ -378,7 +377,9 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.
 # installing vapoursynth and torch
 # python dependencies: python3 python3.8 python3.8-venv python3.8-dev
 
-COPY --from=mmcv-ubuntu /mmcv/dist/mmcv_full-1.7.1-cp310-cp310-linux_x86_64.whl /workspace
+# docker apperantly does not provide a simple way to share env variables between stages with different containers https://github.com/moby/moby/issues/37345
+# installing whl with *
+COPY --from=mmcv-ubuntu /mmcv/dist/ /workspace
 RUN apt update -y && \
     #apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa -y && \
     apt install pkg-config wget python3-pip git p7zip-full x264 autoconf libtool yasm ffmsindex libffms2-5 libffms2-dev -y && \
@@ -391,14 +392,12 @@ RUN apt update -y && \
     opencv-python opencv-contrib-python pytorch-msssim thop einops nvidia-pyindex tensorrt==8.6.0 kornia mpgg \
     # https://github.com/pytorch/TensorRT/releases/download/v1.3.0/torch_tensorrt-1.3.0-cp310-cp310-linux_x86_64.whl torch-tensorrt-fx-only
     # https://github.com/styler00dollar/mmcv/releases/download/1.7.1/mmcv_full-1.7.1-cp310-cp310-linux_x86_64.whl \
-    mmcv_full-1.7.1-cp310-cp310-linux_x86_64.whl \
-    https://download.pytorch.org/whl/nightly/pytorch_triton-2.1.0%2Be650d3708b-cp310-cp310-linux_x86_64.whl \
-    https://download.pytorch.org/whl/nightly/cu118/torch-2.1.0.dev20230328%2Bcu118-cp310-cp310-linux_x86_64.whl \ 
-    https://download.pytorch.org/whl/nightly/cu118/torchvision-0.16.0.dev20230328%2Bcu118-cp310-cp310-linux_x86_64.whl \
+    *.whl \
     onnx onnxruntime-gpu && pip install pycuda && \
+    pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu118 --force-reinstall -U && \
     git clone https://github.com/cupy/cupy && cd cupy && git submodule update --init && pip install . && cd .. && rm -rf cupy && \
     git clone https://github.com/pytorch/TensorRT --recursive && cd TensorRT/py && python3 setup.py install --fx-only && cd .. && cd .. && rm -rf TensorRT && \
-    apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && rm -rf mmcv_full-1.7.1-cp310-cp310-linux_x86_64.whl
+    apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && rm -rf dist *.whl
 
 # color transfer
 RUN apt install sudo -y && sudo -H pip install docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && sudo -H pip install . && \
