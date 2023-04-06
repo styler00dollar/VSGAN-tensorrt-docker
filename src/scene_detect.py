@@ -1,7 +1,3 @@
-# https://pyscenedetect.readthedocs.io/en/latest/reference/python-api/
-from scenedetect import VideoManager
-from scenedetect import SceneManager
-from scenedetect.detectors import ContentDetector
 import itertools
 import numpy as np
 import vapoursynth as vs
@@ -16,38 +12,22 @@ import traceback
 import sys
 import onnxruntime as ort
 from scipy.special import softmax
+from threading import Lock
 
 
-def find_scenes(video_path, threshold=30.0):
-    video_manager = VideoManager([video_path])
-    scene_manager = SceneManager()
-    scene_manager.add_detector(ContentDetector(threshold=threshold))
-    video_manager.set_downscale_factor()
-    video_manager.start()
-    scene_manager.detect_scenes(frame_source=video_manager)
-
-    result = scene_manager.get_scene_list()
-
-    framelist = []
-    from tqdm import tqdm
-
-    for i in tqdm(range(len(result))):
-        framelist.append(result[i][1].get_frames() * 2 - 1)
-        # print(result[i][1].get_frames())
-        # print(result[i][1].get_timecode())
-
-    return framelist
-
-
-# todo: fp16
+# todo: 
+# - onnx only supports fp16, make workaround
+# - threading with onnx
+# - tensorrt
 def scene_detect(
     clip: vs.VideoNode,
     model_name: str = "efficientnetv2b0+rife46",
     thresh: float = 0.98,
     fp16: bool = True,
-    onnx: bool = True,
+    onnx: bool = False,
     onnx_path: str = "sc_efficientformerv2_s0+rife46_84119_224_fp16_op16.onnx",
     onnx_res: int = 224,
+    num_streams: int = 4,
 ) -> vs.VideoNode:
     core = vs.core
     use_rife = False
@@ -269,49 +249,67 @@ def scene_detect(
         )
         resolution = onnx_res
 
+    stream = [torch.cuda.Stream(device="cuda") for _ in range(num_streams)]
+    stream_lock = [Lock() for _ in range(num_streams)]
+    index = -1
+    index_lock = Lock()
+    torch._dynamo.config.suppress_errors = True
+
+    @torch.compile()
+    @torch.inference_mode()
     def execute(n: int, clip: vs.VideoNode) -> vs.VideoNode:
+        nonlocal index
+        with index_lock:
+            index = (index + 1) % num_streams
+            local_index = index
+
         if not onnx:
-            I0 = frame_to_tensor(clip.get_frame(n))
-            I1 = frame_to_tensor(clip.get_frame(n + 1))
-            I0 = np.rollaxis(I0, 0, 3)
-            I1 = np.rollaxis(I1, 0, 3)
-            I0 = cv2.resize(I0, (resolution, resolution), interpolation=cv2.INTER_AREA)
-            I1 = cv2.resize(I1, (resolution, resolution), interpolation=cv2.INTER_AREA)
-            I0 = torch.from_numpy(I0).unsqueeze(0).permute(0, 3, 1, 2).cuda()
-            I1 = torch.from_numpy(I1).unsqueeze(0).permute(0, 3, 1, 2).cuda()
+            with stream_lock[local_index], torch.cuda.stream(stream[local_index]):
+                I0 = frame_to_tensor(clip.get_frame(n))
+                I1 = frame_to_tensor(clip.get_frame(n + 1))
+                I0 = np.rollaxis(I0, 0, 3)
+                I1 = np.rollaxis(I1, 0, 3)
+                I0 = torch.from_numpy(I0).unsqueeze(0).permute(0, 3, 1, 2).cuda()
+                I1 = torch.from_numpy(I1).unsqueeze(0).permute(0, 3, 1, 2).cuda()
 
-            with torch.inference_mode():
-                if not video_arch:
-                    img = torch.cat([I0, I1], dim=1)
-                elif model_name == "TimeSformer":
-                    img = torch.stack([I0, I1], dim=0)
-                elif model_name == "uniformerv2_b16":
-                    img = (
-                        torch.stack([I0.squeeze(0), I1.squeeze(0)], dim=0)
-                        .unsqueeze(0)
-                        .permute(0, 2, 1, 3, 4)
-                    )
-                if use_rife:
-                    if fp16:
-                        out = rife_model(I0.half(), I1.half(), return_flow=True)
-                    if not fp16:
-                        out = rife_model(I0, I1, return_flow=True)
-                    for i in range(4):
-                        img = torch.cat(
-                            [img.cuda(), out[i][:, :, :resolution, :resolution].cuda()],
-                            dim=1,
+                I0 = torch.nn.functional.interpolate(I0, size=(256, 448), mode="area")
+                I1 = torch.nn.functional.interpolate(I1, size=(256, 448), mode="area")
+
+                with torch.inference_mode():
+                    if not video_arch:
+                        img = torch.cat([I0, I1], dim=1)
+                    elif model_name == "TimeSformer":
+                        img = torch.stack([I0, I1], dim=0)
+                    elif model_name == "uniformerv2_b16":
+                        img = (
+                            torch.stack([I0.squeeze(0), I1.squeeze(0)], dim=0)
+                            .unsqueeze(0)
+                            .permute(0, 2, 1, 3, 4)
                         )
+                    if use_rife:
+                        if fp16:
+                            out = rife_model(I0.half(), I1.half(), return_flow=True)
+                        if not fp16:
+                            out = rife_model(I0, I1, return_flow=True)
+                        for i in range(4):
+                            img = torch.cat(
+                                [
+                                    img.cuda(),
+                                    out[i][:, :, :resolution, :resolution].cuda(),
+                                ],
+                                dim=1,
+                            )
 
-                if fp16:
-                    img = img.half()
+                    if fp16:
+                        img = img.half()
 
-                result = model(img)
-                y_prob = torch.softmax(result, dim=1)
-                if y_prob[0][0] > thresh:
-                    return core.std.SetFrameProp(
-                        clip, prop="_SceneChangeNext", intval=1
-                    )
-                return clip
+                    result = model(img)
+                    y_prob = torch.softmax(result, dim=1)
+                    if y_prob[0][0] > thresh:
+                        return core.std.SetFrameProp(
+                            clip, prop="_SceneChangeNext", intval=1
+                        )
+                    return clip
         if onnx:
             I0 = frame_to_tensor(clip.get_frame(n))
             I1 = frame_to_tensor(clip.get_frame(n + 1))

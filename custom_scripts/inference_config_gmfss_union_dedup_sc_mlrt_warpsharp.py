@@ -48,12 +48,9 @@ def inference_clip(video_path="", clip=None):
     clip = core.vmaf.Metric(clip, offs1, 2)
 
     clip = vs.core.resize.Bicubic(clip, format=vs.RGBH, matrix_in_s="709")
-    clip_orig = vs.core.std.Interleave([clip] * 2)
 
-    # todo: make scene detect rgbh compatible and better threading
-    clip_orig = vs.core.resize.Bicubic(clip_orig, format=vs.RGBS, matrix_in_s="709")
-    clip_orig = scene_detect(clip_orig, model_name="efficientnetv2_b0", thresh=0.98)
-    clip_orig = vs.core.resize.Bicubic(clip_orig, format=vs.RGBH, matrix_in_s="709")
+    clip_orig = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98)
+    clip_orig = vs.core.std.Interleave([clip_orig] * 2)
 
     clip = gmfss_union(
         clip,
