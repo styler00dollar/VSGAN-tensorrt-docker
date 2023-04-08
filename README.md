@@ -53,7 +53,7 @@ Currently working networks:
 - VapSR with [zhoumumu/VapSR](https://github.com/zhoumumu/VapSR)
 - GMFSS_union with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union), [styler00dollar/vs-gmfss_union](https://github.com/styler00dollar/vs-gmfss_union), [98mxr/GMFSS_union](https://github.com/98mxr/GMFSS_union)
 - AI scene detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer), [lucidrains/TimeSformer-pytorch](https://github.com/lucidrains/TimeSformer-pytorch) and [OpenGVLab/UniFormerV2](https://github.com/OpenGVLab/UniFormerV2)
-- GMFSS_Fortuna and GMFSS_Fortuna_union with [98mxr/GMFSS_Fortuna](https://github.com/98mxr/GMFSS_Fortuna)
+- GMFSS_Fortuna and GMFSS_Fortuna_union with [98mxr/GMFSS_Fortuna](https://github.com/98mxr/GMFSS_Fortuna), [HolyWu/vs-gmfss_fortuna](https://github.com/HolyWu/vs-gmfss_fortuna) and [styler00dollar/vs-gmfss_fortuna](https://github.com/styler00dollar/vs-gmfss_fortuna)
 
 Also used:
 - TensorRT C++ inference with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
