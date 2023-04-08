@@ -426,6 +426,7 @@ RUN sudo -H pip install tensorflow tensorflow_addons gin-config
 RUN sudo -H pip install vsswinir vsbasicvsrpp
 # modified version from https://github.com/HolyWu/vs-gmfss_union
 RUN git clone https://github.com/styler00dollar/vs-gmfss_union && cd vs-gmfss_union && pip install . && cd /workspace && rm -rf vs-gmfss_union
+RUN git clone https://github.com/styler00dollar/vs-gmfss_fortuna && cd vs-gmfss_fortuna && pip install . && cd /workspace && rm -rf vs-gmfss_fortuna
 
 # vs-mlrt
 # upgrading g++
@@ -528,6 +529,9 @@ RUN git clone https://github.com/dnjulek/vapoursynth-julek-plugin --recurse-subm
 # warpsharp
 RUN git clone https://github.com/dubhater/vapoursynth-awarpsharp2 && cd vapoursynth-awarpsharp2 && mkdir build && cd build && meson ../ && ninja && ninja install && \
     cd /workspace && rm -rf vapoursynth-awarpsharp2
+
+# CAS
+RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS && cd VapourSynth-CAS && meson build && ninja -C build && ninja -C build install && cd .. && rm -rf VapourSynth-CAS
 
 # deleting files
 RUN rm -rf 1.3.239.0 cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth
