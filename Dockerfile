@@ -396,9 +396,10 @@ RUN sudo -H pip install tensorflow tensorflow_addons gin-config
 # https://github.com/HolyWu/vs-swinir
 # https://github.com/HolyWu/vs-basicvsrpp
 RUN sudo -H pip install vsswinir vsbasicvsrpp
-# modified version from https://github.com/HolyWu/vs-gmfss_union
+# modified versions which take holywu code as a base
 RUN git clone https://github.com/styler00dollar/vs-gmfss_union && cd vs-gmfss_union && pip install . && cd /workspace && rm -rf vs-gmfss_union
 RUN git clone https://github.com/styler00dollar/vs-gmfss_fortuna && cd vs-gmfss_fortuna && pip install . && cd /workspace && rm -rf vs-gmfss_fortuna
+RUN git clone https://github.com/styler00dollar/vs-dpir && cd vs-dpir && pip install . && cd .. && rm -rf vs-dpir
 
 # vs-mlrt
 # upgrading g++
