@@ -492,7 +492,7 @@ RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && \
     git clone https://github.com/AkarinVS/L-SMASH-Works && cd L-SMASH-Works && git switch ffmpeg-4.5 && cd VapourSynth/ && meson build && ninja -C build && ninja -C build install && \
     cd /workspace && rm -rf L-SMASH-Works && ldconfig
 
-# julek (currently compile issues)
+# julek
 RUN apt install clang libstdc++-12-dev -y
 RUN git clone https://github.com/dnjulek/vapoursynth-julek-plugin --recurse-submodules -j8 && cd vapoursynth-julek-plugin/thirdparty && mkdir libjxl_build && cd libjxl_build && \
     cmake -C ../libjxl_cache.cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -G Ninja ../libjxl && cmake --build . && cmake --install . && cd ../.. && \
