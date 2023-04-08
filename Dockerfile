@@ -467,20 +467,6 @@ RUN apt install llvm-12 llvm-12-dev -y && git clone https://github.com/AkarinVS/
     cd vapoursynth-plugin && meson build && ninja -C build && \
     ninja -C build install && cd /workspace && rm -rf vapoursynth-plugin
 
-# scxvid
-RUN apt install libxvidcore-dev -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && \
-    git clone https://github.com/dubhater/vapoursynth-scxvid && cd vapoursynth-scxvid && ./autogen.sh && ./configure && make -j$(nproc) && make install && \
-    cd /workspace && rm -rf vapoursynth-scxvid
-
-# wwxd
-RUN git clone https://github.com/dubhater/vapoursynth-wwxd && cd vapoursynth-wwxd && \
-    gcc -o libwwxd.so -fPIC -shared -O2 -Wall -Wextra -Wno-unused-parameter $(pkg-config --cflags vapoursynth) src/wwxd.c src/detection.c && \
-    cp libwwxd.so /usr/local/lib/libwwxd.so && cd /workspace && rm -rf vapoursynth-wwxd
-
-# dfttest2
-RUN git clone https://github.com/AmusementClub/vs-dfttest2 --recursive && cd vs-dfttest2 && cmake -S . -B build -D ENABLE_CUDA=ON -D ENABLE_CPU=ON && cmake --build build && \
-    cmake --install build && cd .. && rm -rf vs-dfttest2
-
 # lsmash
 # compiling ffmpeg because apt packages are too old (ffmpeg4.4 because 5 fails to compile)
 # but branch ffmpeg-4.5 compiles with ffmpeg5 for whatever reason
