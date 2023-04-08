@@ -272,8 +272,8 @@ def scene_detect(
                 I0 = torch.from_numpy(I0).unsqueeze(0).permute(0, 3, 1, 2).cuda()
                 I1 = torch.from_numpy(I1).unsqueeze(0).permute(0, 3, 1, 2).cuda()
 
-                I0 = torch.nn.functional.interpolate(I0, size=(256, 448), mode="area")
-                I1 = torch.nn.functional.interpolate(I1, size=(256, 448), mode="area")
+                I0 = torch.nn.functional.interpolate(I0, size=(resolution, resolution), mode="area")
+                I1 = torch.nn.functional.interpolate(I1, size=(resolution, resolution), mode="area")
 
                 with torch.inference_mode():
                     if not video_arch:
