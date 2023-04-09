@@ -87,10 +87,7 @@ def inference_clip(video_path="", clip=None):
 
     # SCENE DETECT
     # clip = core.misc.SCDetect(clip=clip, threshold=0.100)
-    # clip = core.scxvid.Scxvid(clip, use_slices=True) # todo
-    # clip = core.wwxd.WWXD(clip=clip) # todo
-
-    # model based scene detect needs RGBS as input
+    # model based scene detect
     # clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98, fp16=False)
 
     # dedup (requires you to call "vspipe parse.py -p ." to generate infos_running.txt and tmp.txt)
