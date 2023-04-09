@@ -16,10 +16,6 @@ Table of contents
    * [vs-mlrt (C++ TRT)](#vs-mlrt)
        * [multi-gpu](#multi-gpu)
    * [ddfi](#ddfi)
-   * [ncnn](#ncnn)
-       * [If you have errors installing ncnn whl files with pip](#pip-error)
-       * [Rife ncnn C++](#rife-ncnn-c)
-       * [RealSR / ESRGAN ncnn](#sr-ncnn)
    * [VFR (variable refresh rate)](#vfr)
    * [mpv](#mpv)
    * [Color transfer](#color)
@@ -375,77 +371,6 @@ clip = core.vfrtocfr.VFRToCFR(
 ``` 
 
 Afterwards, you need to use `deduped_vfi.py` similar to how you used `main.py`. Adjust paths and file extention.
-
-
-<div id='ncnn'/>
-
-## ncnn
-If you have and AMD gpu, then you can at least use ncnn on your own system. The docker includes ncnn functionality.
-
-**WARNING: It seems like some videos result in a broken output. For some reason a certain `webm` video produced very weird results, despite it working with other (non-ncnn) models. If you encounter this, just mux to a mkv with `ffmpeg -i input.webm -c copy output.mkv` and it should work properly again.**
-
-Instructions for Manjaro:
-```bash
-yay -S vapoursynth-git ffms2 ncnn
-
-# nvidia
-yay -S nvidia-utils
-# amd
-yay -S vulkan-radeon
-or
-yay -S vulkan-amdgpu-pro
-```
-
-<div id='pip-error'/>
-
-#### If you have errors installing ncnn whl files with pip:
-It seems like certain pip versions are broken and will not allow certain ncnn whl files to install properly. If you have install erorrs, either run the install with `sudo` or manually upgrade your pip with
-```
-wget https://bootstrap.pypa.io/get-pip.py -O ./get-pip.py
-python ./get-pip.py
-python3 ./get-pip.py
-``` 
-`pip 21.0` is confirmed by myself to be broken.
-
-<div id='rife-ncnn-c'/>
-
-#### Rife ncnn C++ (recommended)
-I forked [HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan) and added my own models in [styler00dollar/VapourSynth-RIFE-ncnn-Vulkan](https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan). For the full experience you need to get VMAF and misc.
-```bash
-# VMAF
-wget https://github.com/Netflix/vmaf/archive/refs/tags/v2.3.1.tar.gz && \
-  tar -xzf  v2.3.1.tar.gz && cd vmaf-2.3.1/libvmaf/ && \
-  meson build --buildtype release && ninja -C build && \
-  ninja -C build install
-
-git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF && cd VapourSynth-VMAF && meson build && \
-  ninja -C build && ninja -C build install
-
-# MISC
-git clone https://github.com/vapoursynth/vs-miscfilters-obsolete && cd vs-miscfilters-obsolete && meson build && \
-  ninja -C build && ninja -C build install
-
-# RIFE
-git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan && cd VapourSynth-RIFE-ncnn-Vulkan && \
-  git submodule update --init --recursive --depth 1 && meson build && ninja -C build && ninja -C build install
-```
-
-<div id='rife-ncnn-python'/>
-
-<div id='sr-ncnn'/>
-
-#### RealSR / ESRGAN ncnn:
-You can install precompiled whl files from [here](https://github.com/styler00dollar/realsr-ncnn-vulkan-python/releases/tag/v1a). If you want to compile it, visit [styler00dollar/realsr-ncnn-vulkan-python](https://github.com/styler00dollar/realsr-ncnn-vulkan-python).
-```bash
-sudo pacman -S base-devel vulkan-headers vulkan-icd-loader vulkan-devel
-pip install [URL for whl]
-```
-
-Any ESRGAN model will work with this (aside RealESRGAN 2x because of pixelshuffle), when you have the fitting param file. Make sure the input is called "data" and output is "output".
-
-If you want to convert a normal pth to ncnn, you need to do `pth->onnx->ncnn(bin/param)`. For the first step you can use `torch.onnx` and for the second one you can use [this website](https://convertmodel.com/).
-
-<div id='waifu-ncnn'/>
 
 <div id='vfr'/>
 
