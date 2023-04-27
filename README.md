@@ -52,13 +52,14 @@ Currently working networks:
 - GMFSS_Fortuna and GMFSS_Fortuna_union with [98mxr/GMFSS_Fortuna](https://github.com/98mxr/GMFSS_Fortuna), [HolyWu/vs-gmfss_fortuna](https://github.com/HolyWu/vs-gmfss_fortuna) and [styler00dollar/vs-gmfss_fortuna](https://github.com/styler00dollar/vs-gmfss_fortuna)
 
 Also used:
-- TensorRT C++ inference with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
+- TensorRT C++ inference and python script usage with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
 - ddfi with [Mr-Z-2697/ddfi-rife](https://github.com/Mr-Z-2697/ddfi-rife) (auto dedup-duplication, not an arch)
 - nix with [lucasew/nix-on-colab](https://github.com/lucasew/nix-on-colab)
 - custom ffmpeg with [styler00dollar/ffmpeg-static-arch-docker](https://github.com/styler00dollar/ffmpeg-static-arch-docker)
 - lsmash with [AkarinVS/L-SMASH-Works](https://github.com/AkarinVS/L-SMASH-Works)
 - wwxd with [dubhater/vapoursynth-wwxd](https://github.com/dubhater/vapoursynth-wwxd)
 - scxvid with [dubhater/vapoursynth-scxvid](https://github.com/dubhater/vapoursynth-scxvid)
+- trt precision check with [mafiosnik777/enhancr](https://github.com/mafiosnik777/enhancr)
 
 Model | ESRGAN | SRVGGNetCompact | Rife | SwinIR | Sepconv | EGVSR | BasicVSR++ | Waifu2x | RealBasicVSR | RealCUGAN | FILM | DPIR | PAN | IFRNet | M2M | IFUNet | eisai | SCUNet | GMFupSS | ST-MFNet | VapSR | GMFSS_union | GMFSS_Fortuna / GMFSS_Fortuna_union
 ---  | ------- | --------------- | ---- | ------ | ------- | ----- | ---------- | ------- | ------------ | --------- | ---- | ---- | --- | ------ | --- | ------ | ----- | ------ | ---- | ---- | --- | --- | ---
