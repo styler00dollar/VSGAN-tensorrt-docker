@@ -360,7 +360,7 @@ RUN apt update -y && \
     pip install --upgrade pip && pip install Cython && git clone https://github.com/vapoursynth/vapoursynth && cd vapoursynth && ./autogen.sh && \
     ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.10/site-packages/vapoursynth.so /usr/lib/python3.10/lib-dynload/vapoursynth.so && \
-    apt install sudo -y && sudo -H MAKEFLAGS="-j$(nproc)" pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect \
+    apt install sudo -y && sudo -H MAKEFLAGS="-j$(nproc)" pip install polygraphy wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect \
     opencv-python opencv-contrib-python pytorch-msssim thop einops nvidia-pyindex tensorrt==8.6.0 kornia mpgg \
     # https://github.com/pytorch/TensorRT/releases/download/v1.3.0/torch_tensorrt-1.3.0-cp310-cp310-linux_x86_64.whl torch-tensorrt-fx-only
     # https://github.com/styler00dollar/mmcv/releases/download/1.7.1/mmcv_full-1.7.1-cp310-cp310-linux_x86_64.whl \
