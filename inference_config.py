@@ -67,13 +67,15 @@ def inference_clip(video_path="", clip=None):
 
         # lsmash
         # clip = core.lsmas.LWLibavSource(source=video_path)
-
+        # lsmash with hw decoding preferred
+        # clip = core.lsmas.LWLibavSource(source=video_path, prefer_hw=3)
+        
         # resizing with descale
         # Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale
         # clip = core.descale.Debilinear(clip, 1280, 720)
 
     # Need reference for doing color transfer
-    original_clip = clip
+    # original_clip = clip
 
     ###############################################
     # SIMILARITY
@@ -114,8 +116,8 @@ def inference_clip(video_path="", clip=None):
     ###############################################
     # in rare cases it can happen that image range is not 0-1 and that resulting in big visual problems, clamp input
     # clip = core.akarin.Expr(clip, "x 0 1 clamp")
+    # clip = clip.std.Expr("x 0 max 1 min")
     # clip = core.std.Limiter(clip, max=1, planes=[0,1,2])
-    # clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98)
 
     ######
     # VFI
