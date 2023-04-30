@@ -98,7 +98,7 @@ def inference_clip(video_path="", clip=None):
     clip = core.std.FrameEval(
         core.std.BlankClip(clip=upscaled, width=upscaled.width, height=upscaled.height),
         partial,
-        prop_src=[clip],
+        prop_src=[upscaled],
     )
 
     # sharpening
