@@ -143,8 +143,8 @@ RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.tar.
   ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
 
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R61.tar.gz && \
-    tar -zxvf R61.tar.gz && cd vapoursynth-R61 && ./autogen.sh && PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/ ./configure --enable-static --disable-shared && make && make install && cd .. && ldconfig
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R62.tar.gz && \
+    tar -zxvf R62.tar.gz && cd vapoursynth-R62 && ./autogen.sh && PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/ ./configure --enable-static --disable-shared && make && make install && cd .. && ldconfig
 
 RUN git clone https://github.com/uclouvain/openjpeg/ && \
   cd openjpeg && cmake -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF && make -j$(nproc) install
@@ -357,7 +357,7 @@ RUN apt update -y && \
     apt install pkg-config wget python3-pip git p7zip-full x264 autoconf libtool yasm ffmsindex libffms2-5 libffms2-dev -y && \
     wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.zip && 7z x release-3.0.4.zip && \
     cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j4 && make install && cd .. && rm -rf zimg-release-3.0.4 release-3.0.4.zip && \
-    pip install --upgrade pip && pip install Cython && git clone https://github.com/vapoursynth/vapoursynth && cd vapoursynth && ./autogen.sh && \
+    pip install --upgrade pip && pip install Cython && git clone https://github.com/Setsugennoao/vapoursynth && cd vapoursynth && git switch preset-typo && ./autogen.sh && \
     ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.10/site-packages/vapoursynth.so /usr/lib/python3.10/lib-dynload/vapoursynth.so && \
     apt install sudo -y && sudo -H MAKEFLAGS="-j$(nproc)" pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect \
