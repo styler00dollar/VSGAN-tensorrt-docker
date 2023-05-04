@@ -74,9 +74,6 @@ def inference_clip(video_path="", clip=None):
         # Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale
         # clip = core.descale.Debilinear(clip, 1280, 720)
 
-    # Need reference for doing color transfer
-    # original_clip = clip
-
     ###############################################
     # SIMILARITY
     # Set properties in clip for it to be applied
@@ -281,7 +278,8 @@ def inference_clip(video_path="", clip=None):
     ####
     # Color Transfer
     ####
-
+    
+    # original_clip = clip
     # original_clip = original_clip.resize.Spline16(format=vs.RGB24, matrix_in_s="470bg")
     # clip = clip.resize.Spline16(format=vs.RGB24, matrix_in_s="470bg")
     # clip = vs_color_match(clip, original_clip, method="mkl")
