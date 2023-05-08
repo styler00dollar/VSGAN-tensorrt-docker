@@ -655,8 +655,8 @@ GMFSS_union | 480p | 720p | 1080p
 
 GMFSS_fortuna_union | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
-4090 (num_threads=8, num_streams=3, RGBH, TRT8.6.1, matmul_precision=medium) | ? | ? / 50.4* | ? / 16.9*
-4090 (num_threads=8, num_streams=3, RGBH, TRT8.6.1, matmul_precision=medium, @torch.compile(mode="default", fullgraph=True)) | ? | ? / 50.6* | ? / 17*
+4090 (num_threads=8, num_streams=2, RGBH, TRT8.6.1, matmul_precision=medium) | ? | ? / 50.4* | ? / 16.9*
+4090 (num_threads=8, num_streams=2, RGBH, TRT8.6.1, matmul_precision=medium, @torch.compile(mode="default", fullgraph=True)) | ? | ? / 50.6* | ? / 17*
 
 EGVSR (4x, interval=5) | 480p | 720p | 1080p 
 -----------  | ---- | ---- | ----
