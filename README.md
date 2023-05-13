@@ -80,44 +80,27 @@ Some important things:
 <div id='usage'/>
 
 ## Usage
+Get CUDA12.1 and latest Nvidia drivers. After that, follow the following steps:
+
 **PSA FOR WINDOWS USERS: Docker Desktop 4.17.1 is broken. Download either [4.16.3](https://desktop.docker.com/win/main/amd64/96739/Docker%20Desktop%20Installer.exe) or [4.17.0](https://desktop.docker.com/win/main/amd64/99724/Docker%20Desktop%20Installer.exe). Both worked on my Windows 10. I would recommend to use 4.16.3, since another person confirmed it to work on Windows 11. 4.17.1 (which is currently latest) results in Docker not starting which is mentioned in [this issue](https://github.com/styler00dollar/VSGAN-tensorrt-docker/issues/34).**
 
+Quickstart:
 ```bash
-# install docker, command for arch
+# if you have Windows, install Docker Desktop https://www.docker.com/products/docker-desktop/
+# if you encounter issues, install one of the following versions:
+# 4.16.3: https://desktop.docker.com/win/main/amd64/96739/Docker%20Desktop%20Installer.exe
+# 4.17.0: https://desktop.docker.com/win/main/amd64/99724/Docker%20Desktop%20Installer.exe
+
+# if you have Arch, install the following dependencies
 yay -S docker nvidia-docker nvidia-container-toolkit docker-compose docker-buildx
-
-# Download prebuild image from dockerhub (recommended)
-docker pull styler00dollar/vsgan_tensorrt:latest
-
-# Build docker manually
-# This step is not needed if you already downloaded the docker and is only needed if yo
-# want to build it from scratch. Keep in mind that you need to set env variables in windows differently and
-# this command will only work in linux. Run that inside that directory
-DOCKER_BUILDKIT=1 docker build -t styler00dollar/vsgan_tensorrt:latest .
-# If you want to rebuild from scratch or have errors, try to build without cache
-DOCKER_BUILDKIT=1 docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest . 
 
 # run the docker with docker-compose
 # go into the vsgan folder, inside that folder should be compose.yaml, run this command
 # you can adjust folder mounts in the yaml file
-# afterwards the vsgan folder will be mounted under `/workspace/tensorrt` and you can navigate 
-# into it with `cd tensorrt`
 docker-compose run --rm vsgan_tensorrt
-
-# if you have `unauthorized: authentication required` problems, download the docker with 
-git clone https://github.com/NotGlop/docker-drag
-cd docker-drag
-python docker_pull.py styler00dollar/vsgan_tensorrt:latest
-docker load -i styler00dollar_vsgan_tensorrt.tar
-
-# run docker with the sh startup script (linux)
-sh start_docker.sh
-
-# run docker manually
-# the folderpath before ":" will be mounted in the path which follows afterwards
-# contents of the vsgan folder should appear inside /workspace/tensorrt
-docker run --privileged --gpus all -it --rm -v /home/vsgan_path/:/workspace/tensorrt styler00dollar/vsgan_tensorrt:latest
-
+```
+Piping usage:
+```
 # you can use it in various ways, ffmpeg example
 vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv -y
 # nvencc example
@@ -129,25 +112,51 @@ vspipe -c y4m inference.py - | x265 - --y4m -o example.mkv -y
 
 # example without vspipe
 ffmpeg -f vapoursynth -i inference.py example.mkv -y
-
-# Models are outside of docker image to minimize download size and will be downloaded on demand if you run code.
-# If you want specific models you can look in https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models 
-# or use the download scripts to get all of them. Models are expected to be placed under models/
 ```
-
 If docker does not want to start, try this before you use docker:
 ```bash
 # fixing docker errors
 sudo systemctl start docker
 sudo chmod 666 /var/run/docker.sock
 ```
-Windows is mostly similar, but the path needs to be changed slightly:
+Linux docker autostart:
 ```
+sudo systemctl enable --now docker
+```
+The following stuff is for people who want to run things from scratch.
+Manual ways of downloading the docker image:
+```
+# Download prebuild image from dockerhub (recommended)
+docker pull styler00dollar/vsgan_tensorrt:latest
+
+# if you have `unauthorized: authentication required` problems, download the docker with 
+git clone https://github.com/NotGlop/docker-drag
+cd docker-drag
+python docker_pull.py styler00dollar/vsgan_tensorrt:latest
+docker load -i styler00dollar_vsgan_tensorrt.tar
+```
+Manually building docker image from scratch:
+```
+# Build docker manually (only required if you want to build from scratch)
+# This step is not needed if you already downloaded the docker and is only needed if yo
+# want to build it from scratch. Keep in mind that you need to set env variables in windows differently and
+# this command will only work in linux. Run that inside that directory
+DOCKER_BUILDKIT=1 docker build -t styler00dollar/vsgan_tensorrt:latest .
+# If you want to rebuild from scratch or have errors, try to build without cache
+DOCKER_BUILDKIT=1 docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest . 
+```
+Manually run docker:
+```
+# the folderpath before ":" will be mounted in the path which follows afterwards
+# contents of the vsgan folder should appear inside /workspace/tensorrt
+
+docker run --privileged --gpus all -it --rm -v /home/vsgan_path/:/workspace/tensorrt styler00dollar/vsgan_tensorrt:latest
+
+# Windows is mostly similar, but the path needs to be changed slightly:
 Example for C://path
 docker run --privileged --gpus all -it --rm -v /mnt/c/path:/workspace/tensorrt vsgan_tensorrt:latest
 docker run --privileged --gpus all -it --rm -v //c/path:/workspace/tensorrt vsgan_tensorrt:latest
-```
-
+``` 
 <div id='usage-example'/>
 
 ## Usage example
@@ -200,7 +209,7 @@ python main.py
 
 <div id='video-guide'/>
 
-## Video guide (depricated)
+## Video guide (deprecated)
 
 **WARNING: I RECOMMEND READING THE README INSTEAD. THE VIDEO SHOULD GET RE-DONE AT SOME POINT.**
 
