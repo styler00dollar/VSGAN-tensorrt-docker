@@ -165,16 +165,9 @@ RUN wget -O libxvid.tar.gz "$XVID_URL" && \
   CFLAGS="$CLFAGS -fstrength-reduce -ffast-math" \
     ./configure && make -j$(nproc) && make install
 
-# currently lots of errors, not stable to build
-#0 146.5 Error: CliError { error: Some(failed to verify the checksum of `const_fn_assert v0.1.2`), exit_code: 101 }
-#0 73.29 Error: CliError { error: Some(failed to verify the checksum of `const_fn_assert v0.1.2+deprecated`), exit_code: 101 }
-# https://crates.io/crates/const_fn_assert released v0.1.2+deprecated and probably broke everything
-
 RUN rm -rf rav1e && \
     git clone https://github.com/xiph/rav1e/ && \
     cd rav1e && \
-    rm -f Cargo.lock && \
-    sed -i 's/const_fn_assert = "0.1.2"/const_fn_assert = "0.1.2+deprecated"/' Cargo.toml && \
     cargo install cargo-c && \
     cargo cinstall --release --library-type=staticlib --crt-static && \
     sed -i 's/-lgcc_s//' /usr/local/lib/pkgconfig/rav1e.pc
@@ -285,7 +278,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update && apt install wget git python3 python3.10 python3.10-venv python3.10-dev python3-pip python-is-python3 -y && \
   apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 RUN pip3 install --upgrade pip
-RUN pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu118
+RUN pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
 # downgrading since broken api
 RUN git clone https://github.com/open-mmlab/mmcv --recursive && cd mmcv && git switch 1.x && MMCV_WITH_OPS=1 python setup.py build_ext && \
   MMCV_WITH_OPS=1 python setup.py bdist_wheel
@@ -300,7 +293,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update && apt install wget git python3 python3.10 python3.10-venv python3.10-dev python3-pip python-is-python3 -y && \
   apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 RUN pip3 install --upgrade pip
-RUN pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu118
+RUN pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
 RUN git clone https://github.com/cupy/cupy --recursive && cd cupy && git submodule update --init && pip install . && python setup.py bdist_wheel
 
 ############################
@@ -384,7 +377,7 @@ RUN apt update -y && \
   sudo -H MAKEFLAGS="-j$(nproc)" pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect \
     opencv-python opencv-contrib-python pytorch-msssim thop einops nvidia-pyindex tensorrt==8.6.1 kornia mpgg vsutil \
     onnx onnxruntime-gpu && pip install pycuda && pip3 install polygraphy && \
-  pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu118 --force-reinstall -U && \
+  pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121 --force-reinstall -U && \
   git clone https://github.com/pytorch/TensorRT --recursive && cd TensorRT/py && python3 setup.py install --fx-only && cd .. && cd .. && rm -rf TensorRT && \
   apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 
