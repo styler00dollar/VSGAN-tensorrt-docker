@@ -410,6 +410,13 @@ or use my `vfr_to_cfr.py` to process a folder.
 ## mpv
 It is also possible to directly pipe the video into mpv, but you most likely wont be able to archive realtime speed. If you use a very efficient model, it may be possible on a very good GPU. Only tested in Manjaro. 
 ```bash
+# add this to dockerfile or just execute it to install mpv
+RUN apt install mpv -y && apt-get update && \
+  DEBIAN_FRONTEND=noninteractive apt-get install --yes pulseaudio-utils && \
+  apt-get install -y pulseaudio && apt-get install pulseaudio libpulse-dev osspd -y && \
+  apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
+
+# make sure you have pulseaudio on your host system
 yay -S pulseaudio
 
 # start docker with docker-compose
