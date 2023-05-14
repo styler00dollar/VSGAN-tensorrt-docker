@@ -391,7 +391,7 @@ RUN apt-get update -y && apt-get install libnvinfer8 libnvonnxparsers8 libnvpars
 # https://stackoverflow.com/questions/45954528/pip-is-configured-with-locations-that-require-tls-ssl-however-the-ssl-module-in
 # /usr/local/lib/libpython3.11.a(longobject.o): relocation R_X86_64_PC32 against symbol `_Py_NotImplementedStruct' can not be used when making a shared object; recompile with -fPIC
 # todo: test CFLAGS="-fPIC -march=native"
-RUN apt update -y && apt install libbz2-dev ca-certificates openssl libssl-dev libncurses5-dev libsqlite3-dev libreadline-dev libtk8.6 libgdm-dev \
+RUN apt update -y && apt install liblzma-dev libbz2-dev ca-certificates openssl libssl-dev libncurses5-dev libsqlite3-dev libreadline-dev libtk8.6 libgdm-dev \
   libdb4o-cil-dev libpcap-dev software-properties-common wget zlib1g-dev -y && \
   wget https://www.python.org/ftp/python/3.11.3/Python-3.11.3.tar.xz && \
   tar -xf Python-3.11.3.tar.xz && cd Python-3.11.3 && \
