@@ -65,16 +65,16 @@ RUN git clone https://aur.archlinux.org/yay.git && \
   cd && \
   rm -rf .cache yay
 
-RUN yay -Syu && yay -S rust-nightly-bin tcl nasm cmake jq libtool wget fribidi fontconfig libsoxr-git meson pod2man nvidia-utils base-devel python310 --noconfirm --ask 4
+RUN yay -Syu && yay -S rust-nightly-bin tcl nasm cmake jq libtool wget fribidi fontconfig libsoxr-git meson pod2man nvidia-utils base-devel --noconfirm --ask 4
 USER root
 
-RUN mkdir -p "/home/makepkg/python310"
-RUN wget https://github.com/python/cpython/archive/refs/tags/v3.10.10.tar.gz && tar xf v3.10.10.tar.gz && cd cpython-3.10.10 && \
-  mkdir debug && cd debug && ../configure --enable-optimizations --disable-shared --prefix="/home/makepkg/python310" && make -j$(nproc) && make install && \
-  /home/makepkg/python310/bin/python3.10 -m ensurepip --upgrade
-RUN cp /home/makepkg/python310/bin/python3.10 /usr/bin/python
-ENV PYTHONPATH /home/makepkg/python310/bin/
-ENV PATH "/home/makepkg/python310/bin/:$PATH"
+RUN mkdir -p "/home/makepkg/python311"
+RUN wget https://github.com/python/cpython/archive/refs/tags/v3.11.3.tar.gz && tar xf v3.11.3.tar.gz && cd cpython-3.11.3 && \
+  mkdir debug && cd debug && ../configure --enable-optimizations --disable-shared --prefix="/home/makepkg/python311" && make -j$(nproc) && make install && \
+  /home/makepkg/python311/bin/python3.11 -m ensurepip --upgrade
+RUN cp /home/makepkg/python311/bin/python3.11 /usr/bin/python
+ENV PYTHONPATH /home/makepkg/python311/bin/
+ENV PATH "/home/makepkg/python311/bin/:$PATH"
 
 RUN pip3 install Cython meson
 
@@ -272,16 +272,32 @@ RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && \
 ############################
 # MMCV
 ############################
-FROM nvidia/cuda:11.8.0-devel-ubuntu22.04 as mmcv-ubuntu
+FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as mmcv-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get -y update && apt install wget git python3 python3.10 python3.10-venv python3.10-dev python3-pip python-is-python3 -y && \
-  apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-RUN pip3 install --upgrade pip
-RUN pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
+
+RUN apt-get -y update && apt-get install -y \
+  curl \
+  make \
+  gcc \
+  wget \
+  libssl-dev \
+  libffi-dev \
+  libopenblas-dev \
+  python3.11 \
+  python3.11-dev \
+  python3.11-venv \
+  python3-pip \
+  git && \
+  apt-get autoclean -y && \
+  apt-get autoremove -y && \
+  apt-get clean -y
+
+RUN python3.11 -m pip install --upgrade pip
+RUN python3.11 -m pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
 # downgrading since broken api
-RUN git clone https://github.com/open-mmlab/mmcv --recursive && cd mmcv && git switch 1.x && MMCV_WITH_OPS=1 python setup.py build_ext && \
-  MMCV_WITH_OPS=1 python setup.py bdist_wheel
+RUN git clone https://github.com/open-mmlab/mmcv --recursive && cd mmcv && git switch 1.x && MMCV_WITH_OPS=1 python3.11 setup.py build_ext && \
+  MMCV_WITH_OPS=1 MAKEFLAGS="-j$(nproc)" python3.11 setup.py bdist_wheel
 
 ############################
 # cupy
@@ -290,11 +306,28 @@ RUN git clone https://github.com/open-mmlab/mmcv --recursive && cd mmcv && git s
 FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as cupy-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get -y update && apt install wget git python3 python3.10 python3.10-venv python3.10-dev python3-pip python-is-python3 -y && \
-  apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-RUN pip3 install --upgrade pip
-RUN pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
-RUN git clone https://github.com/cupy/cupy --recursive && cd cupy && git submodule update --init && pip install . && python setup.py bdist_wheel
+
+RUN apt-get -y update && apt-get install -y \
+  curl \
+  make \
+  gcc \
+  wget \
+  libssl-dev \
+  libffi-dev \
+  libopenblas-dev \
+  python3.11 \
+  python3.11-dev \
+  python3.11-venv \
+  python3-pip \
+  git && \
+  apt-get autoclean -y && \
+  apt-get autoremove -y && \
+  apt-get clean -y
+
+RUN python3.11 -m pip install --upgrade pip
+RUN python3.11 -m pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
+RUN git clone https://github.com/cupy/cupy --recursive && cd cupy && git submodule update --init && python3.11 -m pip install . && \
+  MAKEFLAGS="-j$(nproc)" python3.11 setup.py bdist_wheel
 
 ############################
 # VSGAN
@@ -348,49 +381,66 @@ ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
 ENV NVIDIA_DRIVER_CAPABILITIES all
 
 WORKDIR workspace
-# wget
-RUN apt-get -y update && apt install wget fftw3-dev python3 python3.10 python3.10-venv python3.10-dev python3-pip python-is-python3 -y && \
-  apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-RUN pip3 install --upgrade pip
 
 # TensorRT
 RUN apt-get update -y && apt-get install libnvinfer8 libnvonnxparsers8 libnvparsers8 libnvinfer-plugin8 libnvinfer-dev libnvonnxparsers-dev \
   libnvparsers-dev libnvinfer-plugin-dev python3-libnvinfer tensorrt python3-libnvinfer-dev -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-# RUN pip install nvidia-pyindex && pip install tensorrt nvidia-tensorrt
+
+# install python
+# https://stackoverflow.com/questions/75159821/installing-python-3-11-1-on-a-docker-container
+# https://stackoverflow.com/questions/45954528/pip-is-configured-with-locations-that-require-tls-ssl-however-the-ssl-module-in
+# /usr/local/lib/libpython3.11.a(longobject.o): relocation R_X86_64_PC32 against symbol `_Py_NotImplementedStruct' can not be used when making a shared object; recompile with -fPIC
+# todo: test CFLAGS="-fPIC -march=native"
+RUN apt update -y && apt install libbz2-dev ca-certificates openssl libssl-dev libncurses5-dev libsqlite3-dev libreadline-dev libtk8.6 libgdm-dev \
+  libdb4o-cil-dev libpcap-dev software-properties-common wget zlib1g-dev -y && \
+  wget https://www.python.org/ftp/python/3.11.3/Python-3.11.3.tar.xz && \
+  tar -xf Python-3.11.3.tar.xz && cd Python-3.11.3 && \
+  CFLAGS=-fPIC ./configure --with-ssl --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && make -j$(nproc) && make altinstall && make install
+# todo: update-alternatives may not be required
+RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.11 1 && \
+  update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.11 1 && \
+  cp /usr/local/bin/python3.11 /usr/local/bin/python && \
+  cp /usr/local/bin/pip3.11 /usr/local/bin/pip && \
+  cp /usr/local/bin/pip3.11 /usr/local/bin/pip3
+# required since ModuleNotFoundError: No module named 'pip' with nvidia pip packages, even if cli works
+RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall
 
 # cmake
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.23.0-rc1-linux-x86_64.sh && \
+RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.23.0-rc1-linux-x86_64.sh && \
   chmod +x cmake-3.23.0-rc1-linux-x86_64.sh && sh cmake-3.23.0-rc1-linux-x86_64.sh --skip-license && \
   cp /workspace/bin/cmake /usr/bin/cmake && cp /workspace/bin/cmake /usr/lib/x86_64-linux-gnu/cmake && \
   cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-3.23 /usr/local/share/
 
-# installing vapoursynth and torch
+# vapoursynth
 RUN apt update -y && \
-  #apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa -y && \
-  apt install pkg-config wget python3-pip git p7zip-full x264 autoconf libtool yasm ffmsindex libffms2-5 libffms2-dev -y && \
+  apt install fftw3-dev python-is-python3 pkg-config python3-pip git p7zip-full autoconf libtool yasm ffmsindex libffms2-5 libffms2-dev -y && \
   wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.zip && 7z x release-3.0.4.zip && \
-  cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j4 && make install && cd .. && rm -rf zimg-release-3.0.4 release-3.0.4.zip && \
+  cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j$(nproc) && make install && cd .. && rm -rf zimg-release-3.0.4 release-3.0.4.zip && \
   pip install --upgrade pip && pip install Cython && git clone https://github.com/Setsugennoao/vapoursynth && cd vapoursynth && git switch preset-typo && ./autogen.sh && \
-  ./configure && make && make install && cd .. && ldconfig && \
-  ln -s /usr/local/lib/python3.10/site-packages/vapoursynth.so /usr/lib/python3.10/lib-dynload/vapoursynth.so && \
-  apt install sudo -y && \
-  sudo -H MAKEFLAGS="-j$(nproc)" pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect \
-    opencv-python opencv-contrib-python pytorch-msssim thop einops nvidia-pyindex tensorrt==8.6.1 kornia mpgg vsutil \
-    onnx onnxruntime-gpu && pip install pycuda && pip3 install polygraphy && \
-  pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121 --force-reinstall -U && \
-  git clone https://github.com/pytorch/TensorRT --recursive && cd TensorRT/py && python3 setup.py install --fx-only && cd .. && cd .. && rm -rf TensorRT && \
-  apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
+  ./configure && make -j$(nproc) && make install && cd .. && ldconfig
+
+# python dependencies
+RUN MAKEFLAGS="-j$(nproc)" pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect \
+    pytorch-msssim thop einops kornia mpgg vsutil onnx && \
+  pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121 --force-reinstall -U && \
+  git clone https://github.com/pytorch/TensorRT --recursive && cd TensorRT/py && python setup.py install --fx-only && cd .. && cd .. && rm -rf TensorRT && \
+  apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && \
+  pip install nvidia-pyindex tensorrt==8.6.1 && MAKEFLAGS="-j$(nproc)" pip install pycuda && pip install polygraphy
 
 # color transfer
 RUN apt install sudo -y && sudo -H pip install docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && sudo -H pip install . && \
   cd /workspace && rm -rf color-matcher
+
+# onnxruntime nightly (pypi has no 3.11 support)
+RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy && \
+  pip install ort-nightly-gpu==1.16.0.dev20230512006 --index-url=https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/ --no-deps
 
 # installing onnx tensorrt with a workaround, error with import otherwise
 # https://github.com/onnx/onnx-tensorrt/issues/643
 # also disables pip cache purge
 RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
   cd onnx-tensorrt && \
-  cp -r onnx_tensorrt /usr/local/lib/python3.10/dist-packages && \
+  cp -r onnx_tensorrt /usr/local/lib/python3.11/dist-packages && \
   cd .. && rm -rf onnx-tensorrt
 
 # imagemagick for imread
@@ -424,12 +474,6 @@ RUN apt install build-essential manpages-dev software-properties-common -y && ad
 # descale
 RUN git clone https://github.com/Irrational-Encoding-Wizardry/descale && cd descale && meson build && ninja -C build && ninja -C build install && \
   cd .. && rm -rf descale
-
-# mpv
-RUN apt install mpv -y && apt-get update && \
-  DEBIAN_FRONTEND=noninteractive apt-get install --yes pulseaudio-utils && \
-  apt-get install -y pulseaudio && apt-get install pulseaudio libpulse-dev osspd -y && \
-  apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
 
 ########################
 # vulkan
@@ -521,36 +565,36 @@ COPY --from=mmcv-ubuntu /mmcv/dist/ /workspace
 COPY --from=cupy-ubuntu /cupy/dist/ /workspace
 RUN pip uninstall -y mmcv* cupy* $(pip freeze | grep '^opencv' | cut -d = -f 1) && pip install *.whl --force-reinstall && rm -rf dist *.whl
 
-# install custom opencv (pip install . fails currently)
+# install custom opencv (pip install . fails currently, building wheel instead)
 RUN pip install scikit-build && \
-    git clone --recursive https://github.com/opencv/opencv-python.git && \
-    cd opencv-python && \
-    git submodule update --init --recursive && \
-    git submodule update --remote --merge && \
-    CMAKE_ARGS="-DOPENCV_EXTRA_MODULES_PATH=/workspace/opencv-python/opencv_contrib/modules \
-    -D BUILD_TIFF=ON \
-    -D BUILD_opencv_java=OFF \
-    -D WITH_CUDA=ON \
-    -D WITH_OPENGL=ON \
-    -D WITH_OPENCL=ON \
-    -D WITH_IPP=ON \
-    -D WITH_TBB=ON \
-    -D WITH_EIGEN=ON \
-    -D WITH_V4L=OFF  \
-    -D BUILD_TESTS=OFF \
-    -D BUILD_PERF_TESTS=OFF \
-    -D CMAKE_BUILD_TYPE=RELEASE \
-    -D OPENCV_FFMPEG_USE_FIND_PACKAGE=ON \
-    -D BUILD_SHARED_LIBS=OFF \
-    -D CUDA_ARCH_BIN=7.5,8.0,8.6,8.9,7.5+PTX,8.0+PTX,8.6+PTX,8.9+PTX \
-    -D CMAKE_BUILD_TYPE=RELEASE" \
-    ENABLE_CONTRIB=1 MAKEFLAGS="-j$(nproc)" \
-    python setup.py bdist_wheel --verbose && \
-    cd dist && \
-    pip install *.whl --force-reinstall && \
-    cd .. && \
-    cd .. && \
-    rm -rf opencv-python
+  git clone --recursive https://github.com/opencv/opencv-python.git && \
+  cd opencv-python && \
+  git submodule update --init --recursive && \
+  git submodule update --remote --merge && \
+  CMAKE_ARGS="-DOPENCV_EXTRA_MODULES_PATH=/workspace/opencv-python/opencv_contrib/modules \
+  -D BUILD_TIFF=ON \
+  -D BUILD_opencv_java=OFF \
+  -D WITH_CUDA=ON \
+  -D WITH_OPENGL=ON \
+  -D WITH_OPENCL=ON \
+  -D WITH_IPP=ON \
+  -D WITH_TBB=ON \
+  -D WITH_EIGEN=ON \
+  -D WITH_V4L=OFF  \
+  -D BUILD_TESTS=OFF \
+  -D BUILD_PERF_TESTS=OFF \
+  -D CMAKE_BUILD_TYPE=RELEASE \
+  -D OPENCV_FFMPEG_USE_FIND_PACKAGE=ON \
+  -D BUILD_SHARED_LIBS=OFF \
+  -D CUDA_ARCH_BIN=7.5,8.0,8.6,8.9,7.5+PTX,8.0+PTX,8.6+PTX,8.9+PTX \
+  -D CMAKE_BUILD_TYPE=RELEASE" \
+  ENABLE_CONTRIB=1 MAKEFLAGS="-j$(nproc)" \
+  python setup.py bdist_wheel --verbose && \
+  cd dist && \
+  pip install *.whl --force-reinstall && \
+  cd .. && \
+  cd .. && \
+  rm -rf opencv-python
     
 ########################
 # av1an
