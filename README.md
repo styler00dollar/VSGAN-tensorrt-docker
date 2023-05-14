@@ -95,6 +95,7 @@ Quickstart:
 yay -S docker nvidia-docker nvidia-container-toolkit docker-compose docker-buildx
 
 # run the docker with docker-compose
+# you need to be inside the vsgan folder with cli before running the following step, git clone repo and cd into it
 # go into the vsgan folder, inside that folder should be compose.yaml, run this command
 # you can adjust folder mounts in the yaml file
 docker-compose run --rm vsgan_tensorrt
@@ -147,6 +148,7 @@ DOCKER_BUILDKIT=1 docker build --no-cache -t styler00dollar/vsgan_tensorrt:lates
 ```
 Manually run docker:
 ```
+# you need to be inside the vsgan folder with cli before running the following step, git clone repo and cd into it
 # the folderpath before ":" will be mounted in the path which follows afterwards
 # contents of the vsgan folder should appear inside /workspace/tensorrt
 
@@ -154,8 +156,8 @@ docker run --privileged --gpus all -it --rm -v /home/vsgan_path/:/workspace/tens
 
 # Windows is mostly similar, but the path needs to be changed slightly:
 Example for C://path
-docker run --privileged --gpus all -it --rm -v /mnt/c/path:/workspace/tensorrt vsgan_tensorrt:latest
-docker run --privileged --gpus all -it --rm -v //c/path:/workspace/tensorrt vsgan_tensorrt:latest
+docker run --privileged --gpus all -it --rm -v /mnt/c/path:/workspace/tensorrt styler00dollar/vsgan_tensorrt:latest
+docker run --privileged --gpus all -it --rm -v //c/path:/workspace/tensorrt styler00dollar/vsgan_tensorrt:latest
 ``` 
 <div id='usage-example'/>
 
