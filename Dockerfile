@@ -395,15 +395,18 @@ RUN apt update -y && apt install liblzma-dev libbz2-dev ca-certificates openssl 
   libdb4o-cil-dev libpcap-dev software-properties-common wget zlib1g-dev -y && \
   wget https://www.python.org/ftp/python/3.11.3/Python-3.11.3.tar.xz && \
   tar -xf Python-3.11.3.tar.xz && cd Python-3.11.3 && \
-  CFLAGS=-fPIC ./configure --with-ssl --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && make -j$(nproc) && make altinstall && make install
+  CFLAGS=-fPIC ./configure --enable-shared --with-ssl --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && make -j$(nproc) && make altinstall && make install && \
+  cp libpython3.11.so /usr/lib && cp libpython3.11.so.1.0 /usr/lib && cp libpython3.so /usr/lib && \
 # todo: update-alternatives may not be required
-RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.11 1 && \
+  update-alternatives --install /usr/bin/python python /usr/local/bin/python3.11 1 && \
   update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.11 1 && \
   cp /usr/local/bin/python3.11 /usr/local/bin/python && \
   cp /usr/local/bin/pip3.11 /usr/local/bin/pip && \
-  cp /usr/local/bin/pip3.11 /usr/local/bin/pip3
+  cp /usr/local/bin/pip3.11 /usr/local/bin/pip3 && \
 # required since ModuleNotFoundError: No module named 'pip' with nvidia pip packages, even if cli works
-RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall
+  wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall && \
+  rm -rf get-pip.py && \
+  cd /workspace && rm -rf Python-3.11.3 Python-3.11.3.tar.xz
 
 # cmake
 RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.23.0-rc1-linux-x86_64.sh && \
