@@ -65,7 +65,7 @@ RUN git clone https://aur.archlinux.org/yay.git && \
   cd && \
   rm -rf .cache yay
 
-RUN yay -Syu && yay -S rust-nightly-bin tcl nasm cmake jq libtool wget fribidi fontconfig libsoxr-git meson pod2man nvidia-utils base-devel --noconfirm --ask 4
+RUN yay -Syu && yay -S rust tcl nasm cmake jq libtool wget fribidi fontconfig libsoxr-git meson pod2man nvidia-utils base-devel --noconfirm --ask 4
 USER root
 
 RUN mkdir -p "/home/makepkg/python311"
@@ -295,8 +295,10 @@ RUN apt-get -y update && apt-get install -y \
 
 RUN python3.11 -m pip install --upgrade pip
 RUN python3.11 -m pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
-# downgrading since broken api
-RUN git clone https://github.com/open-mmlab/mmcv --recursive && cd mmcv && git switch 1.x && MMCV_WITH_OPS=1 python3.11 setup.py build_ext && \
+RUN python3.11 -m pip install ninja
+# own fork due to required c++17
+# error C++17 or later compatible compiler is required to use ATen.
+RUN git clone https://github.com/styler00dollar/mmcv --recursive && cd mmcv && MMCV_WITH_OPS=1 python3.11 setup.py build_ext && \
   MMCV_WITH_OPS=1 MAKEFLAGS="-j$(nproc)" python3.11 setup.py bdist_wheel
 
 ############################
@@ -343,12 +345,11 @@ COPY --from=vulkan-khronos /usr/local/include/vulkan /usr/local/include/vulkan
 COPY --from=vulkan-khronos /usr/local/share/vulkan /usr/local/share/vulkan
 
 COPY nvidia_icd.json /etc/vulkan/icd.d/nvidia_icd.json
-FROM base as base-amd64
+
 ARG DEBIAN_FRONTEND=noninteractive
 ENV NVARCH x86_64
 ENV NVIDIA_REQUIRE_CUDA "cuda>=11.4"
-FROM base-${TARGETARCH}
-ARG TARGETARCH
+
 LABEL maintainer "NVIDIA CORPORATION <cudatools@nvidia.com>"
 RUN apt-get update && apt-get install -y --no-install-recommends \
   gnupg2 curl ca-certificates && \
@@ -382,10 +383,6 @@ ENV NVIDIA_DRIVER_CAPABILITIES all
 
 WORKDIR workspace
 
-# TensorRT
-RUN apt-get update -y && apt-get install libnvinfer8 libnvonnxparsers8 libnvparsers8 libnvinfer-plugin8 libnvinfer-dev libnvonnxparsers-dev \
-  libnvparsers-dev libnvinfer-plugin-dev python3-libnvinfer tensorrt python3-libnvinfer-dev -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-
 # install python
 # https://stackoverflow.com/questions/75159821/installing-python-3-11-1-on-a-docker-container
 # https://stackoverflow.com/questions/45954528/pip-is-configured-with-locations-that-require-tls-ssl-however-the-ssl-module-in
@@ -395,18 +392,21 @@ RUN apt update -y && apt install liblzma-dev libbz2-dev ca-certificates openssl 
   libdb4o-cil-dev libpcap-dev software-properties-common wget zlib1g-dev -y && \
   wget https://www.python.org/ftp/python/3.11.3/Python-3.11.3.tar.xz && \
   tar -xf Python-3.11.3.tar.xz && cd Python-3.11.3 && \
-  CFLAGS=-fPIC ./configure --enable-shared --with-ssl --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && make -j$(nproc) && make altinstall && make install && \
-  cp libpython3.11.so /usr/lib && cp libpython3.11.so.1.0 /usr/lib && cp libpython3.so /usr/lib && \
+  CFLAGS=-fPIC ./configure --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
+  make -j$(nproc) && make altinstall && make install
 # todo: update-alternatives may not be required
-  update-alternatives --install /usr/bin/python python /usr/local/bin/python3.11 1 && \
+RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.11 1 && \
   update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.11 1 && \
   cp /usr/local/bin/python3.11 /usr/local/bin/python && \
   cp /usr/local/bin/pip3.11 /usr/local/bin/pip && \
-  cp /usr/local/bin/pip3.11 /usr/local/bin/pip3 && \
+  cp /usr/local/bin/pip3.11 /usr/local/bin/pip3
 # required since ModuleNotFoundError: No module named 'pip' with nvidia pip packages, even if cli works
-  wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall && \
-  rm -rf get-pip.py && \
-  cd /workspace && rm -rf Python-3.11.3 Python-3.11.3.tar.xz
+RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall
+
+# python shared (for ffmpeg)
+RUN rm -rf Python-3.11.3 && tar -xf Python-3.11.3.tar.xz && cd Python-3.11.3 && \
+  CFLAGS=-fPIC ./configure --enable-shared --with-ssl --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
+  make -j$(nproc)
 
 # cmake
 RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.23.0-rc1-linux-x86_64.sh && \
@@ -414,55 +414,28 @@ RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMa
   cp /workspace/bin/cmake /usr/bin/cmake && cp /workspace/bin/cmake /usr/lib/x86_64-linux-gnu/cmake && \
   cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-3.23 /usr/local/share/
 
-# vapoursynth
+# zimg
+RUN apt-get install checkinstall -y
 RUN apt update -y && \
   apt install fftw3-dev python-is-python3 pkg-config python3-pip git p7zip-full autoconf libtool yasm ffmsindex libffms2-5 libffms2-dev -y && \
   wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.zip && 7z x release-3.0.4.zip && \
-  cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j$(nproc) && make install && cd .. && rm -rf zimg-release-3.0.4 release-3.0.4.zip && \
-  pip install --upgrade pip && pip install Cython && git clone https://github.com/Setsugennoao/vapoursynth && cd vapoursynth && git switch preset-typo && ./autogen.sh && \
-  ./configure && make -j$(nproc) && make install && cd .. && ldconfig
+  cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j$(nproc) && checkinstall -y
 
-# python dependencies
-RUN MAKEFLAGS="-j$(nproc)" pip install wget cmake scipy mmedit vapoursynth meson ninja numba numpy scenedetect \
-    pytorch-msssim thop einops kornia mpgg vsutil onnx && \
-  pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121 --force-reinstall -U && \
-  git clone https://github.com/pytorch/TensorRT --recursive && cd TensorRT/py && python setup.py install --fx-only && cd .. && cd .. && rm -rf TensorRT && \
-  apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && \
-  pip install nvidia-pyindex tensorrt==8.6.1 && MAKEFLAGS="-j$(nproc)" pip install pycuda && pip install polygraphy
+# vapoursynth
+RUN pip install --upgrade pip && pip install Cython && git clone https://github.com/Setsugennoao/vapoursynth && \
+  cd vapoursynth && git switch preset-typo && ./autogen.sh && \
+  ./configure && make -j$(nproc) && make install && cd .. && ldconfig && \
+  cd vapoursynth && python setup.py bdist_wheel
+
+# todo: check what is required (needed for mlrt)
+RUN apt-get update && apt-get install -y --no-install-recommends libnvinfer8 libnvonnxparsers8 libnvparsers8 libnvinfer-plugin8 libnvinfer-dev libnvonnxparsers-dev \
+  libnvparsers-dev libnvinfer-plugin-dev python3-libnvinfer tensorrt python3-libnvinfer-dev -yf --reinstall && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
+
+# pycuda
+RUN git clone https://github.com/inducer/pycuda --recursive && cd pycuda && python setup.py bdist_wheel
 
 # color transfer
-RUN apt install sudo -y && sudo -H pip install docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && sudo -H pip install . && \
-  cd /workspace && rm -rf color-matcher
-
-# onnxruntime nightly (pypi has no 3.11 support)
-RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy && \
-  pip install ort-nightly-gpu==1.16.0.dev20230512006 --index-url=https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/ --no-deps
-
-# installing onnx tensorrt with a workaround, error with import otherwise
-# https://github.com/onnx/onnx-tensorrt/issues/643
-# also disables pip cache purge
-RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
-  cd onnx-tensorrt && \
-  cp -r onnx_tensorrt /usr/local/lib/python3.11/dist-packages && \
-  cd .. && rm -rf onnx-tensorrt
-
-# imagemagick for imread
-RUN apt-get install checkinstall libwebp-dev libopenjp2-7-dev librsvg2-dev libde265-dev -y && git clone https://github.com/ImageMagick/ImageMagick && cd ImageMagick && \
-  ./configure --enable-shared --with-modules --with-gslib && make -j$(nproc) && \
-  make install && ldconfig /usr/local/lib && cd /workspace && rm -rf ImageMagick && \
-  apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-
-# installing tensorflow because of FILM
-RUN sudo -H pip install tensorflow tensorflow_addons gin-config
-
-# vs plugings from others
-# https://github.com/HolyWu/vs-swinir
-# https://github.com/HolyWu/vs-basicvsrpp
-RUN sudo -H pip install vsswinir vsbasicvsrpp
-# modified versions which take holywu code as a base
-RUN git clone https://github.com/styler00dollar/vs-gmfss_union && cd vs-gmfss_union && pip install . && cd /workspace && rm -rf vs-gmfss_union
-RUN git clone https://github.com/styler00dollar/vs-gmfss_fortuna && cd vs-gmfss_fortuna && pip install . && cd /workspace && rm -rf vs-gmfss_fortuna
-RUN git clone https://github.com/styler00dollar/vs-dpir && cd vs-dpir && pip install . && cd .. && rm -rf vs-dpir
+RUN pip install numpy && apt install sudo -y && sudo -H pip install docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
 
 # vs-mlrt
 # upgrading g++
@@ -471,12 +444,10 @@ RUN apt install build-essential manpages-dev software-properties-common -y && ad
   update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11 && \
   # compiling
   git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt/vstrt && mkdir build && \
-  cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth/include -D USE_NVINFER_PLUGIN=ON && make -j$(nproc) && make install && \
-  cd /workspace && rm -rf /workspace/vs-mlrt
+  cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth/include -D USE_NVINFER_PLUGIN=ON && make -j$(nproc) && make install 
 
 # descale
-RUN git clone https://github.com/Irrational-Encoding-Wizardry/descale && cd descale && meson build && ninja -C build && ninja -C build install && \
-  cd .. && rm -rf descale
+RUN pip install meson ninja && git clone https://github.com/Irrational-Encoding-Wizardry/descale && cd descale && meson build && ninja -C build && ninja -C build install 
 
 ########################
 # vulkan
@@ -493,82 +464,49 @@ RUN apt install nasm -y && wget https://github.com/Netflix/vmaf/archive/refs/tag
   meson build --buildtype release && ninja -C build && \
   ninja -C build install && cd /workspace && rm -rf v2.3.1.tar.gz vmaf-2.3.1 && \
   git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF && cd VapourSynth-VMAF && meson build && \
-  ninja -C build && ninja -C build install && cd /workspace && rm -rf VapourSynth-VMAF && \
+  ninja -C build && ninja -C build install && \
 
   # MISC
   git clone https://github.com/vapoursynth/vs-miscfilters-obsolete && cd vs-miscfilters-obsolete && meson build && \
-  ninja -C build && ninja -C build install && cd /workspace && rm -rf vs-miscfilters-obsolete && \
+  ninja -C build && ninja -C build install && \
 
   # RIFE
   git clone https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan && cd VapourSynth-RIFE-ncnn-Vulkan && \
-  git submodule update --init --recursive --depth 1 && meson build && ninja -C build && ninja -C build install && \
-  cd /workspace && rm -rf VapourSynth-RIFE-ncnn-Vulkan
+  git submodule update --init --recursive --depth 1 && meson build && ninja -C build && ninja -C build install
 
 ########################
 # vs plugins
-
 # Vapoursynth-VFRToCFR
 RUN git clone https://github.com/Irrational-Encoding-Wizardry/Vapoursynth-VFRToCFR && cd Vapoursynth-VFRToCFR && \
-  mkdir build && cd build && meson --buildtype release .. && ninja && ninja install && cd /workspace && rm -rf Vapoursynth-VFRToCFR
+  mkdir build && cd build && meson --buildtype release .. && ninja && ninja install
 
 # vapoursynth-mvtools
-RUN git clone https://github.com/dubhater/vapoursynth-mvtools && cd vapoursynth-mvtools && ./autogen.sh && ./configure && make -j$(nproc) && make install && \
-  cd /workspace && rm -rf vapoursynth-mvtools
+RUN git clone https://github.com/dubhater/vapoursynth-mvtools && cd vapoursynth-mvtools && ./autogen.sh && ./configure && make -j$(nproc) && make install 
 
 # fmtconv
-RUN git clone https://github.com/EleonoreMizo/fmtconv && cd fmtconv/build/unix/ && ./autogen.sh && ./configure && make -j$(nproc) && make install && \
-  cd /workspace && rm -rf fmtconv
+RUN git clone https://github.com/EleonoreMizo/fmtconv && cd fmtconv/build/unix/ && ./autogen.sh && ./configure && make -j$(nproc) && make install
 
 # akarin vs
 RUN apt install llvm-12 llvm-12-dev -y && git clone https://github.com/AkarinVS/vapoursynth-plugin && \
   cd vapoursynth-plugin && meson build && ninja -C build && \
-  ninja -C build install && cd /workspace && rm -rf vapoursynth-plugin
-
-# lsmash
-# compiling ffmpeg because apt packages are too old (ffmpeg4.4 because 5 fails to compile)
-# but branch ffmpeg-4.5 compiles with ffmpeg5 for whatever reason
-# using shared to avoid -fPIC https://ffmpeg.org/pipermail/libav-user/2014-December/007720.html
-# RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && git switch release/4.4 && git checkout de1132a89113b131831d8edde75214372c983f32
-RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && \
-  CFLAGS=-fPIC ./configure --enable-shared --disable-static --enable-pic && make -j$(nproc) && make install && ldconfig && \
-  cd /workspace && rm -rf FFmpeg && git clone https://github.com/l-smash/l-smash && cd l-smash && CFLAGS=-fPIC ./configure --disable-static --enable-shared && \
-  make -j$(nproc) && make install && cd /workspace && rm -rf l-smash && git clone https://github.com/AkarinVS/L-SMASH-Works && cd L-SMASH-Works && \
-  git switch ffmpeg-4.5 && cd VapourSynth/ && meson build && ninja -C build && ninja -C build install && cd /workspace && rm -rf L-SMASH-Works && ldconfig
+  ninja -C build install
 
 # julek
 RUN apt install clang libstdc++-12-dev -y
 RUN git clone https://github.com/dnjulek/vapoursynth-julek-plugin --recurse-submodules -j8 && cd vapoursynth-julek-plugin/thirdparty && \
   mkdir libjxl_build && cd libjxl_build && cmake -C ../libjxl_cache.cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -G Ninja ../libjxl && \
   cmake --build . && cmake --install . && cd ../.. && cmake -DCMAKE_CXX_COMPILER=clang++ -B build -DCMAKE_BUILD_TYPE=Release -G Ninja && \
-  cmake --build build && cmake --install build && cd /workspace && rm -rf vapoursynth-julek-plugin
+  cmake --build build && cmake --install build 
 
 # warpsharp
 RUN git clone https://github.com/dubhater/vapoursynth-awarpsharp2 && cd vapoursynth-awarpsharp2 && mkdir build && \
-  cd build && meson ../ && ninja && ninja install && cd /workspace && rm -rf vapoursynth-awarpsharp2
+  cd build && meson ../ && ninja && ninja install
 
 # CAS
 RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS && cd VapourSynth-CAS && meson build && \
-  ninja -C build && ninja -C build install && cd .. && rm -rf VapourSynth-CAS
+  ninja -C build && ninja -C build install 
 
-# deleting files
-RUN rm -rf 1.3.239.0 cmake-3.23.0-rc1-linux-x86_64.sh zimg vapoursynth
-
-# move trtexec so it can be globally accessed
-RUN mv /usr/src/tensorrt/bin/trtexec /usr/bin
-
-# RealBasicVSR_x4 will download this if you dont download it prior
-#RUN wget "https://download.pytorch.org/models/vgg19-dcbb9e9d.pth" -P /root/.cache/torch/hub/checkpoints/
-
-########################
-
-# installing own versions of mmcv, cupy and opencv
-# docker apperantly does not provide a simple way to share env variables between stages with different containers https://github.com/moby/moby/issues/37345
-# installing whl with *
-COPY --from=mmcv-ubuntu /mmcv/dist/ /workspace
-COPY --from=cupy-ubuntu /cupy/dist/ /workspace
-RUN pip uninstall -y mmcv* cupy* $(pip freeze | grep '^opencv' | cut -d = -f 1) && pip install *.whl --force-reinstall && rm -rf dist *.whl
-
-# install custom opencv (pip install . fails currently, building wheel instead)
+# OpenCV (pip install . fails currently, building wheel instead)
 RUN pip install scikit-build && \
   git clone --recursive https://github.com/opencv/opencv-python.git && \
   cd opencv-python && \
@@ -592,13 +530,8 @@ RUN pip install scikit-build && \
   -D CUDA_ARCH_BIN=7.5,8.0,8.6,8.9,7.5+PTX,8.0+PTX,8.6+PTX,8.9+PTX \
   -D CMAKE_BUILD_TYPE=RELEASE" \
   ENABLE_CONTRIB=1 MAKEFLAGS="-j$(nproc)" \
-  python setup.py bdist_wheel --verbose && \
-  cd dist && \
-  pip install *.whl --force-reinstall && \
-  cd .. && \
-  cd .. && \
-  rm -rf opencv-python
-    
+  python setup.py bdist_wheel --verbose 
+
 ########################
 # av1an
 RUN apt install curl libssl-dev mkvtoolnix mkvtoolnix-gui clang-12 nasm libavutil-dev libavformat-dev libavfilter-dev -y && apt-get autoremove -y && apt-get clean
@@ -609,24 +542,13 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
   . $HOME/.cargo/env && \
   git clone https://github.com/styler00dollar/Av1an && \
   cd Av1an && cargo build --release --features ffmpeg_static && \
-  mv /workspace/Av1an/target/release/av1an /usr/bin && \
-  cd /workspace && rm -rf Av1an
-
-RUN git clone https://code.videolan.org/videolan/x264.git && \
-  cd x264 && ./configure --enable-pic --enable-static --enable-avx512 && make -j$(nproc) install && cd .. && rm -rf x264
-
-# -w-macro-params-legacy to not log lots of asm warnings
-# https://bitbucket.org/multicoreware/x265_git/issues/559/warnings-when-assembling-with-nasm-215
-RUN git clone https://bitbucket.org/multicoreware/x265_git/ && cd x265_git/build/linux && \
-  cmake -G "Unix Makefiles" -DCMAKE_C_FLAGS="-mavx512f" -DCMAKE_CXX_FLAGS="-mavx512f" -DENABLE_SHARED=OFF -DENABLE_AGGRESSIVE_CHECKS=ON \
-    ../../source -DCMAKE_ASM_NASM_FLAGS=-w-macro-params-legacy && make -j$(nproc) install && cd /workspace/ && rm -rf x265_git
+  mv /workspace/Av1an/target/release/av1an /usr/bin 
 
 RUN git clone https://github.com/xiph/rav1e && \
   cd rav1e && \
   cargo build --release && \
   strip ./target/release/rav1e && \
-  mv ./target/release/rav1e /usr/local/bin && \
-  cd .. && rm -rf ./rav1e
+  mv ./target/release/rav1e /usr/local/bin 
 
 RUN git clone https://gitlab.com/AOMediaCodec/SVT-AV1/ && \
   cd SVT-AV1 && \
@@ -637,19 +559,179 @@ RUN git clone https://gitlab.com/AOMediaCodec/SVT-AV1/ && \
     Source/Lib/Encoder/Codec/EbProductCodingLoop.c && \
   cd Build && \
   cmake .. -G"Unix Makefiles" -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && \
-  make -j$(nproc) install && cd /workspace && rm -rf SVT-AV1
+  make -j$(nproc) && make install 
 
 RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
   cd aom && \
   mkdir build_tmp && cd build_tmp && cmake -DCMAKE_CXX_FLAGS="-O3 -march=native -pipe" -DBUILD_SHARED_LIBS=0 \
-  -DENABLE_TESTS=0 -DENABLE_NASM=on -DCMAKE_INSTALL_LIBDIR=lib .. && make -j$(nproc) install && cd /workspace && rm -rf aom
+  -DENABLE_TESTS=0 -DENABLE_NASM=on -DCMAKE_INSTALL_LIBDIR=lib .. && make -j$(nproc) && make install
+
+# lsmash
+# /usr/local/lib/vapoursynth/libvslsmashsource.so
+# compiling ffmpeg because apt packages are too old (ffmpeg4.4 because 5 fails to compile)
+# but branch ffmpeg-4.5 compiles with ffmpeg5 for whatever reason
+# using shared to avoid -fPIC https://ffmpeg.org/pipermail/libav-user/2014-December/007720.html
+# RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && git switch release/4.4 && git checkout de1132a89113b131831d8edde75214372c983f32
+RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && \
+  CFLAGS=-fPIC ./configure --enable-shared --enable-static --enable-pic && make -j$(nproc) && make install && ldconfig && \
+  cd /workspace && rm -rf FFmpeg && git clone https://github.com/l-smash/l-smash && cd l-smash && CFLAGS=-fPIC ./configure --enable-shared && \
+  make -j$(nproc) && make install && cd /workspace 
+RUN git clone https://github.com/AkarinVS/L-SMASH-Works && cd L-SMASH-Works && \
+  git switch ffmpeg-4.5 && cd VapourSynth/ && meson build && ninja -C build && ninja -C build install 
+
+# pip
+RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy mmedit meson ninja numba numpy scenedetect \
+    pytorch-msssim thop einops kornia mpgg vsutil onnx && \
+  pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121 --force-reinstall -U && \
+  git clone https://github.com/pytorch/TensorRT --recursive && cd TensorRT/py && python setup.py install --fx-only && cd .. && cd .. && rm -rf TensorRT && \
+  pip install nvidia-pyindex tensorrt==8.6.1 && pip install polygraphy && rm -rf /root/.cache/
+
+# onnxruntime nightly (pypi has no 3.11 support)
+RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy && \
+  pip install ort-nightly-gpu==1.16.0.dev20230512006 --index-url=https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/ --no-deps
+
+# modified versions which take holywu code as a base
+RUN git clone https://github.com/styler00dollar/vs-gmfss_union && cd vs-gmfss_union && pip install . && cd /workspace && rm -rf vs-gmfss_union
+RUN git clone https://github.com/styler00dollar/vs-gmfss_fortuna && cd vs-gmfss_fortuna && pip install . && cd /workspace && rm -rf vs-gmfss_fortuna
+RUN git clone https://github.com/styler00dollar/vs-dpir && cd vs-dpir && pip install . && cd .. && rm -rf vs-dpir
+
+# installing own versions of mmcv, cupy and opencv
+# docker apperantly does not provide a simple way to share env variables between stages with different containers https://github.com/moby/moby/issues/37345
+# installing whl with *
+COPY --from=mmcv-ubuntu /mmcv/dist/ /workspace
+COPY --from=cupy-ubuntu /cupy/dist/ /workspace
+RUN pip uninstall -y mmcv* cupy* $(pip freeze | grep '^opencv' | cut -d = -f 1) && pip install *.whl --force-reinstall && rm -rf dist *.whl
+
+####################
+
+FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04 as final
+# maybe official tensorrt image is better, but it uses 20.04
+#FROM nvcr.io/nvidia/tensorrt:23.04-py3 as final
+ARG DEBIAN_FRONTEND=noninteractive
+
+WORKDIR workspace
+
+# install python
+# todo: installing with deb?
+COPY --from=base /usr/local/bin/python /usr/local/bin/python
+COPY --from=base /usr/local/bin/pip /usr/local/bin/pip
+COPY --from=base /usr/local/bin/pip3 /usr/local/bin/pip3
+RUN apt update -y && apt install wget git -y
+
+# todo: clean?
+COPY --from=base /usr/local/lib/python3.11 /usr/local/lib/python3.11
+
+RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall && rm -rf get-pip.py
+COPY --from=base /workspace/Python-3.11.3/libpython3.11.so /usr/lib 
+COPY --from=base /workspace/Python-3.11.3/libpython3.11.so.1.0 /usr/lib 
+COPY --from=base /workspace/Python-3.11.3/libpython3.so /usr/lib
+COPY --from=base /workspace/Python-3.11.3/libpython3.so /usr/lib
+
+# vapoursynth
+# todo: installing with deb?
+COPY --from=base /workspace/zimg-release-3.0.4/zimg-release_3.0.4-1_amd64.deb zimg-release_3.0.4-1_amd64.deb
+RUN apt install ./zimg-release_3.0.4-1_amd64.deb -y && rm -rf zimg-release_3.0.4-1_amd64.deb
+
+COPY --from=base /usr/local/lib/vapoursynth /usr/local/lib/vapoursynth
+COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth /usr/local/lib/x86_64-linux-gnu/vapoursynth
+COPY --from=base /usr/local/lib/libvapoursynth-script.so.0.0.0 /usr/local/lib/libvapoursynth-script.so.0.0.0
+COPY --from=base /usr/local/lib/libvapoursynth-script.a /usr/local/lib/libvapoursynth-script.a
+COPY --from=base /usr/local/lib/libvapoursynth.so /usr/local/lib/libvapoursynth.so
+COPY --from=base /usr/local/lib/libvapoursynth-script.so /usr/local/lib/libvapoursynth-script.so
+COPY --from=base /usr/local/lib/libvapoursynth.la /usr/local/lib/libvapoursynth.la
+COPY --from=base /usr/local/lib/libvapoursynth.a /usr/local/lib/libvapoursynth.a
+COPY --from=base /usr/local/lib/libvapoursynth-script.la /usr/local/lib/libvapoursynth-script.la
+COPY --from=base /usr/local/lib/libvapoursynth-script.so.0 /usr/local/lib/libvapoursynth-script.so.0
+
+# vapoursynth
+COPY --from=base /usr/local/bin/vspipe  /usr/local/bin/vspipe
+
+# installing onnx tensorrt with a workaround, error with import otherwise
+# https://github.com/onnx/onnx-tensorrt/issues/643
+# also disables pip cache purge
+RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
+  cd onnx-tensorrt && \
+  cp -r onnx_tensorrt /usr/local/lib/python3.11/dist-packages && \
+  cd .. && rm -rf onnx-tensorrt
+
+# todo?: imagemagick
+# todo?: tensorflow
+
+# vs plugins
+COPY --from=base /usr/local/lib/libvstrt.so /usr/local/lib/libvstrt.so
+COPY --from=base /usr/local/lib/vapoursynth/libdescale.so /usr/local/lib/vapoursynth/libdescale.so
+COPY --from=base /usr/local/lib/vapoursynth/librife.so /usr/local/lib/vapoursynth/librife.so
+COPY --from=base /usr/local/lib/vapoursynth/libmiscfilters.so /usr/local/lib/vapoursynth/libmiscfilters.so
+COPY --from=base /usr/local/lib/vapoursynth/libvmaf.so /usr/local/lib/vapoursynth/libvmaf.so
+COPY --from=base /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libvmaf.so
+COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so
+COPY --from=base /usr/local/lib/libmvtools.so /usr/local/lib/libmvtools.so
+COPY --from=base /usr/local/lib/libfmtconv.so /usr/local/lib/libfmtconv.so
+COPY --from=base /usr/local/lib/vapoursynth/libakarin.so /usr/local/lib/vapoursynth/libakarin.so
+COPY --from=base /usr/local/lib/vapoursynth/libvslsmashsource.so /usr/local/lib/vapoursynth/libvslsmashsource.so
+COPY --from=base /usr/local/lib/vapoursynth/libjulek.so /usr/local/lib/vapoursynth/libjulek.so
+COPY --from=base /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so
+COPY --from=base /usr/local/lib/vapoursynth/libcas.so /usr/local/lib/vapoursynth/libcas.so
+COPY --from=base /usr/local/lib/liblsmash.so.2 /usr/local/lib/liblsmash.so.2
+COPY --from=base /usr/lib/x86_64-linux-gnu/libffms2* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libffms2*.so* /usr/lib/x86_64-linux-gnu/libxcb*.so* /usr/lib/x86_64-linux-gnu/
+
+# binaries
+COPY --from=base /usr/bin/av1an /usr/bin/av1an
+COPY --from=base /usr/local/bin/rav1e /usr/local/bin/rav1e
+# svt
+COPY --from=base /usr/local/bin/SvtAv1EncApp /usr/local/bin/SvtAv1EncApp
+COPY --from=base /usr/local/bin/SvtAv1DecApp /usr/local/bin/SvtAv1DecApp
+# aom
+COPY --from=base /usr/local/bin/aomenc /usr/local/bin/aomenc
+COPY --from=base /usr/local/bin/aomdec /usr/local/bin/aomdec
 
 COPY --from=ffmpeg-arch /home/makepkg/FFmpeg/ffmpeg /usr/local/bin/ffmpeg
 
-ENV CUDA_MODULE_LOADING=LAZY
-WORKDIR /workspace/tensorrt
+# libraries
+COPY --from=base /usr/lib/x86_64-linux-gnu/libfribidi*.so* /usr/lib/x86_64-linux-gnu/libharfbuzz*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libxml2*.so* /usr/lib/x86_64-linux-gnu/libsoxr*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libglib*.so* /usr/lib/x86_64-linux-gnu/libgraphite2*.so* /usr/lib/x86_64-linux-gnu/libicuuc*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libicudata*.so* /usr/lib/x86_64-linux-gnu/libvulkan*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libav*.so* /usr/lib/x86_64-linux-gnu/libsw*.so* /usr/local/lib/libav*.so* /usr/local/lib/libsw*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libwebpmux*.so* /usr/lib/x86_64-linux-gnu/libdav1d*.so* /usr/lib/x86_64-linux-gnu/libvpx*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/librsvg*.so* /usr/lib/x86_64-linux-gnu/libgobject*.so* /usr/lib/x86_64-linux-gnu/libcairo*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libzvbi*.so* /usr/lib/x86_64-linux-gnu/libsnappy*.so* /usr/lib/x86_64-linux-gnu/libaom*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libcodec2*.so* /usr/lib/x86_64-linux-gnu/libgsm*.so*  /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libmp3lame*.so* /usr/lib/x86_64-linux-gnu/libopenjp2*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libopus*.so* /usr/lib/x86_64-linux-gnu/libshine*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libspeex*.so* /usr/lib/x86_64-linux-gnu/libtheoraenc*.so* /usr/lib/x86_64-linux-gnu/libtheoradec*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libtwolame*.so* /usr/lib/x86_64-linux-gnu/libvorbis*.so* /usr/lib/x86_64-linux-gnu/libx264*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libx265*.so* /usr/lib/x86_64-linux-gnu/libxvidcore*.so* /usr/lib/x86_64-linux-gnu/libva*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libgme*.so* /usr/lib/x86_64-linux-gnu/libopenmpt*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libchromaprint*.so* /usr/lib/x86_64-linux-gnu/libbluray*.so* /usr/lib/x86_64-linux-gnu/librabbitmq*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libsrt*.so* /usr/lib/x86_64-linux-gnu/libssh*.so* /usr/lib/x86_64-linux-gnu/libzmq*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libvdpau*.so* /usr/lib/x86_64-linux-gnu/libmfx*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libdrm*.so* /usr/lib/x86_64-linux-gnu/libgdk_pixbuf*.so* /usr/lib/x86_64-linux-gnu/libgio*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libpangocairo*.so* /usr/lib/x86_64-linux-gnu/libpango*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libpixman*.so* /usr/lib/x86_64-linux-gnu/libXrender*.so*  /usr/lib/x86_64-linux-gnu/libogg*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libnuma*.so* /usr/lib/x86_64-linux-gnu/libmpg123*.so* /usr/lib/x86_64-linux-gnu/libudfread*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libsodium*.so* /usr/lib/x86_64-linux-gnu/libpgm*.so* /usr/lib/x86_64-linux-gnu/libnorm*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libXfixes*.so* /usr/lib/x86_64-linux-gnu/libgmodule*.so* /usr/lib/x86_64-linux-gnu/libthai*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libdatrie*.so* /usr/lib/x86_64-linux-gnu/libpng16*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libgomp*.so* /usr/lib/x86_64-linux-gnu/libwebp*.so* /usr/lib/x86_64-linux-gnu/libfontconfig*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libfreetype*.so* /usr/lib/x86_64-linux-gnu/libjpeg*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libgthread*.so* /usr/lib/x86_64-linux-gnu/libGL*.so* /usr/lib/x86_64-linux-gnu/
 
 # windows hotfix
 RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1 /usr/lib/x86_64-linux-gnu/libcuda.so.1
 RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvcuvid.so.1
 RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvidia* /usr/lib/x86_64-linux-gnu/libcuda*
+
+# todo: symlink .so files to reduce size
+COPY --from=base /usr/lib/x86_64-linux-gnu/libnvonnxparser*.so* /usr/lib/x86_64-linux-gnu/libnvinfer_plugin*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libcudnn*.so* /usr/lib/x86_64-linux-gnu/libnvinfer*.so* /usr/lib/x86_64-linux-gnu/
+
+# move trtexec so it can be globally accessed
+COPY --from=base /usr/src/tensorrt/bin/trtexec /usr/bin
+
+ENV CUDA_MODULE_LOADING=LAZY
+WORKDIR /workspace/tensorrt
+
+# todo
+# Failed to find C compiler. Please specify via CC environment variable.
