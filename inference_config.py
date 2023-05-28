@@ -27,19 +27,8 @@ from vsgmfss_fortuna import gmfss_fortuna
 from vsdpir import dpir
 
 # upscale imports
-from src.upscale_inference import upscale_inference
-from src.pan import PAN_inference
-from src.realbasicvsr import realbasicvsr_inference
-from src.egvsr import egvsr_inference
-from src.cugan import cugan_inference
 from vsbasicvsrpp import basicvsrpp
 from vsswinir import SwinIR
-from src.SRVGGNetCompact import compact_inference
-
-# from src.esrgan import ESRGAN_inference
-
-# image processing imports
-from src.scunet import scunet_inference
 
 from src.scene_detect import scene_detect
 
@@ -69,7 +58,7 @@ def inference_clip(video_path="", clip=None):
         # clip = core.lsmas.LWLibavSource(source=video_path)
         # lsmash with hw decoding preferred
         # clip = core.lsmas.LWLibavSource(source=video_path, prefer_hw=3)
-        
+
         # resizing with descale
         # Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale
         # clip = core.descale.Debilinear(clip, 1280, 720)
@@ -102,7 +91,7 @@ def inference_clip(video_path="", clip=None):
     # convert colorspace
     clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
     # clip = vs.core.resize.Spline64(clip, format=vs.RGBS, matrix_in_s="709", transfer_in_s="linear")
-    
+
     # convert colorspace + resizing
     # clip = vs.core.resize.Bicubic(
     #    clip, width=1280, height=720, format=vs.RGBS, matrix_in_s="709"
@@ -166,7 +155,7 @@ def inference_clip(video_path="", clip=None):
 
     # more information here: https://github.com/HolyWu/vs-gmfss_fortuna/blob/master/vsgmfss_fortuna/__init__.py
     # clip = gmfss_fortuna(clip, num_streams=4, trt=True, factor_num=2, factor_den=1, model=1, ensemble=False, sc=True, trt_cache_path="/workspace/tensorrt/",)
-    
+
     ######
     # UPSCALING WITH TENSORRT
     ######
@@ -189,31 +178,6 @@ def inference_clip(video_path="", clip=None):
     #    tilesize=[1280, 720],
     #    num_streams=2,
     # )
-
-    ######
-    # CUDA (upscaling/denoising)
-    # if possible, use mlrt from above instead due to speed
-    ######
-
-    # upscale_model_inference = PAN_inference(scale = 2, fp16 = True)
-
-    # upscale_model_inference = egvsr_inference(scale=4)
-
-    # CUGAN: kind_model="no_denoise", "conservative" or "denoise3x"
-    # upscale_model_inference = cugan_inference(fp16=True,scale=2,kind_model="no_denoise")
-
-    # upscale_model_inference = scunet_inference(fp16 = True)
-
-    # WARNING: FOR NOW NOT AVAILABLE DUE TO COMPATIBILITY ISSUES, use mlrt instead
-    # ESRGAN: tta is in the range between 1 and 7
-    # upscale_model_inference = ESRGAN_inference(model_path="/workspace/tensorrt/models/RealESRGAN_x4plus_anime_6B.pth", fp16=False, tta=False, tta_mode=1)
-
-    # Compact: no tiling allowed due to onnx-tensorrt not allowing dynamic shapes, use mlrt instead though
-    # upscale_model_inference = compact_inference(scale=2, fp16=True, clip=clip)
-
-    # upscale_model_inference = realbasicvsr_inference(fp16=True)
-
-    # clip = upscale_inference(upscale_model_inference, clip, tile_x=512, tile_y=512, tile_pad=10, pre_pad=0)
 
     ######
     # external vs plugins
@@ -278,7 +242,7 @@ def inference_clip(video_path="", clip=None):
     ####
     # Color Transfer
     ####
-    
+
     # original_clip = clip
     # original_clip = original_clip.resize.Spline16(format=vs.RGB24, matrix_in_s="470bg")
     # clip = clip.resize.Spline16(format=vs.RGB24, matrix_in_s="470bg")
@@ -292,9 +256,9 @@ def inference_clip(video_path="", clip=None):
 
     # more information here: https://github.com/HolyWu/vs-dpir/blob/master/vsdpir/__init__.py
     # clip = dpir(clip, num_streams = 4, nvfuser = False, cuda_graphs = False, trt = True, trt_cache_path = "/workspace/tensorrt/", task = "deblock", strength = 50, tile_w = 0, tile_h = 0, tile_pad= 8)
-    
+
     # clip = core.cas.CAS(clip, sharpness=0.5)
-    
+
     ###############################################
     # OUTPUT
     ###############################################
