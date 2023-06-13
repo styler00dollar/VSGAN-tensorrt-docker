@@ -315,6 +315,8 @@ def scene_detect(
             I1 = frame_to_tensor(clip.get_frame(n + 1))
             I0 = np.rollaxis(I0, 0, 3)
             I1 = np.rollaxis(I1, 0, 3)
+            I0 = I0.astype(np.float32)
+            I1 = I1.astype(np.float32)
             I0 = cv2.resize(I0, (resolution, resolution), interpolation=cv2.INTER_AREA)
             I1 = cv2.resize(I1, (resolution, resolution), interpolation=cv2.INTER_AREA)
             I0 = np.expand_dims(I0, 0)
