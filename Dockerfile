@@ -422,8 +422,8 @@ RUN apt update -y && \
   cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j$(nproc) && checkinstall -y
 
 # vapoursynth
-RUN pip install --upgrade pip && pip install Cython && git clone https://github.com/Setsugennoao/vapoursynth && \
-  cd vapoursynth && git switch preset-typo && ./autogen.sh && \
+RUN pip install --upgrade pip && pip install Cython && git clone https://github.com/vapoursynth/vapoursynth && \
+  cd vapoursynth && ./autogen.sh && \
   ./configure && make -j$(nproc) && make install && cd .. && ldconfig && \
   cd vapoursynth && python setup.py bdist_wheel
 
@@ -435,7 +435,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libnvinfer8 lib
 RUN git clone https://github.com/inducer/pycuda --recursive && cd pycuda && python setup.py bdist_wheel
 
 # color transfer
-RUN pip install numpy && apt install sudo -y && sudo -H pip install docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
+RUN pip install numpy && pip install docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
 
 # vs-mlrt
 # upgrading g++
@@ -507,9 +507,11 @@ RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS && c
   ninja -C build && ninja -C build install 
 
 # OpenCV (pip install . fails currently, building wheel instead)
+# git master b534ea27a65acc766575bdface4abc984178eee8 is broken
+# Exception: Not found: 'python/cv2/py.typed'
 RUN pip install scikit-build && \
   git clone --recursive https://github.com/opencv/opencv-python.git && \
-  cd opencv-python && \
+  cd opencv-python && git checkout 45e535e34d3dc21cd4b798267bfa94ee7c61e11c && \
   git submodule update --init --recursive && \
   git submodule update --remote --merge && \
   CMAKE_ARGS="-DOPENCV_EXTRA_MODULES_PATH=/workspace/opencv-python/opencv_contrib/modules \
@@ -572,8 +574,10 @@ RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
 # but branch ffmpeg-4.5 compiles with ffmpeg5 for whatever reason
 # using shared to avoid -fPIC https://ffmpeg.org/pipermail/libav-user/2014-December/007720.html
 # RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && git switch release/4.4 && git checkout de1132a89113b131831d8edde75214372c983f32
+RUN git clone https://code.videolan.org/videolan/dav1d/ && \
+  cd dav1d && meson build --buildtype release -Ddefault_library=static && ninja -C build install
 RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && \
-  CFLAGS=-fPIC ./configure --enable-shared --enable-static --enable-pic && make -j$(nproc) && make install && ldconfig && \
+  CFLAGS=-fPIC ./configure --enable-shared --enable-static --enable-pic --enable-libdav1d && make -j$(nproc) && make install && ldconfig && \
   cd /workspace && rm -rf FFmpeg && git clone https://github.com/l-smash/l-smash && cd l-smash && CFLAGS=-fPIC ./configure --enable-shared && \
   make -j$(nproc) && make install && cd /workspace 
 RUN git clone https://github.com/AkarinVS/L-SMASH-Works && cd L-SMASH-Works && \
@@ -583,24 +587,30 @@ RUN git clone https://github.com/AkarinVS/L-SMASH-Works && cd L-SMASH-Works && \
 RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy mmedit meson ninja numba numpy scenedetect \
     pytorch-msssim thop einops kornia mpgg vsutil onnx && \
   pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121 --force-reinstall -U && \
-  git clone https://github.com/pytorch/TensorRT --recursive && cd TensorRT/py && python setup.py install --fx-only && cd .. && cd .. && rm -rf TensorRT && \
+  # installing pip version due to
+  # ModuleNotFoundError: No module named 'torch_tensorrt.fx.converters.impl'
+  pip install torch-tensorrt-fx-only==1.5.0.dev0 && \
   pip install nvidia-pyindex tensorrt==8.6.1 && pip install polygraphy && rm -rf /root/.cache/
 
 # onnxruntime nightly (pypi has no 3.11 support)
 RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy && \
   pip install ort-nightly-gpu==1.16.0.dev20230512006 --index-url=https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/ --no-deps
 
-# modified versions which take holywu code as a base
+# holywu plugins
 RUN git clone https://github.com/styler00dollar/vs-gmfss_union && cd vs-gmfss_union && pip install . && cd /workspace && rm -rf vs-gmfss_union
 RUN git clone https://github.com/styler00dollar/vs-gmfss_fortuna && cd vs-gmfss_fortuna && pip install . && cd /workspace && rm -rf vs-gmfss_fortuna
 RUN git clone https://github.com/styler00dollar/vs-dpir && cd vs-dpir && pip install . && cd .. && rm -rf vs-dpir
+RUN pip install vsswinir vsbasicvsrpp --no-deps
 
-# installing own versions of mmcv, cupy and opencv
-# docker apperantly does not provide a simple way to share env variables between stages with different containers https://github.com/moby/moby/issues/37345
-# installing whl with *
+# installing own versions
+# todo: come up with a better way instead of setting whl paths
 COPY --from=mmcv-ubuntu /mmcv/dist/ /workspace
 COPY --from=cupy-ubuntu /cupy/dist/ /workspace
-RUN pip uninstall -y mmcv* cupy* $(pip freeze | grep '^opencv' | cut -d = -f 1) && pip install *.whl --force-reinstall && rm -rf dist *.whl
+RUN pip uninstall -y mmcv* cupy* $(pip freeze | grep '^opencv' | cut -d = -f 1) && \
+  pip install /workspace/cupy-13.0.0a1-cp311-cp311-linux_x86_64.whl \
+    /workspace/mmcv-2.0.0-cp311-cp311-linux_x86_64.whl /workspace/opencv-python/dist/opencv_contrib_python-4.7.0+45e535e-cp311-cp311-linux_x86_64.whl \
+    /workspace/color-matcher/dist/color_matcher-0.5.0-py3-none-any.whl /workspace/pycuda/dist/pycuda-2022.2.2-cp311-cp311-linux_x86_64.whl \
+    /workspace/vapoursynth/dist/VapourSynth-63-cp311-cp311-linux_x86_64.whl
 
 ####################
 
@@ -613,19 +623,15 @@ WORKDIR workspace
 
 # install python
 # todo: installing with deb?
-COPY --from=base /usr/local/bin/python /usr/local/bin/python
-COPY --from=base /usr/local/bin/pip /usr/local/bin/pip
-COPY --from=base /usr/local/bin/pip3 /usr/local/bin/pip3
+COPY --from=base /usr/local/bin/python /usr/local/bin/pip /usr/local/bin/pip3 /usr/local/bin/
 RUN apt update -y && apt install wget git -y
 
 # todo: clean?
 COPY --from=base /usr/local/lib/python3.11 /usr/local/lib/python3.11
 
 RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall && rm -rf get-pip.py
-COPY --from=base /workspace/Python-3.11.3/libpython3.11.so /usr/lib 
-COPY --from=base /workspace/Python-3.11.3/libpython3.11.so.1.0 /usr/lib 
-COPY --from=base /workspace/Python-3.11.3/libpython3.so /usr/lib
-COPY --from=base /workspace/Python-3.11.3/libpython3.so /usr/lib
+COPY --from=base /workspace/Python-3.11.3/libpython3.11.so /workspace/Python-3.11.3/libpython3.11.so.1.0 /workspace/Python-3.11.3/libpython3.so \
+  /workspace/Python-3.11.3/libpython3.so /usr/lib
 
 # vapoursynth
 # todo: installing with deb?
@@ -634,14 +640,8 @@ RUN apt install ./zimg-release_3.0.4-1_amd64.deb -y && rm -rf zimg-release_3.0.4
 
 COPY --from=base /usr/local/lib/vapoursynth /usr/local/lib/vapoursynth
 COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth /usr/local/lib/x86_64-linux-gnu/vapoursynth
-COPY --from=base /usr/local/lib/libvapoursynth-script.so.0.0.0 /usr/local/lib/libvapoursynth-script.so.0.0.0
-COPY --from=base /usr/local/lib/libvapoursynth-script.a /usr/local/lib/libvapoursynth-script.a
-COPY --from=base /usr/local/lib/libvapoursynth.so /usr/local/lib/libvapoursynth.so
-COPY --from=base /usr/local/lib/libvapoursynth-script.so /usr/local/lib/libvapoursynth-script.so
-COPY --from=base /usr/local/lib/libvapoursynth.la /usr/local/lib/libvapoursynth.la
-COPY --from=base /usr/local/lib/libvapoursynth.a /usr/local/lib/libvapoursynth.a
-COPY --from=base /usr/local/lib/libvapoursynth-script.la /usr/local/lib/libvapoursynth-script.la
-COPY --from=base /usr/local/lib/libvapoursynth-script.so.0 /usr/local/lib/libvapoursynth-script.so.0
+COPY --from=base /usr/local/lib/libvapoursynth-script.so.0.0.0 /usr/local/lib/libvapoursynth.so /usr/local/lib/libvapoursynth-script.so \
+  /usr/local/lib/libvapoursynth.la /usr/local/lib/libvapoursynth-script.la /usr/local/lib/libvapoursynth-script.so.0 /usr/local/lib/
 
 # vapoursynth
 COPY --from=base /usr/local/bin/vspipe  /usr/local/bin/vspipe
@@ -658,80 +658,70 @@ RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
 # todo?: tensorflow
 
 # vs plugins
-COPY --from=base /usr/local/lib/libvstrt.so /usr/local/lib/libvstrt.so
-COPY --from=base /usr/local/lib/vapoursynth/libdescale.so /usr/local/lib/vapoursynth/libdescale.so
-COPY --from=base /usr/local/lib/vapoursynth/librife.so /usr/local/lib/vapoursynth/librife.so
-COPY --from=base /usr/local/lib/vapoursynth/libmiscfilters.so /usr/local/lib/vapoursynth/libmiscfilters.so
-COPY --from=base /usr/local/lib/vapoursynth/libvmaf.so /usr/local/lib/vapoursynth/libvmaf.so
-COPY --from=base /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libvmaf.so
-COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so
-COPY --from=base /usr/local/lib/libmvtools.so /usr/local/lib/libmvtools.so
-COPY --from=base /usr/local/lib/libfmtconv.so /usr/local/lib/libfmtconv.so
-COPY --from=base /usr/local/lib/vapoursynth/libakarin.so /usr/local/lib/vapoursynth/libakarin.so
-COPY --from=base /usr/local/lib/vapoursynth/libvslsmashsource.so /usr/local/lib/vapoursynth/libvslsmashsource.so
-COPY --from=base /usr/local/lib/vapoursynth/libjulek.so /usr/local/lib/vapoursynth/libjulek.so
-COPY --from=base /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so
-COPY --from=base /usr/local/lib/vapoursynth/libcas.so /usr/local/lib/vapoursynth/libcas.so
-COPY --from=base /usr/local/lib/liblsmash.so.2 /usr/local/lib/liblsmash.so.2
-COPY --from=base /usr/lib/x86_64-linux-gnu/libffms2* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/local/lib/libvstrt.so /usr/local/lib/liblsmash.so.2 \
+  /usr/local/lib/liblsmash.so.2 /usr/local/lib/libmvtools.so \
+  /usr/local/lib/libfmtconv.so /usr/local/lib/
+
+COPY --from=base /usr/local/lib/vapoursynth/libdescale.so /usr/local/lib/vapoursynth/librife.so /usr/local/lib/vapoursynth/libmiscfilters.so \
+  /usr/local/lib/vapoursynth/libvmaf.so /usr/local/lib/vapoursynth/libakarin.so /usr/local/lib/vapoursynth/libvslsmashsource.so \
+  /usr/local/lib/vapoursynth/libjulek.so /usr/local/lib/vapoursynth/libcas.so /usr/local/lib/vapoursynth/
+
+COPY --from=base /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so \
+  /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/
+
 COPY --from=base /usr/lib/x86_64-linux-gnu/libffms2*.so* /usr/lib/x86_64-linux-gnu/libxcb*.so* /usr/lib/x86_64-linux-gnu/
 
-# binaries
-COPY --from=base /usr/bin/av1an /usr/bin/av1an
-COPY --from=base /usr/local/bin/rav1e /usr/local/bin/rav1e
-# svt
-COPY --from=base /usr/local/bin/SvtAv1EncApp /usr/local/bin/SvtAv1EncApp
-COPY --from=base /usr/local/bin/SvtAv1DecApp /usr/local/bin/SvtAv1DecApp
-# aom
-COPY --from=base /usr/local/bin/aomenc /usr/local/bin/aomenc
-COPY --from=base /usr/local/bin/aomdec /usr/local/bin/aomdec
-
+# av1an / rav1e / svt / aom
+COPY --from=base /usr/bin/av1an /usr/local/bin/rav1e /usr/bin/
+COPY --from=base /usr/local/bin/SvtAv1EncApp /usr/local/bin/SvtAv1DecApp /usr/local/bin/aomenc /usr/local/bin/
+# ffmpeg
 COPY --from=ffmpeg-arch /home/makepkg/FFmpeg/ffmpeg /usr/local/bin/ffmpeg
 
 # libraries
-COPY --from=base /usr/lib/x86_64-linux-gnu/libfribidi*.so* /usr/lib/x86_64-linux-gnu/libharfbuzz*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libxml2*.so* /usr/lib/x86_64-linux-gnu/libsoxr*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libglib*.so* /usr/lib/x86_64-linux-gnu/libgraphite2*.so* /usr/lib/x86_64-linux-gnu/libicuuc*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libicudata*.so* /usr/lib/x86_64-linux-gnu/libvulkan*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libav*.so* /usr/lib/x86_64-linux-gnu/libsw*.so* /usr/local/lib/libav*.so* /usr/local/lib/libsw*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libwebpmux*.so* /usr/lib/x86_64-linux-gnu/libdav1d*.so* /usr/lib/x86_64-linux-gnu/libvpx*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/librsvg*.so* /usr/lib/x86_64-linux-gnu/libgobject*.so* /usr/lib/x86_64-linux-gnu/libcairo*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libzvbi*.so* /usr/lib/x86_64-linux-gnu/libsnappy*.so* /usr/lib/x86_64-linux-gnu/libaom*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libcodec2*.so* /usr/lib/x86_64-linux-gnu/libgsm*.so*  /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libmp3lame*.so* /usr/lib/x86_64-linux-gnu/libopenjp2*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libopus*.so* /usr/lib/x86_64-linux-gnu/libshine*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libspeex*.so* /usr/lib/x86_64-linux-gnu/libtheoraenc*.so* /usr/lib/x86_64-linux-gnu/libtheoradec*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libtwolame*.so* /usr/lib/x86_64-linux-gnu/libvorbis*.so* /usr/lib/x86_64-linux-gnu/libx264*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libx265*.so* /usr/lib/x86_64-linux-gnu/libxvidcore*.so* /usr/lib/x86_64-linux-gnu/libva*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libgme*.so* /usr/lib/x86_64-linux-gnu/libopenmpt*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libchromaprint*.so* /usr/lib/x86_64-linux-gnu/libbluray*.so* /usr/lib/x86_64-linux-gnu/librabbitmq*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libsrt*.so* /usr/lib/x86_64-linux-gnu/libssh*.so* /usr/lib/x86_64-linux-gnu/libzmq*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libvdpau*.so* /usr/lib/x86_64-linux-gnu/libmfx*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libdrm*.so* /usr/lib/x86_64-linux-gnu/libgdk_pixbuf*.so* /usr/lib/x86_64-linux-gnu/libgio*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libpangocairo*.so* /usr/lib/x86_64-linux-gnu/libpango*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libpixman*.so* /usr/lib/x86_64-linux-gnu/libXrender*.so*  /usr/lib/x86_64-linux-gnu/libogg*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libnuma*.so* /usr/lib/x86_64-linux-gnu/libmpg123*.so* /usr/lib/x86_64-linux-gnu/libudfread*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libsodium*.so* /usr/lib/x86_64-linux-gnu/libpgm*.so* /usr/lib/x86_64-linux-gnu/libnorm*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libXfixes*.so* /usr/lib/x86_64-linux-gnu/libgmodule*.so* /usr/lib/x86_64-linux-gnu/libthai*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libdatrie*.so* /usr/lib/x86_64-linux-gnu/libpng16*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libgomp*.so* /usr/lib/x86_64-linux-gnu/libwebp*.so* /usr/lib/x86_64-linux-gnu/libfontconfig*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libfreetype*.so* /usr/lib/x86_64-linux-gnu/libjpeg*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libgthread*.so* /usr/lib/x86_64-linux-gnu/libGL*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libfribidi*.so* /usr/lib/x86_64-linux-gnu/libharfbuzz*.so* \
+  /usr/lib/x86_64-linux-gnu/libxml2*.so* /usr/lib/x86_64-linux-gnu/libsoxr*.so* \
+  /usr/lib/x86_64-linux-gnu/libglib*.so* /usr/lib/x86_64-linux-gnu/libgraphite2*.so* /usr/lib/x86_64-linux-gnu/libicuuc*.so* \
+  /usr/lib/x86_64-linux-gnu/libicudata*.so* /usr/lib/x86_64-linux-gnu/libvulkan*.so* \
+  /usr/lib/x86_64-linux-gnu/libav*.so* /usr/lib/x86_64-linux-gnu/libsw*.so* /usr/local/lib/libav*.so* /usr/local/lib/libsw*.so* \
+  /usr/lib/x86_64-linux-gnu/libwebpmux*.so* /usr/lib/x86_64-linux-gnu/libdav1d*.so* /usr/lib/x86_64-linux-gnu/libvpx*.so* \
+  /usr/lib/x86_64-linux-gnu/librsvg*.so* /usr/lib/x86_64-linux-gnu/libgobject*.so* /usr/lib/x86_64-linux-gnu/libcairo*.so* \
+  /usr/lib/x86_64-linux-gnu/libzvbi*.so* /usr/lib/x86_64-linux-gnu/libsnappy*.so* /usr/lib/x86_64-linux-gnu/libaom*.so* \
+  /usr/lib/x86_64-linux-gnu/libcodec2*.so* /usr/lib/x86_64-linux-gnu/libgsm*.so* \
+  /usr/lib/x86_64-linux-gnu/libmp3lame*.so* /usr/lib/x86_64-linux-gnu/libopenjp2*.so* \
+  /usr/lib/x86_64-linux-gnu/libopus*.so* /usr/lib/x86_64-linux-gnu/libshine*.so* \
+  /usr/lib/x86_64-linux-gnu/libspeex*.so* /usr/lib/x86_64-linux-gnu/libtheoraenc*.so* /usr/lib/x86_64-linux-gnu/libtheoradec*.so* \
+  /usr/lib/x86_64-linux-gnu/libtwolame*.so* /usr/lib/x86_64-linux-gnu/libvorbis*.so* /usr/lib/x86_64-linux-gnu/libx264*.so* \
+  /usr/lib/x86_64-linux-gnu/libx265*.so* /usr/lib/x86_64-linux-gnu/libxvidcore*.so* /usr/lib/x86_64-linux-gnu/libva*.so* \
+  /usr/lib/x86_64-linux-gnu/libgme*.so* /usr/lib/x86_64-linux-gnu/libopenmpt*.so* \
+  /usr/lib/x86_64-linux-gnu/libchromaprint*.so* /usr/lib/x86_64-linux-gnu/libbluray*.so* /usr/lib/x86_64-linux-gnu/librabbitmq*.so* \
+  /usr/lib/x86_64-linux-gnu/libsrt*.so* /usr/lib/x86_64-linux-gnu/libssh*.so* /usr/lib/x86_64-linux-gnu/libzmq*.so* \
+  /usr/lib/x86_64-linux-gnu/libvdpau*.so* /usr/lib/x86_64-linux-gnu/libmfx*.so* \
+  /usr/lib/x86_64-linux-gnu/libdrm*.so* /usr/lib/x86_64-linux-gnu/libgdk_pixbuf*.so* /usr/lib/x86_64-linux-gnu/libgio*.so* \
+  /usr/lib/x86_64-linux-gnu/libpangocairo*.so* /usr/lib/x86_64-linux-gnu/libpango*.so* \
+  /usr/lib/x86_64-linux-gnu/libpixman*.so* /usr/lib/x86_64-linux-gnu/libXrender*.so*  /usr/lib/x86_64-linux-gnu/libogg*.so* \
+  /usr/lib/x86_64-linux-gnu/libnuma*.so* /usr/lib/x86_64-linux-gnu/libmpg123*.so* /usr/lib/x86_64-linux-gnu/libudfread*.so* \
+  /usr/lib/x86_64-linux-gnu/libsodium*.so* /usr/lib/x86_64-linux-gnu/libpgm*.so* /usr/lib/x86_64-linux-gnu/libnorm*.so* \
+  /usr/lib/x86_64-linux-gnu/libXfixes*.so* /usr/lib/x86_64-linux-gnu/libgmodule*.so* /usr/lib/x86_64-linux-gnu/libthai*.so* \
+  /usr/lib/x86_64-linux-gnu/libdatrie*.so* /usr/lib/x86_64-linux-gnu/libpng16*.so*  \
+  /usr/lib/x86_64-linux-gnu/libgomp*.so* /usr/lib/x86_64-linux-gnu/libwebp*.so* /usr/lib/x86_64-linux-gnu/libfontconfig*.so* \
+  /usr/lib/x86_64-linux-gnu/libfreetype*.so* /usr/lib/x86_64-linux-gnu/libjpeg*.so* \
+  /usr/lib/x86_64-linux-gnu/libgthread*.so* /usr/lib/x86_64-linux-gnu/libGL*.so* /usr/lib/x86_64-linux-gnu/
 
 # windows hotfix
-RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1 /usr/lib/x86_64-linux-gnu/libcuda.so.1
-RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvcuvid.so.1
-RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvidia* /usr/lib/x86_64-linux-gnu/libcuda*
+RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1 /usr/lib/x86_64-linux-gnu/libcuda.so.1 \
+  /usr/lib/x86_64-linux-gnu/libnvcuvid.so.1 /usr/lib/x86_64-linux-gnu/libnvidia* /usr/lib/x86_64-linux-gnu/libcuda*
 
 # todo: symlink .so files to reduce size
-COPY --from=base /usr/lib/x86_64-linux-gnu/libnvonnxparser*.so* /usr/lib/x86_64-linux-gnu/libnvinfer_plugin*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=base /usr/lib/x86_64-linux-gnu/libcudnn*.so* /usr/lib/x86_64-linux-gnu/libnvinfer*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libnvonnxparser*.so* /usr/lib/x86_64-linux-gnu/libnvinfer_plugin*.so* \
+  /usr/lib/x86_64-linux-gnu/libcudnn*.so* /usr/lib/x86_64-linux-gnu/libnvinfer*.so* /usr/lib/x86_64-linux-gnu/
 
 # move trtexec so it can be globally accessed
 COPY --from=base /usr/src/tensorrt/bin/trtexec /usr/bin
 
+# todo: check
+# Failed to find C compiler. Please specify via CC environment variable.
+COPY --from=base /usr/bin/gcc /usr/bin/gcc
+ENV CC=/usr/bin/gcc
+
 ENV CUDA_MODULE_LOADING=LAZY
 WORKDIR /workspace/tensorrt
-
-# todo
-# Failed to find C compiler. Please specify via CC environment variable.
