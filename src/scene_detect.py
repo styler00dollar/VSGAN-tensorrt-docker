@@ -245,7 +245,7 @@ def scene_detect(
         check_and_download(model_path)
         sess = ort.InferenceSession(
             model_path,
-            providers=["CUDAExecutionProvider"],
+            providers=["TensorrtExecutionProvider"],
         )
         resolution = onnx_res
 
