@@ -718,10 +718,5 @@ COPY --from=base /usr/lib/x86_64-linux-gnu/libnvonnxparser*.so* /usr/lib/x86_64-
 # move trtexec so it can be globally accessed
 COPY --from=base /usr/src/tensorrt/bin/trtexec /usr/bin
 
-# todo: check
-# Failed to find C compiler. Please specify via CC environment variable.
-COPY --from=base /usr/bin/gcc /usr/bin/gcc
-ENV CC=/usr/bin/gcc
-
 ENV CUDA_MODULE_LOADING=LAZY
 WORKDIR /workspace/tensorrt
