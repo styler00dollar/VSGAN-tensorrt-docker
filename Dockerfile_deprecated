@@ -419,7 +419,7 @@ RUN apt update -y && \
   apt install fftw3-dev python-is-python3 pkg-config python3-pip git p7zip-full autoconf libtool yasm ffmsindex libffms2-5 libffms2-dev -y && \
   wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.zip && 7z x release-3.0.4.zip && \
   cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j$(nproc) && make install && cd .. && rm -rf zimg-release-3.0.4 release-3.0.4.zip && \
-  pip install --upgrade pip && pip install Cython && git clone https://github.com/Setsugennoao/vapoursynth && cd vapoursynth && git switch preset-typo && ./autogen.sh && \
+  pip install --upgrade pip && pip install Cython && git clone https://github.com/vapoursynth/vapoursynth && cd vapoursynth && ./autogen.sh && \
   ./configure && make -j$(nproc) && make install && cd .. && ldconfig
 
 # python dependencies
