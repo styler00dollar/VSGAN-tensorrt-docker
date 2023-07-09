@@ -1,0 +1,59 @@
+FROM nvcr.io/nvidia/pytorch:23.06-py3
+# FROM busybox:latest
+ARG PREFIX=/usr/local
+
+# install tensorrt
+RUN apt-get update -y && apt upgrade -y && apt update -y
+RUN apt-cache search tensorrt
+RUN apt-get install -y libnvinfer-bin libnvinfer-dev libnvinfer-plugin-dev libnvinfer-plugin8 libnvinfer8 libnvonnxparsers-dev \
+    libnvonnxparsers8 libnvparsers-dev libnvparsers8 tensorrt-dev -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config \
+    libglvnd-dev \
+    libgl1-mesa-dev \
+    libegl1-mesa-dev \
+    libgles2-mesa-dev && \
+    echo '{"file_format_version": "1.0.0", "ICD": {"library_path": "libEGL_nvidia.so.0"}}' >> /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+
+RUN wget https://github.com/microsoft/onnxruntime/releases/download/v1.8.1/onnxruntime-linux-x64-gpu-1.8.1.tgz \
+    && tar -zxf onnxruntime-linux-x64-gpu-1.8.1.tgz \
+    && cd onnxruntime-linux-x64-gpu-1.8.1 \
+    && install -m 0755 -d ${PREFIX}/include/onnxruntime \
+    && install -m 0644 include/*.h ${PREFIX}/include/onnxruntime \
+    && install -m 0644 lib/* ${PREFIX}/lib/ \
+    && cd .. \
+    && rm -r onnxruntime*
+
+RUN apt-get update \
+    && wget https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.zip \
+    && unzip eigen-3.4.0 \
+    && cd eigen-3.4.0 \
+    && cp -r Eigen/ /usr/local/include \
+    && cd .. \
+    && rm -r eigen* \
+    && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install -y libassimp-dev assimp-utils libglm-dev libsdl2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone https://github.com/FFmpeg/nv-codec-headers.git \
+    && cd nv-codec-headers \
+    && make install \
+    && cd .. \
+    && rm -r nv-codec-headers
+
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+ENV TORCH_ROOT="/opt/conda/lib/python3.8/site-packages/torch"
+ENV TORCH_INCPATH="-I$TORCH_ROOT/include/torch/csrc/api/include -I$TORCH_ROOT/include"
+ENV TORCH_LIBPATH=$TORCH_ROOT/lib
+
+RUN apt update -y && apt upgrade -y && apt install libx264-dev libx265-dev -y
+RUN git clone https://github.com/styler00dollar/FFmpeg-GPU-Demo --recursive && \
+    cd FFmpeg-GPU-Demo/ffmpeg-gpu && \
+    ./configure --enable-nonfree --enable-cuda-nvcc --enable-libnpp --extra-cflags=-I/usr/local/cuda/include \
+    --extra-ldflags=-L/usr/local/cuda/lib64 --disable-static --enable-shared --enable-opengl --enable-gpl --enable-libx264 --enable-libx265 \
+    --enable-libtensorrt \
+    --extra-ldflags=-L$TORCH_LIBPATH \
+    --extra-cflags="$TORCH_INCPATH" \
+    --nvccflags="-gencode=arch=compute_89,code=sm_89 -lineinfo -Xcompiler -fPIC -I./ $TORCH_INCPATH" && \
+    make -j16 && make install
+RUN rm -rf FFmpeg-GPU-Demo
