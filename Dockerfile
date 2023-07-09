@@ -603,14 +603,10 @@ RUN git clone https://github.com/styler00dollar/vs-dpir && cd vs-dpir && pip ins
 RUN pip install vsswinir vsbasicvsrpp --no-deps
 
 # installing own versions
-# todo: come up with a better way instead of setting whl paths
 COPY --from=mmcv-ubuntu /mmcv/dist/ /workspace
 COPY --from=cupy-ubuntu /cupy/dist/ /workspace
 RUN pip uninstall -y mmcv* cupy* $(pip freeze | grep '^opencv' | cut -d = -f 1) && \
-  pip install /workspace/cupy-13.0.0a1-cp311-cp311-linux_x86_64.whl \
-    /workspace/mmcv-2.0.0-cp311-cp311-linux_x86_64.whl /workspace/opencv-python/dist/opencv_contrib_python-4.7.0+45e535e-cp311-cp311-linux_x86_64.whl \
-    /workspace/color-matcher/dist/color_matcher-0.5.0-py3-none-any.whl /workspace/pycuda/dist/pycuda-2022.2.2-cp311-cp311-linux_x86_64.whl \
-    /workspace/vapoursynth/dist/VapourSynth-63-cp311-cp311-linux_x86_64.whl
+  find . -name "*whl" ! -path "./Python-3.11.3/*" -exec pip install {} \;
 
 ####################
 
