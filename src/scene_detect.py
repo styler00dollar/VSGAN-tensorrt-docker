@@ -25,8 +25,8 @@ def scene_detect(
     thresh: float = 0.98,
     fp16: bool = True,
     onnx: bool = False,
-    onnx_path: str = "sc_efficientformerv2_s0+rife46_84119_224_fp16_op16.onnx",
-    onnx_res: int = 224,
+    onnx_path: str = "test.onnx",
+    onnx_res: int = 256,
     num_streams: int = 4,
 ) -> vs.VideoNode:
     core = vs.core
@@ -241,11 +241,9 @@ def scene_detect(
                 rife_model.half()
 
     if onnx:
-        model_path = "/workspace/tensorrt/models/sc_efficientformerv2_s0+rife46_84119_224_fp16_op16.onnx"
-        check_and_download(model_path)
         sess = ort.InferenceSession(
-            model_path,
-            providers=["CUDAExecutionProvider"],
+            onnx_path,
+            providers=["TensorrtExecutionProvider"],
         )
         resolution = onnx_res
 
@@ -315,6 +313,8 @@ def scene_detect(
             I1 = frame_to_tensor(clip.get_frame(n + 1))
             I0 = np.rollaxis(I0, 0, 3)
             I1 = np.rollaxis(I1, 0, 3)
+            I0 = I0.astype(np.float32)
+            I1 = I1.astype(np.float32)
             I0 = cv2.resize(I0, (resolution, resolution), interpolation=cv2.INTER_AREA)
             I1 = cv2.resize(I1, (resolution, resolution), interpolation=cv2.INTER_AREA)
             I0 = np.expand_dims(I0, 0)
@@ -325,12 +325,9 @@ def scene_detect(
             I1 = np.swapaxes(I1, 3, 1)
             I1 = np.swapaxes(I1, 2, 3)
 
-            input = np.concatenate([I0, I1], axis=1)
-            input = input.astype(np.float16)
-            result = sess.run(None, {"input": input})[0]
-
-            y_prob = softmax(result, axis=1)
-            if y_prob[0][0] > thresh:
+            in_sess = np.concatenate([I0, I1], axis=1).astype(np.float16)
+            result = sess.run(None, {"input": in_sess})[0]
+            if result > thresh:
                 return core.std.SetFrameProp(clip, prop="_SceneChangeNext", intval=1)
         return clip
 

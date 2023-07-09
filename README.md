@@ -100,6 +100,23 @@ yay -S docker nvidia-docker nvidia-container-toolkit docker-compose docker-build
 # you can adjust folder mounts in the yaml file
 docker-compose run --rm vsgan_tensorrt
 ```
+There are now multiple containers to choose from, if you don't want the default, then edit `compose.yaml`
+and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to running `docker-compose run --rm vsgan_tensorrt`.
+- `latest`: Default docker with everything.
+- `minimal`: Bare minimum to run `ffmpeg`, `mlrt` and `lsmash`.
+- `deprecated`: Container before changing dockerfile to copy stage, has same functionality as latest, but is way bigger in size. (not recommended)
+- `ffmpeg_trt`: Experimental ffmpeg trt plugin without vapoursynth, only for sm_89 for now, or recompile with your own gpu compute version.
+   The ffmpeg in this docker is also barebones for now. since the plugin is currently only compatible with ffmpeg4 and is not compiled with many dependencies.
+   That means no av1 gpu encoding and not a lot of encoding/decoding options, but a ffmpeg trt plugin should avoid any upscaling bottleneck. 
+   With this plugin you can direclty encode data that is located in the gpu without needing to copy back the data to the cpu with nvenc.
+
+| docker image  | compressed download | extracted container | short description |
+| ------------- | ------------------- | ------------------- | ----------------- |
+| latest | 11gb | 21gb | default latest
+| minimal | 4gb | 8gb | ffmpeg + mlrt + lsmash
+| deprecated | 23gb | 43gb | old default
+| ffmpeg_trt | 9gb | 20gb | ffmpeg c++ trt inference plugin to use trt engines with ffmpeg directly without vapoursynth
+
 Piping usage:
 ```
 # you can use it in various ways, ffmpeg example
@@ -113,6 +130,11 @@ vspipe -c y4m inference.py - | x265 - --y4m -o example.mkv -y
 
 # example without vspipe
 ffmpeg -f vapoursynth -i inference.py example.mkv -y
+
+# example with ffmpeg trt plugin + nvenc
+ffmpeg -hwaccel cuda -hwaccel_output_format cuda -i input.mp4 -vf scale_npp=1280:720,format_cuda=rgbpf32le,tensorrt=my_engine.engine,format_cuda=nv12 -c:v hevc_nvenc -preset lossless output.mkv -y
+# example with ffmpeg trt plugin + hwdownload (cpu encoding)
+ffmpeg -hwaccel cuda -hwaccel_output_format cuda -i input.mp4 -vf format_cuda=rgbpf32le,tensorrt=my_engine.engine,format_cuda=nv12,hwdownload,format=nv12 -vcodec ffv1 output.mkv -y
 ```
 If docker does not want to start, try this before you use docker:
 ```bash
