@@ -76,7 +76,7 @@ RUN cp /home/makepkg/python311/bin/python3.11 /usr/bin/python
 ENV PYTHONPATH /home/makepkg/python311/bin/
 ENV PATH "/home/makepkg/python311/bin/:$PATH"
 
-RUN pip3 install Cython meson
+RUN pip3 install "cython<3" meson
 
 ENV PATH "$PATH:/opt/cuda/bin/nvcc"
 ENV PATH "$PATH:/opt/cuda/bin"
@@ -97,8 +97,8 @@ RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.tar.
   ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
 ENV PATH /usr/local/bin:$PATH
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R62.tar.gz && \
-  tar -zxvf R62.tar.gz && cd vapoursynth-R62 && ./autogen.sh && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R63.tar.gz && \
+  tar -zxvf R63.tar.gz && cd vapoursynth-R63 && ./autogen.sh && \
   PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/local/lib/pkgconfig" ./configure --enable-static --disable-shared && \
   make && make install && cd .. && ldconfig
 
@@ -422,7 +422,7 @@ RUN apt update -y && \
   cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j$(nproc) && checkinstall -y
 
 # vapoursynth
-RUN pip install --upgrade pip && pip install Cython && git clone https://github.com/vapoursynth/vapoursynth && \
+RUN pip install --upgrade pip && pip install "cython<3" && git clone https://github.com/vapoursynth/vapoursynth && \
   cd vapoursynth && ./autogen.sh && \
   ./configure && make -j$(nproc) && make install && cd .. && ldconfig && \
   cd vapoursynth && python setup.py bdist_wheel
@@ -507,14 +507,19 @@ RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS && c
   ninja -C build && ninja -C build install 
 
 # OpenCV (pip install . fails currently, building wheel instead)
-# git master b534ea27a65acc766575bdface4abc984178eee8 is broken
+# git master is broken
 # Exception: Not found: 'python/cv2/py.typed'
+# workaround for crashing compile https://github.com/opencv/opencv-python/issues/871
+# last working commit: 45e535e34d3dc21cd4b798267bfa94ee7c61e11c
+
 RUN pip install scikit-build && \
-  git clone --recursive https://github.com/opencv/opencv-python.git && \
-  cd opencv-python && git checkout 45e535e34d3dc21cd4b798267bfa94ee7c61e11c && \
+  git clone --recursive https://github.com/opencv/opencv-python && \
+  cd opencv-python && \
+  # git checkout 45e535e34d3dc21cd4b798267bfa94ee7c61e11c && \
   git submodule update --init --recursive && \
   git submodule update --remote --merge && \
   CMAKE_ARGS="-DOPENCV_EXTRA_MODULES_PATH=/workspace/opencv-python/opencv_contrib/modules \
+  -DBUILD_opencv_cudacodec=OFF -DBUILD_opencv_cudaoptflow=OFF \ 
   -D BUILD_TIFF=ON \
   -D BUILD_opencv_java=OFF \
   -D WITH_CUDA=ON \
@@ -540,9 +545,10 @@ RUN apt install curl libssl-dev mkvtoolnix mkvtoolnix-gui clang-12 nasm libavuti
 ENV PATH="/root/.cargo/bin:$PATH"
 
 # av1an
+# todo: use own custom av1an
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
   . $HOME/.cargo/env && \
-  git clone https://github.com/styler00dollar/Av1an && \
+  git clone https://github.com/master-of-zen/Av1an && \
   cd Av1an && cargo build --release --features ffmpeg_static && \
   mv /workspace/Av1an/target/release/av1an /usr/bin 
 
@@ -583,6 +589,10 @@ RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && \
 RUN git clone https://github.com/AkarinVS/L-SMASH-Works && cd L-SMASH-Works && \
   git switch ffmpeg-4.5 && cd VapourSynth/ && meson build && ninja -C build && ninja -C build install 
 
+# bestsource
+RUN apt-get install libjansson-dev -y && git clone https://github.com/vapoursynth/bestsource && cd bestsource && git clone https://github.com/sekrit-twc/libp2p.git --depth 1 && \
+  meson build && ninja -C build && ninja -C build install
+
 # pip
 RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy mmedit meson ninja numba numpy scenedetect \
     pytorch-msssim thop einops kornia mpgg vsutil onnx && \
@@ -593,8 +603,9 @@ RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy mmedit meson ninja 
   pip install nvidia-pyindex tensorrt==8.6.1 && pip install polygraphy && rm -rf /root/.cache/
 
 # onnxruntime nightly (pypi has no 3.11 support)
+# https://aiinfra.visualstudio.com/PublicPackages/_artifacts/feed/ORT-Nightly/PyPI/ort-nightly-gpu/overview
 RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy && \
-  pip install ort-nightly-gpu==1.16.0.dev20230512006 --index-url=https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/ --no-deps
+  pip install ort-nightly-gpu==1.16.0.dev20230824005 --index-url=https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/ --no-deps
 
 # holywu plugins
 RUN git clone https://github.com/styler00dollar/vs-gmfss_union && cd vs-gmfss_union && pip install . && cd /workspace && rm -rf vs-gmfss_union
@@ -614,6 +625,8 @@ FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04 as final
 # maybe official tensorrt image is better, but it uses 20.04
 #FROM nvcr.io/nvidia/tensorrt:23.04-py3 as final
 ARG DEBIAN_FRONTEND=noninteractive
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES all
 
 WORKDIR workspace
 
@@ -666,6 +679,7 @@ COPY --from=base /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_6
   /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/
 
 COPY --from=base /usr/lib/x86_64-linux-gnu/libffms2*.so* /usr/lib/x86_64-linux-gnu/libxcb*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=base /usr/local/lib/vapoursynth/libbestsource.so usr/local/lib/vapoursynth
 
 # av1an / rav1e / svt / aom
 COPY --from=base /usr/bin/av1an /usr/local/bin/rav1e /usr/bin/
@@ -701,7 +715,8 @@ COPY --from=base /usr/lib/x86_64-linux-gnu/libfribidi*.so* /usr/lib/x86_64-linux
   /usr/lib/x86_64-linux-gnu/libdatrie*.so* /usr/lib/x86_64-linux-gnu/libpng16*.so*  \
   /usr/lib/x86_64-linux-gnu/libgomp*.so* /usr/lib/x86_64-linux-gnu/libwebp*.so* /usr/lib/x86_64-linux-gnu/libfontconfig*.so* \
   /usr/lib/x86_64-linux-gnu/libfreetype*.so* /usr/lib/x86_64-linux-gnu/libjpeg*.so* \
-  /usr/lib/x86_64-linux-gnu/libgthread*.so* /usr/lib/x86_64-linux-gnu/libGL*.so* /usr/lib/x86_64-linux-gnu/
+  /usr/lib/x86_64-linux-gnu/libgthread*.so* /usr/lib/x86_64-linux-gnu/libGL*.so* /usr/lib/x86_64-linux-gnu/libfftw3f*.so* \
+  /usr/lib/x86_64-linux-gnu/libjansson*.so* /usr/lib/x86_64-linux-gnu/
 
 # windows hotfix
 RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1 /usr/lib/x86_64-linux-gnu/libcuda.so.1 \
@@ -713,6 +728,28 @@ COPY --from=base /usr/lib/x86_64-linux-gnu/libnvonnxparser*.so* /usr/lib/x86_64-
 
 # move trtexec so it can be globally accessed
 COPY --from=base /usr/src/tensorrt/bin/trtexec /usr/bin
+
+# workaround for arch updates
+# ffmpeg: /usr/lib/x86_64-linux-gnu/libstdc++.so.6: version `GLIBCXX_3.4.32' not found (required by ffmpeg)
+# ffmpeg: /usr/lib/x86_64-linux-gnu/libm.so.6: version `GLIBC_2.38' not found (required by ffmpeg)
+# ffmpeg: /usr/lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.38' not found (required by ffmpeg)
+
+RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1.3.3+ds-1_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.28-2_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-2build2_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.28-2_amd64.deb \
+    http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.38-1ubuntu3_amd64.deb \
+    http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.38-1ubuntu3_amd64.deb \
+    http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-bin_2.38-1ubuntu3_amd64.deb \
+    http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.38-1ubuntu3_amd64.deb \
+    http://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_5.4.0-156.173_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu6_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3_1.3.3+ds-1_amd64.deb && \
+    dpkg --force-all -i *.deb  && rm -rf *deb
+COPY --from=ffmpeg-arch /usr/lib/libstdc++.so /usr/lib/x86_64-linux-gnu/libstdc++.so
+COPY --from=ffmpeg-arch /usr/lib/libstdc++.so /usr/lib/x86_64-linux-gnu/libstdc++.so.6
+
+RUN ldconfig
 
 ENV CUDA_MODULE_LOADING=LAZY
 WORKDIR /workspace/tensorrt
