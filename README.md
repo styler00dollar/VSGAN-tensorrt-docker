@@ -616,13 +616,6 @@ V100 (Colab High RAM / 8CPU) (vs+TensorRT8.2GA+ffmpeg+C++ TRT+num_streams=3+no t
 2x3090² (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset16) (+dropout) | 26 | 11 | 5.3
 4090 (C++ TRT+TensorRT8.4GA+vs_threads=6+num_threads=6+no tiling+opset16+"--best") (+dropout) | ? | ? | ? / 12*
 
-RealESRGAN (2x) (3b+64nf+dropout)ⓘ | 480p | 720p | 1080p
-------------  | ---  | ---- | ------
-3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=2) | ? | 5.69 | 2.64
-V100 (Colab High RAM / 8CPU) (vs+TensorRT8.4GA+ffmpeg+C++ TRT+num_streams=4+no tiling+opset15) | 10 | 9.4 | 4.2
-3090² (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset15) | 24 | 11 | 5.2
-2x3090 (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset15) | 51 | 23 | 10
-
 Rife4.6 technically is fastmode=True, since contextnet/unet was removed.
 
 Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
