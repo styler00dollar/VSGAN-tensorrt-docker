@@ -17,14 +17,20 @@ RUN git clone https://aur.archlinux.org/yay.git && \
   cd && \
   rm -rf .cache yay
 
-RUN yay -Syu && yay -S rust tcl nasm cmake jq libtool wget fribidi fontconfig libsoxr-git meson pod2man nvidia-utils base-devel --noconfirm --ask 4
-
+RUN yay -Syu rust tcl nasm cmake jq libtool wget fribidi fontconfig libsoxr meson pod2man nvidia-utils base-devel --noconfirm --ask 4
 RUN yay -S python-pip python310 --noconfirm --ask 4
 
 USER root
-RUN pip install Cython meson --break-system-packages
 
-RUN find / -name "python*"
+RUN mkdir -p "/home/makepkg/python310"
+RUN wget https://github.com/python/cpython/archive/refs/tags/v3.10.13.tar.gz && tar xf v3.10.13.tar.gz && cd cpython-3.10.13 && \
+  mkdir debug && cd debug && ../configure --enable-optimizations --disable-shared --prefix="/home/makepkg/python310" && make -j$(nproc) && make install && \
+  /home/makepkg/python310/bin/python3.10 -m ensurepip --upgrade
+RUN cp /home/makepkg/python310/bin/python3.10 /usr/bin/python
+ENV PYTHONPATH /home/makepkg/python310/bin/
+ENV PATH "/home/makepkg/python310/bin/:$PATH"
+
+RUN pip3 install "cython<3" meson
 
 ENV PATH "$PATH:/opt/cuda/bin/nvcc"
 ENV PATH "$PATH:/opt/cuda/bin"
@@ -45,9 +51,9 @@ RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.tar.
   ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
 ENV PATH /usr/local/bin:$PATH
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R62.tar.gz && \
-  tar -zxvf R62.tar.gz && cd vapoursynth-R62 && ./autogen.sh && \
-  PYTHONPATH="/usr/bin/python3.10" PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/local/lib/pkgconfig" ./configure --enable-static --disable-shared && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R64.tar.gz && \
+  tar -zxvf R64.tar.gz && cd vapoursynth-R64 && ./autogen.sh && \
+  PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/local/lib/pkgconfig" ./configure --enable-static --disable-shared && \
   make && make install && cd .. && ldconfig
 
 RUN git clone https://github.com/gypified/libmp3lame && cd libmp3lame && ./configure --enable-static --enable-nasm --disable-shared && make -j$(nproc) install
@@ -158,12 +164,14 @@ RUN git clone git://git.openssl.org/openssl.git && cd openssl && LIBS="-ldl -lz"
   sed -i 's/^LDFLAGS = /LDFLAGS = -all-static -s/g' Makefile && make -j$(nproc) && make install_sw && make install
 
 # https://stackoverflow.com/questions/18185618/how-to-use-static-linking-with-openssl-in-c-c
-RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && \
+RUN git clone https://github.com/FFmpeg/FFmpeg
+RUN cd FFmpeg && \
   PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/:/home/makepkg/ssl/lib64/pkgconfig/ ./configure \
-    --pkg-config-flags=--static \
-    --extra-cflags="-fopenmp -lcrypto -lz -ldl -static-libgcc" \
-    --extra-ldflags="-fopenmp -lcrypto -lz -ldl -static-libgcc" \
+    --extra-cflags="-fopenmp -lcrypto -lz -ldl -static-libgcc -I/opt/cuda/include" \
+    --extra-cxxflags="-fopenmp -lcrypto -lz -ldl -static-libgcc" \
+    --extra-ldflags="-fopenmp -lcrypto -lz -ldl -static-libgcc -L/opt/cuda/lib64" \
     --extra-libs="-lstdc++ -lcrypto -lz -ldl -static-libgcc" \
+    --pkg-config-flags=--static \
     --toolchain=hardened \
     --disable-debug \
     --disable-shared \
@@ -202,7 +210,7 @@ RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && \
     --enable-libxavs2 \
     --enable-libvmaf \
     --enable-cuda-nvcc \
-    --extra-cflags=-I/opt/cuda/include --extra-ldflags=-L/opt/cuda/lib64 \
+    --enable-vapoursynth \
     #--enable-hardcoded-tables \
     --enable-libopenh264 \
     --enable-optimizations \
@@ -218,7 +226,7 @@ RUN git clone https://github.com/FFmpeg/FFmpeg && cd FFmpeg && \
 
 ############################
 # Python 3.10.6
-FROM nvcr.io/nvidia/tensorrt:23.06-py3
+FROM nvcr.io/nvidia/tensorrt:23.09-py3
 ARG DEBIAN_FRONTEND=noninteractive
 
 # cmake
@@ -231,11 +239,11 @@ RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMa
 RUN apt update -y && apt install git autoconf libtool libglib2.0-dev -y && \
     wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.tar.gz && tar -zxvf release-3.0.4.tar.gz && \
     cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j16 && make install && cd .. && rm -rf zimg-release-3.0.4 release-3.0.4.tar.gz && \
-    pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R63.tar.gz && \
-    tar -zxvf R63.tar.gz && cd vapoursynth-R63 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
+    pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R64.tar.gz && \
+    tar -zxvf R64.tar.gz && cd vapoursynth-R64 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.10/lib-dynload/vapoursynth.so && \
-    # not deleting vapoursynth-R63 since vs-mlrt needs it
-    rm -rf R63.tar.gz && pip install vapoursynth && \
+    # not deleting vapoursynth-R64 since vs-mlrt needs it
+    rm -rf R64.tar.gz && pip install vapoursynth && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip cache purge
 
 # vs-mlrt
@@ -245,8 +253,8 @@ RUN apt install build-essential manpages-dev software-properties-common -y && ad
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11 && \
     # compiling
     git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt/vstrt && mkdir build && \
-    cd build && /workspace/bin/cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R63/include -D USE_NVINFER_PLUGIN=OFF -D USE_NVINFER_PLUGIN_STATIC=OFF && make -j$(nproc) && make install && \
-    cd /workspace && rm -rf /workspace/vs-mlrt /workspace/vapoursynth-R63
+    cd build && /workspace/bin/cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R64/include -D USE_NVINFER_PLUGIN=OFF -D USE_NVINFER_PLUGIN_STATIC=OFF && make -j$(nproc) && make install && \
+    cd /workspace && rm -rf /workspace/vs-mlrt /workspace/vapoursynth-R64
 
 ########################
 # vs plugins 
@@ -273,6 +281,20 @@ RUN mv /usr/src/tensorrt/bin/trtexec /usr/bin
 # ffmpeg
 COPY --from=ffmpeg-arch /home/makepkg/FFmpeg/ffmpeg /usr/local/bin/ffmpeg
 RUN apt install libxcb1 libxcb-shm0 libxcb-shape0 libxcb-xfixes0 fontconfig libfribidi0 libharfbuzz0b libsoxr0 -y
+
+# ffmpeg hotfix
+RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1.3.3+ds-1_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.33-2_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-2build2_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.33-2_amd64.deb \
+    http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.38-1ubuntu6_amd64.deb \
+    http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.38-1ubuntu6_amd64.deb \
+    http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-bin_2.38-1ubuntu6_amd64.deb \
+    http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.38-1ubuntu6_amd64.deb \
+    http://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_5.4.0-164.181_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu6_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3_1.3.3+ds-1_amd64.deb && dpkg --force-all -i *.deb  && rm -rf *deb
+COPY --from=ffmpeg-arch /usr/lib/libstdc++.so* /usr/lib/x86_64-linux-gnu/
 
 ENV CUDA_MODULE_LOADING=LAZY
 WORKDIR /workspace/tensorrt
