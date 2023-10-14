@@ -113,7 +113,7 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 
 | docker image  | compressed download | extracted container | short description |
 | ------------- | ------------------- | ------------------- | ----------------- |
-| latest | 11gb | 21gb | default latest
+| latest | 9gb | 17gb | default latest
 | minimal | 4gb | 8gb | ffmpeg + mlrt + lsmash
 | deprecated | 23gb | 43gb | old default
 | ffmpeg_trt | 9gb | 20gb | ffmpeg c++ trt inference plugin to use trt engines with ffmpeg directly without vapoursynth
