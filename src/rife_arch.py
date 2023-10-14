@@ -229,9 +229,6 @@ class IFBlock(nn.Module):
             )
 
     def forward(self, x, flow=None, scale=1):
-        scale = scale.item()
-
-        print("scale: ", scale)
         x = F.interpolate(
             x, scale_factor=1.0 / scale, mode="bilinear", align_corners=False
         )
