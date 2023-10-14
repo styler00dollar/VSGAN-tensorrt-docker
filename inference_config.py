@@ -13,7 +13,6 @@ from src.IFRNet import IFRNet
 from src.GMFupSS import GMFupSS
 from src.GMFSS_union import GMFSS_union
 from vsgmfss_union import gmfss_union
-from src.eisai import EISAI
 from src.M2M import M2M
 from src.sepconv_enhanced import sepconv
 from src.IFUNet import IFUNet
@@ -122,8 +121,6 @@ def inference_clip(video_path="", clip=None):
     # use gmfss_union instead for more speed
     # model_inference = GMFupSS(partial_fp16=False)
     # model_inference = GMFSS_union(partial_fp16=False)
-
-    # model_inference = EISAI() # 960x540
 
     # model_inference = M2M()
 
