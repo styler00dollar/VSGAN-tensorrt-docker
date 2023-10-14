@@ -1,7 +1,6 @@
 """
 26-Dez-21
 https://github.com/hzwer/Practical-RIFE
-https://drive.google.com/file/d/1mUK9iON6Es14oK46-cCflRoPTeGiI_A9/view
 https://github.com/hzwer/Practical-RIFE/blob/main/model/warplayer.py
 https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 """
@@ -103,19 +102,34 @@ def conv(
 
 
 def conv_bn(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1):
-    return nn.Sequential(
-        nn.Conv2d(
-            in_planes,
-            out_planes,
-            kernel_size=kernel_size,
-            stride=stride,
-            padding=padding,
-            dilation=dilation,
-            bias=True,
-        ),
-        nn.BatchNorm2d(out_planes),
-        nn.PReLU(out_planes),
-    )
+    if arch_ver != "4.7":
+        return nn.Sequential(
+            nn.Conv2d(
+                in_planes,
+                out_planes,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                dilation=dilation,
+                bias=True,
+            ),
+            nn.BatchNorm2d(out_planes),
+            nn.PReLU(out_planes),
+        )
+    if arch_ver == "4.7":
+        return nn.Sequential(
+            nn.Conv2d(
+                in_planes,
+                out_planes,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                dilation=dilation,
+                bias=False,
+            ),
+            nn.BatchNorm2d(out_planes),
+            nn.LeakyReLU(0.2, True),
+        )
 
 
 def conv_woact(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1):
@@ -363,6 +377,9 @@ class IFNet(nn.Module):
         ensemble=False,
         return_flow=False,
     ):
+        img0 = torch.clamp(img0, 0, 1)
+        img1 = torch.clamp(img1, 0, 1)
+
         n, c, h, w = img0.shape
         ph = ((h - 1) // 64 + 1) * 64
         pw = ((w - 1) // 64 + 1) * 64
@@ -384,7 +401,7 @@ class IFNet(nn.Module):
         merged = []
         mask_list = []
 
-        if self.arch_ver == "4.7":
+        if self.arch_ver in ["4.7"]:
             f0 = self.encode(img0[:, :3])
             f1 = self.encode(img1[:, :3])
 
@@ -396,7 +413,7 @@ class IFNet(nn.Module):
 
         for i in range(4):
             if flow is None:
-                if self.arch_ver != "4.7":
+                if self.arch_ver in ["4.0", "4.1", "4.2", "4.3", "4.4", "4.5", "4.6"]:
                     flow, mask = block[i](
                         torch.cat((img0[:, :3], img1[:, :3], timestep), 1),
                         None,
@@ -410,24 +427,19 @@ class IFNet(nn.Module):
                         )
                         flow = (flow + torch.cat((f1[:, 2:4], f1[:, :2]), 1)) / 2
                         mask = (mask + (-m1)) / 2
-                if self.arch_ver == "4.7":
+
+                if self.arch_ver in ["4.7"]:
                     flow, mask = block[i](
                         torch.cat((img0[:, :3], img1[:, :3], f0, f1, timestep), 1),
                         None,
                         scale=scale_list[i],
                     )
+
                     if ensemble:
-                        f1, m1 = block[i](
-                            torch.cat(
-                                (img1[:, :3], img0[:, :3], f0, f1, 1 - timestep), 1
-                            ),
-                            None,
-                            scale=scale_list[i],
-                        )
-                        flow = (flow + torch.cat((f1[:, 2:4], f1[:, :2]), 1)) / 2
-                        mask = (mask + (-m1)) / 2
+                        raise Exception("No support for ensembling for Rife4.7")
+
             else:
-                if self.arch_ver != "4.7":
+                if self.arch_ver in ["4.0", "4.1", "4.2", "4.3", "4.4", "4.5", "4.6"]:
                     f0, m0 = block[i](
                         torch.cat(
                             (warped_img0[:, :3], warped_img1[:, :3], timestep, mask), 1
@@ -435,24 +447,8 @@ class IFNet(nn.Module):
                         flow,
                         scale=scale_list[i],
                     )
-                if self.arch_ver == "4.7":
-                    f0, m0 = block[i](
-                        torch.cat(
-                            (
-                                warped_img0[:, :3],
-                                warped_img1[:, :3],
-                                warp(f0, flow[:, :2]),
-                                warp(f1, flow[:, 2:4]),
-                                timestep,
-                                mask,
-                            ),
-                            1,
-                        ),
-                        flow,
-                        scale=scale_list[i],
-                    )
 
-                if self.arch_ver == "4.0":
+                if self.arch_ver in ["4.0"]:
                     if (
                         i == 1
                         and f0[:, :2].abs().max() > 32
@@ -481,30 +477,39 @@ class IFNet(nn.Module):
                             flow,
                             scale=scale_list[i],
                         )
-                if ensemble and self.arch_ver != "4.7":
-                    f1, m1 = block[i](
+
+                if self.arch_ver in ["4.7"]:
+                    fd, mask = block[i](
                         torch.cat(
                             (
-                                warped_img1[:, :3],
                                 warped_img0[:, :3],
-                                1 - timestep,
-                                -mask,
+                                warped_img1[:, :3],
+                                warp(f0, flow[:, :2]),
+                                warp(f1, flow[:, 2:4]),
+                                timestep,
+                                mask,
                             ),
                             1,
                         ),
-                        torch.cat((flow[:, 2:4], flow[:, :2]), 1),
+                        flow,
                         scale=scale_list[i],
                     )
-                    f0 = (f0 + torch.cat((f1[:, 2:4], f1[:, :2]), 1)) / 2
-                    m0 = (m0 + (-m1)) / 2
-                if ensemble and self.arch_ver == "4.7":
+                    flow = flow + fd
+
+                if ensemble and self.arch_ver in [
+                    "4.0",
+                    "4.1",
+                    "4.2",
+                    "4.3",
+                    "4.4",
+                    "4.5",
+                    "4.6",
+                ]:
                     f1, m1 = block[i](
                         torch.cat(
                             (
                                 warped_img1[:, :3],
                                 warped_img0[:, :3],
-                                warp(f0, flow[:, :2]),
-                                warp(f1, flow[:, 2:4]),
                                 1 - timestep,
                                 -mask,
                             ),
@@ -516,17 +521,24 @@ class IFNet(nn.Module):
                     f0 = (f0 + torch.cat((f1[:, 2:4], f1[:, :2]), 1)) / 2
                     m0 = (m0 + (-m1)) / 2
 
-                flow = flow + f0
-                mask = mask + m0
+                if self.arch_ver in ["4.0", "4.1", "4.2", "4.3", "4.4", "4.5", "4.6"]:
+                    flow = flow + f0
+                    mask = mask + m0
+
             mask_list.append(mask)
             flow_list.append(flow)
             warped_img0 = warp(img0, flow[:, :2])
             warped_img1 = warp(img1, flow[:, 2:4])
             merged.append((warped_img0, warped_img1))
-        if return_flow:
-            return flow_list
-        mask_list[3] = torch.sigmoid(mask_list[3])
-        merged[3] = merged[3][0] * mask_list[3] + merged[3][1] * (1 - mask_list[3])
+
+        if self.arch_ver in ["4.0", "4.1", "4.2", "4.3", "4.4", "4.5", "4.6"]:
+            mask_list[3] = torch.sigmoid(mask_list[3])
+            merged[3] = merged[3][0] * mask_list[3] + merged[3][1] * (1 - mask_list[3])
+
+        if self.arch_ver in ["4.7"]:
+            mask = torch.sigmoid(mask)
+            merged[3] = warped_img0 * mask + warped_img1 * (1 - mask)
+
         if not fastmode and self.arch_ver not in ["4.5", "4.6", "4.7"]:
             c0 = self.contextnet(img0, flow[:, :2])
             c1 = self.contextnet(img1, flow[:, 2:4])
