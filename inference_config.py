@@ -14,7 +14,6 @@ from src.GMFupSS import GMFupSS
 from src.GMFSS_union import GMFSS_union
 from vsgmfss_union import gmfss_union
 from src.eisai import EISAI
-from src.film import FILM
 from src.M2M import M2M
 from src.sepconv_enhanced import sepconv
 from src.IFUNet import IFUNet
@@ -125,9 +124,6 @@ def inference_clip(video_path="", clip=None):
     # model_inference = GMFSS_union(partial_fp16=False)
 
     # model_inference = EISAI() # 960x540
-
-    # FILM: model_choise="style", "l1" or "vgg"
-    # model_inference = FILM(model_choise="vgg")
 
     # model_inference = M2M()
 
