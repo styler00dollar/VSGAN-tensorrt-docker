@@ -211,6 +211,7 @@ RUN git clone git://git.openssl.org/openssl.git && cd openssl && LIBS="-ldl -lz"
 
 # https://stackoverflow.com/questions/18185618/how-to-use-static-linking-with-openssl-in-c-c
 RUN git clone https://github.com/FFmpeg/FFmpeg
+ENV NVCC_PREPEND_FLAGS='-ccbin /usr/bin/g++-12'
 RUN cd FFmpeg && \
   PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/:/home/makepkg/ssl/lib64/pkgconfig/ ./configure \
     --extra-cflags="-fopenmp -lcrypto -lz -ldl -static-libgcc -I/opt/cuda/include" \
@@ -221,6 +222,7 @@ RUN cd FFmpeg && \
     --toolchain=hardened \
     --disable-debug \
     --disable-shared \
+    --disable-doc \
     --disable-ffplay \
     --enable-static \
     --enable-gpl \
@@ -746,7 +748,7 @@ RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1
     http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.38-1ubuntu6_amd64.deb \
     http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-bin_2.38-1ubuntu6_amd64.deb \
     http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.38-1ubuntu6_amd64.deb \
-    http://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_5.4.0-164.181_amd64.deb \
+    http://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_5.4.0-166.183_amd64.deb \
     http://mirrors.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu6_amd64.deb \
     http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3_1.3.3+ds-1_amd64.deb
 
