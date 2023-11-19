@@ -3,6 +3,7 @@ import torch
 from torch import nn as nn
 from torch.nn import functional as F
 import numpy as np
+import os
 from .download import check_and_download
 
 
@@ -401,78 +402,18 @@ class cugan_inference:
         self.backend_inference = backend_inference
         self.fp16 = fp16
 
+        model_path_prefix = "cugan_pro" if pro else "cugan"
+        model_path_suffix = "-latest" if not pro else ""
+        model_path_middle = f"{kind_model}-up{scale}x"
+
         if scale == 2:
             self.model = UpCunet2x(in_channels=3, out_channels=3)
-            if kind_model == "no_denoise":
-                if pro == True:
-                    model_path = (
-                        "/workspace/tensorrt/models/cugan_pro-no-denoise3x-up2x.pth"
-                    )
-                else:
-                    model_path = (
-                        "/workspace/tensorrt/models/cugan_up2x-latest-no-denoise.pth"
-                    )
-            elif kind_model == "conservative":
-                if pro == True:
-                    model_path = (
-                        "/workspace/tensorrt/models/cugan_pro-conservative-up2x.pth"
-                    )
-                else:
-                    model_path = (
-                        "/workspace/tensorrt/models/cugan_up2x-latest-conservative.pth"
-                    )
-            elif kind_model == "denoise3x":
-                if pro == True:
-                    model_path = "cugan_pro-denoise3x-up2x.pth"
-                else:
-                    model_path = (
-                        "/workspace/tensorrt/models/cugan_up2x-latest-denoise3x.pth"
-                    )
-
         elif scale == 3:
-            model = UpCunet3x(in_channels=3, out_channels=3)
-            if kind_model == "no_denoise":
-                if pro == True:
-                    model_path = (
-                        "/workspace/tensorrt/models/cugan_pro-no-denoise3x-up3x.pth"
-                    )
-                else:
-                    model_path = (
-                        "/workspace/tensorrt/models/cugan_up3x-latest-no-denoise.pth"
-                    )
-            elif kind_model == "conservative":
-                if pro == True:
-                    model_path = (
-                        "/workspace/tensorrt/models/cugan_pro-conservative-up3x.pth"
-                    )
-                else:
-                    model_path = (
-                        "/workspace/tensorrt/models/cugan_up3x-latest-conservative.pth"
-                    )
-            elif kind_model == "denoise3x":
-                if pro == True:
-                    model_path = (
-                        "/workspace/tensorrt/models/cugan_pro-denoise3x-up3x.pth"
-                    )
-                else:
-                    model_path = (
-                        "/workspace/tensorrt/models/cugan_up3x-latest-denoise3x.pth"
-                    )
-
+            self.model = UpCunet3x(in_channels=3, out_channels=3)
         elif scale == 4:
-            model = UpCunet4x(in_channels=3, out_channels=3)
-            if kind_model == "no_denoise":
-                model_path = (
-                    "/workspace/tensorrt/models/cugan_up4x-latest-no-denoise.pth"
-                )
-            elif kind_model == "conservative":
-                model_path = (
-                    "/workspace/tensorrt/models/cugan_up4x-latest-conservative.pth"
-                )
-            elif kind_model == "denoise3x":
-                model_path = (
-                    "/workspace/tensorrt/models/cugan_up4x-latest-denoise3x.pth"
-                )
+            self.model = UpCunet4x(in_channels=3, out_channels=3)
+
+        model_path = os.path.join("/workspace/tensorrt/models", f"{model_path_prefix}-{model_path_middle}{model_path_suffix}.pth")
 
         check_and_download(model_path)
         self.model.load_state_dict(torch.load(model_path, map_location="cpu"))
