@@ -41,6 +41,15 @@ class RIFE:
         elif model_version == "rife46":
             model_path = "/workspace/tensorrt/models/rife46.pth"
             arch_ver = "4.6"
+        elif model_version == "rife47":
+            model_path = "/workspace/tensorrt/models/rife47.pth"
+            arch_ver = "4.7"
+        elif model_version == "rife48":
+            model_path = "/workspace/tensorrt/models/rife48.pth"
+            arch_ver = "4.7"
+        elif model_version == "rife49":
+            model_path = "/workspace/tensorrt/models/rife49.pth"
+            arch_ver = "4.7"
         elif model_version == "sudo_rife4":
             model_path = (
                 "/workspace/tensorrt/models/sudo_rife4_269.662_testV1_scale1.pth"
