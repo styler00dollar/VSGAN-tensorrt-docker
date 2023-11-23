@@ -312,7 +312,7 @@ class Unet(nn.Module):
 
 
 """
-currently supports 4.0-4.9
+currently supports 4.0-4.12
 
 4.0: 4.0, 4.1
 4.2: 4.2
