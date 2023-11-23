@@ -50,6 +50,9 @@ class RIFE:
         elif model_version == "rife49":
             model_path = "/workspace/tensorrt/models/rife49.pth"
             arch_ver = "4.7"
+        elif model_version == "rife410":
+            model_path = "/workspace/tensorrt/models/rife410.pth"
+            arch_ver = "4.10"
         elif model_version == "sudo_rife4":
             model_path = (
                 "/workspace/tensorrt/models/sudo_rife4_269.662_testV1_scale1.pth"
