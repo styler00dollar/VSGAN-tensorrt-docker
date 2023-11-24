@@ -595,16 +595,6 @@ A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 
 2x3090² (C++ TRT+vs_threads=10+num_threads=2+no tiling+opset14) | 22 | 9.5 | 4.2
 4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 8.8* | ? / 3.9*
 
-RealESRGAN (2x) (6b+64nf) | 480p | 720p | 1080p
-------------  | ---  | ---- | ------
-1070ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=1+no tiling+opset15) | 0.9 | 0.8 | 0.3
-3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=1) | ? | 3.12 | 1.4
-V100 (Colab High RAM / 8CPU) (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling+opset15) | 5.09 | 4.56 | 2.02
-V100 (Colab High RAM / 8CPU) (vs+TensorRT8.2GA+ffmpeg+C++ TRT+num_streams=3+no tiling+opset15) | 5.4 | 4.8 | 2.2
-3090² (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset16) (+dropout) | 13 | 5.8 | 2.7
-2x3090² (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset16) (+dropout) | 26 | 11 | 5.3
-4090 (C++ TRT+TensorRT8.4GA+vs_threads=6+num_threads=6+no tiling+opset16+"--best") (+dropout) | ? | ? | ? / 12*
-
 Rife4+vs (ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
 4090 rife4.0 (fast=True) (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 415.8* | ? / 186.7*
@@ -637,48 +627,9 @@ GMFSS_fortuna_union | 480p | 720p | 1080p
 4090 (num_threads=8, num_streams=2, RGBH, TRT8.6.1, matmul_precision=medium) | ? | ? / 50.4* | ? / 16.9*
 4090 (num_threads=8, num_streams=2, RGBH, TRT8.6.1, matmul_precision=medium, @torch.compile(mode="default", fullgraph=True)) | ? | ? / 50.6* | ? / 17*
 
-EGVSR (4x, interval=5) | 480p | 720p | 1080p 
------------  | ---- | ---- | ----
-1070ti | 4.4 | Ram OOM / 2.2* | VRAM OOM
-
-RealBasicVSR | 480p | 720p | 1080p 
------------  | ---- | ---- | ----
-1070ti | 0.3 | OOM | OOM
-A100 (Colab) | 1.2 | ? | ?
-
-Sepconv | 480p | 720p | 1080p 
------------  | ---- | ---- | ----
-V100 (Colab) | 22 | 11 | 4.9
-3090² (vs+CUDA) | 30 | 14 | 6.2
-
-CAIN (2 groups) | 480p | 720p | 1080p 
------------  | ---- | ---- | ----
-A100 (Colab) | 76 | 47 | 25
-3090² (vs+CUDA) | 120 | 65 | 31
-
-FILM | 480p | 720p | 1080p 
--------- | ---- | ---- | ----
-V100 (Colab High RAM) (vs+CUDA) | 9.8 | 4.7 | 2.1
-
-IFRNet (small model) | 480p | 720p | 1080p 
--------- | ---- | ---- | ----
-V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | 78 | 47 | 23
-
-IFRNet (large model) | 480p | 720p | 1080p 
--------- | ---- | ---- | ----
-V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | ? | ? | 15
-
 DPIR | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
 4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | 54 | 24.4
-
-SCUNet | 480p | 720p | 1080p
--------- | ---- | ---- | ----
-4090 (12 vs threads) | 10 | ? | ?
-
-ST-MFNet | 480p | 720p | 1080p
--------- | ---- | ---- | ----
-1070ti | 1.6 | OOM | OOM
 
 <div id='license'/>
 
