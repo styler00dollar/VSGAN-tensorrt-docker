@@ -609,12 +609,17 @@ Steam Deck rife4.6 (ncnn+RGBS) | ? | ? / 19.2* | ? / 8.8*
 Steam Deck rife4.7 (ncnn+RGBS) | ? | ? / 15.2* | ? / 7.2*
 4090 rife4.10 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 247* | ? / 123*
 4090 rife4.10 (ncnn+num_threads=4+num_streams=2+RGBS) | ? | ? / 120.7* | ? / 53.3*
+4090 rife4.12-lite (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 266.8* | ? / 133*
+4090 rife4.12-lite (ncnn+num_threads=4+num_streams=2+RGBS) | ? | ? / 129* | ? / 56.8*
 
-Rife4+vs (ensemble False) | 480p | 720p | 1080p 
+Rife4+vs (ensemble True) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
 4090 rife4.6 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 350.7* | ? / 158.7*
+4090 rife4.6 (ncnn+num_threads=4+num_streams=2+RGBS) | ? | ? / 103.2* | ? / 47.9*
 4090 rife4.7 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 231.7* | ? / 104.7*
 4090 rife4.10 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 206.9* | ? / 91.9*
+4090 rife4.12-lite (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 228.2* | ? / 108.9*
+4090 rife4.12-lite (ncnn+num_threads=4+num_streams=2+RGBS) | ? | ? / 98* | ? / 44.3*
 
 * Benchmarks made with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union) with threading and partial TensorRT and without setting `tactic` to `JIT_CONVOLUTIONS` and `EDGE_MASK_CONVOLUTIONS` due to performance penalty. I added [a modified version](https://github.com/styler00dollar/vs-gmfss_union) as a plugin to VSGAN, but I need to add enhancements to my own repo later.
 
