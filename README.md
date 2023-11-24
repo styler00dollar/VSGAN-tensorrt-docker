@@ -605,8 +605,8 @@ Rife4+vs (ensemble False) | 480p | 720p | 1080p
 4090 rife4.6 (ncnn+num_threads=4+num_streams=2+RGBS) | ? | ? / 139.3* | ? / 63*
 Steam Deck rife4.6 (ncnn+RGBS) | ? | ? / 19.2* | ? / 8.8*
 4090 rife4.7 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 278.4* | ? / 135.7*
-Steam Deck rife4.7 (ncnn+RGBS) | ? | ? / 15.2* | ? / 7.2*
 4090 rife4.7 (ncnn+num_threads=4+num_streams=2+RGBS) | ? | ? / 130.5* | ? / 58.2*
+Steam Deck rife4.7 (ncnn+RGBS) | ? | ? / 15.2* | ? / 7.2*
 4090 rife4.10 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 247* | ? / 123*
 4090 rife4.10 (ncnn+num_threads=4+num_streams=2+RGBS) | ? | ? / 120.7* | ? / 53.3*
 
