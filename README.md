@@ -507,11 +507,6 @@ Warnings:
 - `int8` does not automatically mean usable model. It can differ from normal inference quite a lot without adjusting the model.
 - `thread_queue_size` means `-thread_queue_size 2488320`.
 - "*" indicates benchmarks which were done with `vspipe file.py -p .` instead of piping into ffmpeg and rendering to avoid cpu bottleneck.
-- 4090 data fluctuating due to teamviewer cpu load and uses 11900k.
-- 4090² uses 5950x.
-- 4090³ uses 13900k.
-
-ⓘ means that model not public yet
 
 Compact (2x) | 480p | 720p | 1080p
 ------  | ---  | ---- | ------
@@ -541,9 +536,7 @@ A100 (Colab) (vs+TensorRT8.2GA) (C++ TRT+x264 (--opencl)+FrameEval+num_streams=5
 A100 (Colab) (vs+onnx+FrameEval) | 26 | 12 | 4.9
 A100 (Colab) (vs+quantized onnx+FrameEval) | 26 | 12 | 5.7
 A100 (Colab) (jpg+CUDA) | 28.2 (9 Threads) | 28.2 (7 Threads) | 9.96 (4 Threads)
-4090 (vs+TesnorRT8.4GA+opset16+12 vs threads)| 135 | 59 | 25
-4090 (vs+TesnorRT8.4GA+opset16+12 vs threads+ffv1) | 155 | 72 | 35
-4090 (vs+TensorRT8.4GA+opset16+12 vs threads+thread_queue_size) | 200 | 91 | X
+4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 79.2* | ? / 41*
 6700xt (vs_threads=4+mlrt ncnn) | ? / 7.7* | ? / 3.25* | ? / 1.45*
 
 Compact (4x) | 480p | 720p | 1080p
@@ -560,8 +553,7 @@ A100 (Colab) (jpg+CUDA) | ? | ?| 3 (4 Threads)
 
 UltraCompact (2x) | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
-4090²(2) (TensorRT8.4GA+vs_threads=4+num_streams=4+opset16+fp16) | ? | ? | ? / 55.1*
-4090²(2) (TensorRT8.4GA+vs_threads=4+num_streams=4+opset16+int8) | ? | ? | ? / 57.7*
+4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 113.7* | ? / 52.7*
 6700xt (vs_threads=4+mlrt ncnn) | ? / 14.5* | ? / 6.1* | ? / 2.76*
 
 cugan (2x) | 480p | 720p | 1080p 
@@ -573,9 +565,7 @@ V100 (Colab High RAM) (vs+TensorRT8.4+ffmpeg+C++ TRT+num_streams=3+no tiling+ops
 A100 (Colab High RAM) (vs+TensorRT8.4+x264 (--opencl)+C++ TRT+vs threads=8+num_streams=8+no tiling+opset13) | 53.8 | 24.4 | 10.9
 3090² (vs+TensorRT8.4+ffmpeg+C++ TRT+vs_threads=8+num_streams=5+no tiling+opset13) | 79 | 35 | 15
 2x3090² (vs+TensorRT8.4+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13) | 131 | 53 | 23
-4090 (vs+TensorRT8.4GA+ffmpeg+C++ TRT+vs_threads=12+num_streams=6+no tiling+opset13) | 117 | 53 | 24
-4090 (vs+TensorRT8.4GA+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13+int8) | ? | ? | 17
-4090 (vs+TensorRT8.4GA+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13+int8+ffv1) | 132 | 61 | 29
+4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 51* | ? / 22.7*
 6700xt (vs_threads=4+mlrt ncnn) | ? / 3.3* | ? / 1.3* | OOM (512px tiling ? / 0.39*)
 
 ESRGAN 4x (64mb) (23b+64nf) | 480p | 720p | 1080p
@@ -591,11 +581,7 @@ V100 (Colab High VRAM) (C++ TensorRT8.2GA+x264+FrameEval+no tiling) | 2.49 | 1.1
 A100 (Colab) (Torch-TensorRT8.2GA+ffmpeg+FrameEval) | 5.6 | 2.6 | 1.1
 3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 3.4 | 1.5 | 0.7
 2x3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 7.0 | 3.2 | 1.5
-
-ESRGAN 2x (64mb) (23b+64nf) | 480p | 720p | 1080p
-------------  | ---  | ---- | ------
-4090 (C++ TensorRT8.4GA+ffmpeg+int8+12 vs threads+4 num_streams+fp16) | ? / 6.1* | ? / ? | ? / ?
-4090 (C++ TensorRT8.4GA+ffmpeg+int8+12 vs threads+1 num_streams+int8) | ? / 17.4* | ? / 7.1* | ? / 3.1*
+4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBS+op14) | ? | ? / 2.6* | ? / 1.2*
 
 Note: The offical RealESRGAN repository uses 6b (6 blocks) for the anime model.
 
@@ -607,10 +593,7 @@ V100 (Colab High RAM) (vs+TensorRT8.2GA+x264+C++ TRT+num_streams=1+no tiling) | 
 A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 | 6.74 | 2.76
 3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 11 | 4.8 | 2.3
 2x3090² (C++ TRT+vs_threads=10+num_threads=2+no tiling+opset14) | 22 | 9.5 | 4.2
-4090 (C++ TensorRT8.4GA+ffmpeg+12 vs threads+1 num_streams+ffv1+opset16+fp16) | 19 / 19* (2 streams) | ? | ?
-4090 (C++ TensorRT8.4GA+ffmpeg+12 vs threads+1 num_streams+ffv1+opset16+int8) | 34 (4 streams) / 50* (6 streams) | ? / ? | ? / 5.7* (1 stream)
-4090³ (C++ TensorRT8.5+vs_threads=4+num_streams=1+fp16+(--heuristic) | ? | ? / 6.9* | ? / 3.1*
-4090³ (C++ TensorRT8.5+vs_threads=4+num_streams=1+fp16) | ? | ? / 6.9* | ? / 3.1*
+4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 8.8* | ? / 3.9*
 
 RealESRGAN (2x) (6b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
@@ -622,69 +605,26 @@ V100 (Colab High RAM / 8CPU) (vs+TensorRT8.2GA+ffmpeg+C++ TRT+num_streams=3+no t
 2x3090² (C++ TRT+vs_threads=20+num_threads=6+no tiling+opset16) (+dropout) | 26 | 11 | 5.3
 4090 (C++ TRT+TensorRT8.4GA+vs_threads=6+num_threads=6+no tiling+opset16+"--best") (+dropout) | ? | ? | ? / 12*
 
-Rife4.6 technically is fastmode=True, since contextnet/unet was removed.
-
-Rife4+vs (fastmode False, ensemble False) | 480p | 720p | 1080p 
+Rife4+vs (ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti (vs+ffmpeg+ModifyFrame) | 61 | 30 | 15
-3060ti (vs+ffmpeg+ModifyFrame) | ? | 45 | 24
+4090 rife4.0 (fast=True) (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 415.8* | ? / 186.7*
+4090 rife4.2 (fast=True) (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 418.9* | ? / 187.5*
+4090 rife4.3 (fast=True) (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 419.1* | ? / 187.5*
+4090 rife4.5 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 418.6* | ? / 187.6*
+4090 rife4.6 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 417.8* | ? / 187*
+4090 rife4.6 (ncnn+num_threads=4+num_streams=2+RGBS) | ? | ? / 139.3* | ? / 63*
+Steam Deck rife4.6 (ncnn+RGBS) | ? | ? / 19.2* | ? / 8.8*
+4090 rife4.7 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 278.4* | ? / 135.7*
+Steam Deck rife4.7 (ncnn+RGBS) | ? | ? / 15.2* | ? / 7.2*
+4090 rife4.7 (ncnn+num_threads=4+num_streams=2+RGBS) | ? | ? / 130.5* | ? / 58.2*
+4090 rife4.10 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 247* | ? / 123*
+4090 rife4.10 (ncnn+num_threads=4+num_streams=2+RGBS) | ? | ? / 120.7* | ? / 53.3*
 
-Rife4+vs (fastmode False, ensemble True) | 480p | 720p | 1080p 
+Rife4+vs (ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
-1070ti Python (vs+ffmpeg+ModifyFrame) | 27 | 13 | 9.6
-1070ti C++ NCNN | ? | ? | 10
-3060ti (vs+ffmpeg+ModifyFrame) | ? | 36 | 20 |
-3090² (CUDA+vs_threads=20) | 70 | 52 | 27
-3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 137 | 65 | 31
-V100 (Colab) (vs+ffmpeg+ModifyFrame) | 30 | 16 | 7.3
-V100 (Colab High RAM) (vs+x264+ModifyFrame) | 48.5 | 33 | 19.2
-V100 (Colab High RAM) (vs+x264+FrameEval) | 48.2 | 35.5 | 20.6
-V100 (Colab High RAM) (vs+x265+FrameEval) | 15.2 | 9.7 | 4.6
-V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (7 threads)) | 70 | 35 | 17
-A100 (Colab) (vs+CUDA+ffmpeg+ModifyFrame) | 54 | 39 | 23
-A100 (Colab) (jpg+CUDA+ffmpeg+ModifyFrame) | ? | ? | 19.92 (14 Threads)
-4090 (vs+CUDA+ffmpeg+FrameEval+12 vs threads) (rife40) | 61 | 61 | 36
-4090 (ncnn+8 threads+12 vs threads) (rife4.0) | 254 | 130 | 60
-
-Rife4+vs (fastmode True, ensemble False) | 480p | 720p | 1080p 
----  | -------  | ------- | ------- 
-1070ti Python (ffmpeg+ModifyFrame) | 62 | 31 | 14
-1070ti (C++ NCNN) (rife46) | ? | ? | 30
-1070ti (TensorRT8.5+num_streams=3) (rife46) | ? | ? | 27
-3060ti (CUDA+ffmpeg+ModifyFrame) | ? | 66 | 33 |
-3090² (CUDA+ffmpeg+FrameEval+vs_threads=20) | 121 | 80 | 38
-3090² (C++ NCNN+vs_threads=20+ncnn_threads=8) | 341 | 142 | 63
-3090³ (TensorRT8.5+6 vs_threads) | ? / 331.9* (9 streams) | ? / 275.3* (7 streams) | ? / 166.3* (7 streams)
-4090 (ncnn+8 threads+12 vs threads) (rife4.0) | 470 | 198 | 98
-4090 (ncnn+8 threads+12 vs threads) (rife4.4) | - | - | 98
-4090 (ncnn+8 threads+12 vs threads+ffv1) (rife4.4) |- |	- |	129 / 128*
-4090 (ncnn+8 threads+12 vs threads) (rife4.6) | 455 | 215 | 100 / 136*
-4090² (ncnn+2 threads+4 vs threads+ffmpeg (ultrafast)) (rife4.6) | ? | ? | 164
-4090 (TensorRT8.5+num_streams 8+num_threads=6+stacking method) (rife46) | ? | ? | ? / 146*
-4090 (TensorRT8.5+num_streams 8+num_threads=6+int8+ffv1+stacking method) (rife46)| ? | ? | 123 / 156*
-4090³ (TensorRT8.5+vs_threads=4+fp16) (rife46) | ? | ? / 541* (num_streams=14) | ? / 288* (num_streams=10)
-V100 (Colab) (ffmpeg+ModifyFrame) | 34 | 17 | 7.6
-V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | 64 | 43 | 25
-V100 (Colab High RAM / 8CPU) (vs+x264+C++ NCNN (8 threads)) | 136 | 65 | 29
-A100 (Colab) (ffmpeg+ModifyFrame) | 92 | 56 | 29
-A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads) (rife40) | 208 | 103 | 46
-A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads+ffv1) (rife40) | 87 | 97 | 48
-6700xt (vs_trheads=4, num_threads=2) | ? / 258.5* | ? / 122.4* | ? / 55.8*
-
-Rife4+vs (fastmode True, ensemble True) | 480p | 720p | 1080p 
----  | -------  | ------- | ------- 
-1070ti (PyTorch+ffmpeg+ModifyFrame) | 41 | 20 | 9.8 
-1070ti (C++ NCNN) (rife46) | ? | ? | 16
-1070ti (TensorRT8.5+num_streams=2) (rife46) | ? | ? | 14
-3060ti (ffmpeg+ModifyFrame) | ? | 49 | 24 
-3090¹ (ffmpeg+ModifyFrame) | ? | 90.3 | 45
-4090 (vs+CUDA+ffmpeg+FrameEval) (rife46) | 84 | 80 | 41
-4090 (ncnn+8 threads+12 vs threads) (rife4.6) | 280 | 165 | 76
-4090 (ncnn+8 threads+12 vs threads) (rife4.6+ffv1) | 222 | 162 | 80
-4090³ (TensorRT8.5+vs_threads=4+fp16) (rife46) | ? | 320 / 401.6* (num_streams=14) | 160 / 207* (num_streams=10)
-A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads) (rife46) | 154 | 86 | 43
-A100 (Colab/12CPU) (ncnn+8 threads+12 vs threads+ffv1) (rife46) | 86 | 86 | 43
-6700xt (vs_trheads=4, num_threads=2) | ? / 129.7* | ? / 60.4* | ? / 28*
+4090 rife4.6 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 350.7* | ? / 158.7*
+4090 rife4.7 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 231.7* | ? / 104.7*
+4090 rife4.10 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 206.9* | ? / 91.9*
 
 * Benchmarks made with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union) with threading and partial TensorRT and without setting `tactic` to `JIT_CONVOLUTIONS` and `EDGE_MASK_CONVOLUTIONS` due to performance penalty. I added [a modified version](https://github.com/styler00dollar/vs-gmfss_union) as a plugin to VSGAN, but I need to add enhancements to my own repo later.
 
@@ -730,12 +670,7 @@ V100 (Colab High RAM / 8CPU) (vs+x264+FrameEval) | ? | ? | 15
 
 DPIR | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
-3090¹ (TensorRT8+C++ TRT+ffmpeg+vs threads=7+num_streams=5) | ? | ? | 16
-4090 (num_streams=13+12 vs threads) | 121 | 52 | 23
-4090 (num_streams=13+12 vs threads+thread_queue_size) | 121 | 54 | 23
-4090 (num_streams=13+12 vs threads+ffv1+thread_queue_size) | 121 | 55 | 25
-4090 (num_streams=13+12 vs threads+ffv1+int8) | ? | ? | 52
-4090 (num_streams=13+12 vs threads+ffv1+int8+thread_queue_size) | ? | ? | 44
+4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | 54 | 24.4
 
 SCUNet | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
