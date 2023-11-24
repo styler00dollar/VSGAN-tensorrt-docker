@@ -583,7 +583,7 @@ A100 (Colab) (Torch-TensorRT8.2GA+ffmpeg+FrameEval) | 5.6 | 2.6 | 1.1
 2x3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 7.0 | 3.2 | 1.5
 4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBS+op14) | ? | ? / 2.6* | ? / 1.2*
 
-Note: The offical RealESRGAN repository uses 6b (6 blocks) for the anime model.
+Note: The offical RealESRGAN-6b model uses 6 blocks for the anime model and uses the ESRGAN architecture.
 
 RealESRGAN (4x) (6b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
@@ -629,7 +629,7 @@ GMFSS_fortuna_union | 480p | 720p | 1080p
 
 DPIR | 480p | 720p | 1080p 
 -------- | ---- | ---- | ----
-4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | 54 | 24.4
+4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 54* | ? / 24.4*
 
 <div id='license'/>
 
