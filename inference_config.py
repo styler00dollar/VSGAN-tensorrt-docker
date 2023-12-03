@@ -46,7 +46,7 @@ def inference_clip(video_path="", clip=None):
     # ddfi is passing clip
     if clip is None:
         # cfr video
-        clip = core.ffms2.Source(source=video_path, cache=False)
+        # clip = core.ffms2.Source(source=video_path, cache=False)
         # vfr video
         # clip = core.ffms2.Source(source=video_path, fpsnum = 24000, fpsden = 1001, cache=False)
         # vfr video (automatically set num and den)
@@ -61,6 +61,9 @@ def inference_clip(video_path="", clip=None):
         # Debilinear, Debicubic, Delanczos, Despline16, Despline36, Despline64, Descale
         # clip = core.descale.Debilinear(clip, 1280, 720)
 
+        # bestsource
+        clip = core.bs.VideoSource(source=video_path)
+        
     ###############################################
     # SIMILARITY
     # Set properties in clip for it to be applied
