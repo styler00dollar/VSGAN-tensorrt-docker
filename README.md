@@ -36,7 +36,7 @@ Currently working networks:
 - RIFE ncnn with [styler00dollar/VapourSynth-RIFE-ncnn-Vulkan](https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan) and [HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan)
 - [SwinIR with HolyWu/vs-swinir](https://github.com/HolyWu/vs-swinir)
 - [Sepconv (enhanced) with sniklaus/revisiting-sepconv](https://github.com/sniklaus/revisiting-sepconv/)
-- EGVSR with [Thmen/EGVSR](https://github.com/Thmen/EGVSR) and [HolyWu/vs-basicvsrpp](https://github.com/HolyWu/vs-basicvsrpp)
+- EGVSR with [Thmen/EGVSR](https://github.com/Thmen/EGVSR)
 - BasicVSR++ with [HolyWu/vs-basicvsrpp](https://github.com/HolyWu/vs-basicvsrpp)
 - RealBasicVSR with [ckkelvinchan/RealBasicVSR](https://github.com/ckkelvinchan/RealBasicVSR)
 - RealCUGAN with [bilibili/ailab](https://github.com/bilibili/ailab/blob/main/Real-CUGAN/README_EN.md)
@@ -54,11 +54,8 @@ Currently working networks:
 Also used:
 - TensorRT C++ inference and python script usage with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
 - ddfi with [Mr-Z-2697/ddfi-rife](https://github.com/Mr-Z-2697/ddfi-rife) (auto dedup-duplication, not an arch)
-- nix with [lucasew/nix-on-colab](https://github.com/lucasew/nix-on-colab)
 - custom ffmpeg with [styler00dollar/ffmpeg-static-arch-docker](https://github.com/styler00dollar/ffmpeg-static-arch-docker)
 - lsmash with [AkarinVS/L-SMASH-Works](https://github.com/AkarinVS/L-SMASH-Works)
-- wwxd with [dubhater/vapoursynth-wwxd](https://github.com/dubhater/vapoursynth-wwxd)
-- scxvid with [dubhater/vapoursynth-scxvid](https://github.com/dubhater/vapoursynth-scxvid)
 - trt precision check and upscale frame skip with [mafiosnik777/enhancr](https://github.com/mafiosnik777/enhancr)
 
 Model | ESRGAN | SRVGGNetCompact | Rife | SwinIR | Sepconv | EGVSR | BasicVSR++ | Waifu2x | RealBasicVSR | RealCUGAN | DPIR | PAN | IFRNet | M2M | IFUNet | SCUNet | GMFupSS | ST-MFNet | VapSR | GMFSS_union | GMFSS_Fortuna / GMFSS_Fortuna_union | SAFMN
@@ -68,13 +65,11 @@ TensorRT | yes (torch_tensorrt / C++ TRT) | yes (onnx_tensorrt / C++ TRT) [v2](h
 ncnn | - | yes, but compile yourself ([2x](https://files.catbox.moe/u62vpw.tar)) | [yes (4.0-4.12)](https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan/tree/master/models) | - | - | - | - | - | - | - | - | - | - | - | - | - | - | - | - | - | - | -
 
 Some important things:
-- `ncnn` does not work in wsl and that means it doesn't work in Windows currently. `ncnn` will only work if you use docker in linux.
+- `ncnn` does not work in wsl and that means it doesn't work in Windows currently. `ncnn` will only work if you use docker in linux. Most likely will be removed due to low speed compared to TensorRT.
 - If you are on Windows, install all the latest updates first, otherwise wsl won't work properly. 21H2 minimum.
 - Do not use `webm` video, webm is often broken. It can work, but don't complain about broken output afterwards. I would suggest to render webm into mp4 or mkv.
 - Only use ffmpeg to determine if video is variable framerate (vfr) or not. Other programs do not seem reliable.
 - Processing vfr video is dangerous, but you can try to use fpsnum and fpsden. Either use these params or render the input video into constant framerate (crf).
-- `x264` can be faster than `ffmpeg`.
-- The C++ VS rife extention can be faster than CUDA.
 - Colabs have a weak cpu, you should try `x264` with `--opencl`. (A100 does not support NVENC and such)
 
 <div id='usage'/>
