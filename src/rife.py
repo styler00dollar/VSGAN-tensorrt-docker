@@ -20,44 +20,23 @@ class RIFE:
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
 
-        if model_version == "rife40":
-            model_path = "/workspace/tensorrt/models/rife40.pth"
-            arch_ver = "4.0"
-        elif model_version == "rife41":
-            model_path = "/workspace/tensorrt/models/rife41.pth"
-            arch_ver = "4.0"
-        elif model_version == "rife42":
-            model_path = "/workspace/tensorrt/models/rife42.pth"
-            arch_ver = "4.2"
-        elif model_version == "rife43":
-            model_path = "/workspace/tensorrt/models/rife43.pth"
-            arch_ver = "4.3"
-        elif model_version == "rife44":
-            model_path = "/workspace/tensorrt/models/rife44.pth"
-            arch_ver = "4.3"
-        elif model_version == "rife45":
-            model_path = "/workspace/tensorrt/models/rife45.pth"
-            arch_ver = "4.5"
-        elif model_version == "rife46":
-            model_path = "/workspace/tensorrt/models/rife46.pth"
-            arch_ver = "4.6"
-        elif model_version == "rife47":
-            model_path = "/workspace/tensorrt/models/rife47.pth"
-            arch_ver = "4.7"
-        elif model_version == "rife48":
-            model_path = "/workspace/tensorrt/models/rife48.pth"
-            arch_ver = "4.7"
-        elif model_version == "rife49":
-            model_path = "/workspace/tensorrt/models/rife49.pth"
-            arch_ver = "4.7"
-        elif model_version == "rife410":
-            model_path = "/workspace/tensorrt/models/rife410.pth"
-            arch_ver = "4.10"
-        elif model_version == "sudo_rife4":
-            model_path = (
-                "/workspace/tensorrt/models/sudo_rife4_269.662_testV1_scale1.pth"
-            )
-            arch_ver = "4.0"
+        model_info = {
+            "rife40": ("/workspace/tensorrt/models/rife40.pth", "4.0"),
+            "rife41": ("/workspace/tensorrt/models/rife41.pth", "4.0"),
+            "rife42": ("/workspace/tensorrt/models/rife42.pth", "4.2"),
+            "rife43": ("/workspace/tensorrt/models/rife43.pth", "4.3"),
+            "rife44": ("/workspace/tensorrt/models/rife44.pth", "4.3"),
+            "rife45": ("/workspace/tensorrt/models/rife45.pth", "4.5"),
+            "rife46": ("/workspace/tensorrt/models/rife46.pth", "4.6"),
+            "rife47": ("/workspace/tensorrt/models/rife47.pth", "4.7"),
+            "rife48": ("/workspace/tensorrt/models/rife48.pth", "4.7"),
+            "rife49": ("/workspace/tensorrt/models/rife49.pth", "4.7"),
+            "rife410": ("/workspace/tensorrt/models/rife410.pth", "4.10"),
+            "sudo_rife4": ("/workspace/tensorrt/models/sudo_rife4_269.662_testV1_scale1.pth", "4.0"),
+        }
+
+        if model_version in model_info:
+            model_path, arch_ver = model_info[model_version]
 
         check_and_download(model_path)
         self.model = IFNet(arch_ver=arch_ver)
