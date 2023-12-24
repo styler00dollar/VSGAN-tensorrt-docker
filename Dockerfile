@@ -444,6 +444,58 @@ RUN python3.11 -m pip install --upgrade pip setuptools wheel && python3.11 -m pi
   ENABLE_ROLLING=1 ENABLE_CONTRIB=1 MAKEFLAGS="-j$(nproc)" \
   python3.11 -m pip wheel . --verbose
 
+
+############################
+# TensorRT
+############################
+FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as TensorRT-ubuntu
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# install python
+# https://stackoverflow.com/questions/75159821/installing-python-3-11-1-on-a-docker-container
+# https://stackoverflow.com/questions/45954528/pip-is-configured-with-locations-that-require-tls-ssl-however-the-ssl-module-in
+# /usr/local/lib/libpython3.11.a(longobject.o): relocation R_X86_64_PC32 against symbol `_Py_NotImplementedStruct' can not be used when making a shared object; recompile with -fPIC
+# todo: test CFLAGS="-fPIC -march=native"
+RUN apt update -y && apt install liblzma-dev libbz2-dev ca-certificates openssl libssl-dev libncurses5-dev libsqlite3-dev libreadline-dev libtk8.6 libgdm-dev \
+  libdb4o-cil-dev libpcap-dev software-properties-common wget zlib1g-dev -y && \
+  wget https://www.python.org/ftp/python/3.11.3/Python-3.11.3.tar.xz && \
+  tar -xf Python-3.11.3.tar.xz && cd Python-3.11.3 && \
+  CFLAGS=-fPIC ./configure --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
+  make -j$(nproc) && make altinstall && make install
+# todo: update-alternatives may not be required
+RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.11 1 && \
+  update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.11 1 && \
+  cp /usr/local/bin/python3.11 /usr/local/bin/python && \
+  cp /usr/local/bin/pip3.11 /usr/local/bin/pip && \
+  cp /usr/local/bin/pip3.11 /usr/local/bin/pip3
+
+# required since ModuleNotFoundError: No module named 'pip' with nvidia pip packages, even if cli works
+RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall
+
+# TensorRT9
+# trt9.2 with whl since apt still only has 8.6
+# https://github.com/samurdhikaru/TensorRT/blob/dev/release-9.0-EA/docker/ubuntu-22.04.Dockerfile
+# todo: check what is required (needed for mlrt)
+# TensorRT requires TensorRT https://github.com/NVIDIA/TensorRT/issues/85
+RUN apt-get update && apt-get install -y --no-install-recommends libnvinfer8 libnvonnxparsers8 libnvparsers8 libnvinfer-plugin8 libnvinfer-dev libnvonnxparsers-dev \
+  libnvparsers-dev libnvinfer-plugin-dev python3-libnvinfer tensorrt python3-libnvinfer-dev -yf --reinstall && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
+RUN apt-get install unzip wget git -y && wget https://pypi.nvidia.com/tensorrt-libs/tensorrt_libs-9.2.0.post12.dev5-py2.py3-none-manylinux_2_17_x86_64.whl \ 
+        && mkdir tensorrt-wheel-9.2.0 \
+        && unzip tensorrt_libs-9.2.0.post12.dev5-py2.py3-none-manylinux_2_17_x86_64.whl -d tensorrt-wheel-9.2.0 \
+        && cp tensorrt-wheel-9.2.0/tensorrt_libs/*.so* /usr/lib/x86_64-linux-gnu \
+        && cd /usr/lib/x86_64-linux-gnu \
+        && ldconfig
+# Install Cmake (TensorRT crashes with new cmake)
+RUN cd /tmp && \
+    wget https://github.com/Kitware/CMake/releases/download/v3.14.4/cmake-3.14.4-Linux-x86_64.sh && \
+    chmod +x cmake-3.14.4-Linux-x86_64.sh && \
+    ./cmake-3.14.4-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir --skip-license && \
+    rm ./cmake-3.14.4-Linux-x86_64.sh
+# compiling
+RUN git clone https://github.com/NVIDIA/TensorRT && cd TensorRT && git switch release/9.2 && git submodule update --init --recursive
+RUN cd TensorRT && mkdir -p build && cd build && cmake .. -DTENSORRT_ROOT=/workspace/TensorRT -DTRT_LIB_DIR=/usr/lib/x86_64-linux-gnu -DGPU_ARCHS="60 61 70 75 80 86 87 89 90" -DTRT_OUT_DIR=`pwd`/out && make -j$(nproc) && make install
+
 ############################
 # VSGAN
 ############################
@@ -533,10 +585,7 @@ RUN pip install --upgrade pip && pip install cython && git clone https://github.
   ./configure && make -j$(nproc) && make install && cd .. && ldconfig && \
   cd vapoursynth && python setup.py bdist_wheel
 
-# todo: check what is required (needed for mlrt)
-RUN apt-get update && apt-get install -y --no-install-recommends libnvinfer8 libnvonnxparsers8 libnvparsers8 libnvinfer-plugin8 libnvinfer-dev libnvonnxparsers-dev \
-  libnvparsers-dev libnvinfer-plugin-dev python3-libnvinfer tensorrt python3-libnvinfer-dev -yf --reinstall && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-
+#################################################################
 # pycuda
 RUN git clone https://github.com/inducer/pycuda --recursive && cd pycuda && python setup.py bdist_wheel
 
@@ -544,6 +593,19 @@ RUN git clone https://github.com/inducer/pycuda --recursive && cd pycuda && pyth
 RUN pip install numpy && pip install docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
 
 # vs-mlrt
+# trt9.2 with whl since apt still only has 8.6
+RUN apt-get install unzip wget git -y && wget https://pypi.nvidia.com/tensorrt-libs/tensorrt_libs-9.2.0.post12.dev5-py2.py3-none-manylinux_2_17_x86_64.whl \ 
+        && mkdir tensorrt-wheel-9.2.0 \
+        && unzip tensorrt_libs-9.2.0.post12.dev5-py2.py3-none-manylinux_2_17_x86_64.whl -d tensorrt-wheel-9.2.0 \
+        && cp tensorrt-wheel-9.2.0/tensorrt_libs/*.so* /usr/lib/x86_64-linux-gnu \
+        && cd /usr/lib/x86_64-linux-gnu \
+        && ldconfig
+COPY --from=TensorRT-ubuntu /TensorRT/build/out/libnvinfer_plugin.so* /TensorRT/build/out/libnvinfer_vc_plugin.so* /TensorRT/build/out/libnvonnxparser.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=TensorRT-ubuntu /usr/lib/x86_64-linux-gnu/libcudnn*.so*  /usr/lib/x86_64-linux-gnu/
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer.so.9 /usr/lib/libnvinfer.so
+RUN ldconfig
+RUN git clone https://github.com/NVIDIA/TensorRT && cd TensorRT && git switch release/9.2
+ENV CPLUS_INCLUDE_PATH="/workspace/TensorRT/include"
 # upgrading g++
 RUN apt install build-essential manpages-dev software-properties-common -y && add-apt-repository ppa:ubuntu-toolchain-r/test -y && \
   apt update -y && apt install gcc-11 g++-11 -y && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11 && \
@@ -731,8 +793,10 @@ COPY --from=ffmpeg-arch /home/makepkg/FFmpeg/ffmpeg /usr/local/bin/ffmpeg
 RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1 /usr/lib/x86_64-linux-gnu/libcuda.so.1 \
   /usr/lib/x86_64-linux-gnu/libnvcuvid.so.1 /usr/lib/x86_64-linux-gnu/libnvidia* /usr/lib/x86_64-linux-gnu/libcuda*
 
-COPY --from=base /usr/lib/x86_64-linux-gnu/libnvonnxparser*.so* /usr/lib/x86_64-linux-gnu/libnvinfer_plugin*.so* \
-  /usr/lib/x86_64-linux-gnu/libcudnn*.so* /usr/lib/x86_64-linux-gnu/libnvinfer*.so* /usr/lib/x86_64-linux-gnu/
+# trt
+COPY --from=TensorRT-ubuntu /TensorRT/build/out/libnvinfer_plugin.so* /TensorRT/build/out/libnvinfer_vc_plugin.so* /TensorRT/build/out/libnvonnxparser.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=TensorRT-ubuntu /usr/lib/x86_64-linux-gnu/libcudnn*.so* /usr/lib/x86_64-linux-gnu/libnvinfer.so* /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so* \
+  /usr/lib/x86_64-linux-gnu/libnvonnxparser.so* /usr/lib/x86_64-linux-gnu/libnvparsers.so.8* /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.8* /usr/lib/x86_64-linux-gnu/
 
 # ffmpeg (todo: try to make it fully static)
 COPY --from=base /usr/lib/x86_64-linux-gnu/libxcb*.so* /usr/lib/x86_64-linux-gnu/libgomp*.so* /usr/lib/x86_64-linux-gnu/libfontconfig.so* \
@@ -749,7 +813,7 @@ COPY --from=base /usr/lib/x86_64-linux-gnu/libGL.so* /usr/lib/x86_64-linux-gnu/l
   /usr/lib/x86_64-linux-gnu/libGLX.so* /usr/lib/x86_64-linux-gnu/libX11.so* /usr/lib/x86_64-linux-gnu/
 
 # move trtexec so it can be globally accessed
-COPY --from=base /usr/src/tensorrt/bin/trtexec /usr/bin
+COPY --from=TensorRT-ubuntu /TensorRT/build/out/trtexec /usr/bin
 
 # ffmpeg hotfix
 COPY --from=base /workspace/hotfix/* /workspace
