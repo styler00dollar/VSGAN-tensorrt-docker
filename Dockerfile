@@ -1,52 +1,4 @@
 ############################
-# Vulkan
-#https://github.com/bitnimble/docker-vulkan/blob/master/docker/Dockerfile.ubuntu20.04
-#https://gitlab.com/nvidia/container-images/vulkan/-/blob/ubuntu16.04/Dockerfile
-############################
-FROM ubuntu:22.04 as vulkan-khronos
-
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  build-essential \
-  ca-certificates \
-  pkg-config \
-  git \
-  libegl1-mesa-dev \
-  libwayland-dev \
-  libx11-xcb-dev \
-  libxkbcommon-dev \
-  libxrandr-dev \
-  python3 \
-  python3-distutils \
-  wget && \
-  rm -rf /var/lib/apt/lists/*
-
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.26.0-rc4/cmake-3.26.0-rc4-linux-x86_64.sh \
-  -q -O /tmp/cmake-install.sh && \
-  chmod u+x /tmp/cmake-install.sh && \
-  mkdir /usr/bin/cmake && \
-  /tmp/cmake-install.sh --skip-license --prefix=/usr/bin/cmake && \
-  rm /tmp/cmake-install.sh
-ENV PATH="/usr/bin/cmake/bin:${PATH}"
-
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-  git clone https://github.com/KhronosGroup/Vulkan-ValidationLayers.git /opt/vulkan && \
-  cd /opt/vulkan && \
-  mkdir build && cd build && ../scripts/update_deps.py && \
-  cmake -C helper.cmake -DCMAKE_BUILD_TYPE=Release .. && \
-  cmake --build . --config Release -- -j$(nproc) && make install && ldconfig && \
-  mkdir -p /usr/local/include/vulkan && cp -r Vulkan-Headers/build/install/include/vulkan/* /usr/local/include/vulkan && \
-  cp -r Vulkan-Headers/include/* /usr/local/include/vulkan && \
-  mkdir -p /usr/local/share/vulkan/registry && \
-  cp -r Vulkan-Headers/build/install/share/vulkan/registry/* /usr/local/share/vulkan/registry && \
-  git clone https://github.com/KhronosGroup/Vulkan-Loader /opt/vulkan-loader && \
-  cd /opt/vulkan-loader && \
-  mkdir build && cd build && ../scripts/update_deps.py && \
-  cmake -C helper.cmake -DCMAKE_BUILD_TYPE=Release .. && \
-  cmake --build . --config Release -- -j$(nproc) && make install && ldconfig && \
-  mkdir -p /usr/local/lib && cp -a loader/*.so* /usr/local/lib && \
-  rm -rf /opt/vulkan && rm -rf /opt/vulkan-loader
-
-############################
 # FFMPEG
 ############################
 FROM archlinux as ffmpeg-arch
@@ -76,7 +28,7 @@ RUN cp /home/makepkg/python311/bin/python3.11 /usr/bin/python
 ENV PYTHONPATH /home/makepkg/python311/bin/
 ENV PATH "/home/makepkg/python311/bin/:$PATH"
 
-RUN pip3 install "cython<3" meson
+RUN pip3 install cython meson
 
 ENV PATH "$PATH:/opt/cuda/bin/nvcc"
 ENV PATH "$PATH:/opt/cuda/bin"
@@ -93,12 +45,12 @@ ARG LDFLAGS="-Wl,-z,relro,-z,now"
 
 # master is broken https://github.com/sekrit-twc/zimg/issues/181
 # No rule to make target 'graphengine/graphengine/cpuinfo.cpp', needed by 'graphengine/graphengine/libzimg_internal_la-cpuinfo.lo'.  Stop.
-RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.tar.gz && tar -zxvf release-3.0.4.tar.gz && cd zimg-release-3.0.4 && \
-  ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
+RUN git clone https://github.com/sekrit-twc/zimg --depth 1 --recurse-submodules --shallow-submodules && cd zimg && \
+  ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install
 
 ENV PATH /usr/local/bin:$PATH
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R64.tar.gz && \
-  tar -zxvf R64.tar.gz && cd vapoursynth-R64 && ./autogen.sh && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R65.tar.gz && \
+  tar -zxvf R65.tar.gz && cd vapoursynth-R65 && ./autogen.sh && \
   PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/local/lib/pkgconfig" ./configure --enable-static --disable-shared && \
   make && make install && cd .. && ldconfig
 
@@ -346,7 +298,7 @@ WORKDIR workspace
 RUN apt update -y
 RUN apt install autoconf libtool nasm ninja-build yasm python3.11 python3.11-venv python3.11-dev python3-pip wget git pkg-config python-is-python3 -y
 RUN apt --fix-broken install
-RUN pip install meson ninja "cython<3"
+RUN pip install meson ninja cython
 
 # install g++13
 RUN apt install build-essential manpages-dev software-properties-common -y
@@ -356,12 +308,15 @@ RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 13
 RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 13
 
 # zimg
+# setting pkg version manually since otherwise 'Version' field value '-1': version number is empty
 RUN apt-get install checkinstall -y
-RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.tar.gz && tar -xzf release-3.0.4.tar.gz && \
-  cd zimg-release-3.0.4 && ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && checkinstall -y && \
-  apt install /workspace/zimg-release-3.0.4/zimg-release_3.0.4-1_amd64.deb -y
+RUN git clone https://github.com/sekrit-twc/zimg --recursive && cd zimg && \
+  ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && checkinstall -y -pkgversion=0.0 && \
+  apt install /workspace/zimg/zimg_0.0-1_amd64.deb -y
+
 # vapoursynth
-RUN git clone https://github.com/vapoursynth/vapoursynth && cd vapoursynth && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R65.tar.gz && \
+  tar -zxvf R65.tar.gz && mv vapoursynth-R65 vapoursynth && cd vapoursynth && \
   ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install && ldconfig
 
 # dav1d
@@ -496,17 +451,9 @@ RUN python3.11 -m pip install --upgrade pip setuptools wheel && python3.11 -m pi
 # https://gitlab.com/nvidia/container-images/cuda/blob/master/dist/11.4.2/ubuntu2204/base/Dockerfile
 FROM ubuntu:22.04 as base
 ARG DEBIAN_FRONTEND=noninteractive
-
-COPY --from=vulkan-khronos /usr/local/bin /usr/local/bin
-COPY --from=vulkan-khronos /usr/local/lib /usr/local/lib
-COPY --from=vulkan-khronos /usr/local/include/vulkan /usr/local/include/vulkan
-COPY --from=vulkan-khronos /usr/local/share/vulkan /usr/local/share/vulkan
-
-COPY nvidia_icd.json /etc/vulkan/icd.d/nvidia_icd.json
-
-ARG DEBIAN_FRONTEND=noninteractive
 ENV NVARCH x86_64
 ENV NVIDIA_REQUIRE_CUDA "cuda>=11.4"
+COPY nvidia_icd.json /etc/vulkan/icd.d/nvidia_icd.json
 
 LABEL maintainer "NVIDIA CORPORATION <cudatools@nvidia.com>"
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -573,14 +520,15 @@ RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMa
   cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-3.23 /usr/local/share/
 
 # zimg
+# setting pkg version manually since otherwise 'Version' field value '-1': version number is empty
 RUN apt-get install checkinstall -y
-RUN apt update -y && \
-  apt install fftw3-dev python-is-python3 pkg-config python3-pip git p7zip-full autoconf libtool yasm ffmsindex libffms2-5 libffms2-dev -y && \
-  wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.4.zip && 7z x release-3.0.4.zip && \
-  cd zimg-release-3.0.4 && ./autogen.sh && ./configure && make -j$(nproc) && checkinstall -y
+RUN apt install fftw3-dev python-is-python3 pkg-config python3-pip git p7zip-full autoconf libtool yasm ffmsindex libffms2-5 libffms2-dev -y && \
+  git clone https://github.com/sekrit-twc/zimg --depth 1 --recurse-submodules --shallow-submodules && cd zimg && \
+  ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && checkinstall -y -pkgversion=0.0 && \
+  apt install /workspace/zimg/zimg_0.0-1_amd64.deb -y
 
 # vapoursynth
-RUN pip install --upgrade pip && pip install "cython<3" && git clone https://github.com/vapoursynth/vapoursynth && \
+RUN pip install --upgrade pip && pip install cython && git clone https://github.com/vapoursynth/vapoursynth && \
   cd vapoursynth && ./autogen.sh && \
   ./configure && make -j$(nproc) && make install && cd .. && ldconfig && \
   cd vapoursynth && python setup.py bdist_wheel
@@ -608,38 +556,13 @@ RUN apt install build-essential manpages-dev software-properties-common -y && ad
 RUN pip install meson ninja && git clone https://github.com/Irrational-Encoding-Wizardry/descale && cd descale && meson build && ninja -C build && ninja -C build install 
 
 ########################
-# vulkan
-RUN apt install vulkan-tools libvulkan1 libvulkan-dev -y && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-
-RUN wget https://sdk.lunarg.com/sdk/download/1.3.261.1/linux/vulkansdk-linux-x86_64-1.3.261.1.tar.xz && tar -xf vulkansdk-linux-x86_64-1.3.261.1.tar.xz && \
-  rm -rf vulkansdk-linux-x86_64-1.3.261.1.tar.xz
-ENV VULKAN_SDK=/workspace/1.3.261.1/x86_64/
-
-# rife ncnn
-RUN apt install nasm -y && wget https://github.com/Netflix/vmaf/archive/refs/tags/v2.3.1.tar.gz && \
-  # VMAF
-  tar -xzf v2.3.1.tar.gz && cd vmaf-2.3.1/libvmaf/ && \
-  meson build --buildtype release && ninja -C build && \
-  ninja -C build install && cd /workspace && rm -rf v2.3.1.tar.gz vmaf-2.3.1 && \
-  git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF && cd VapourSynth-VMAF && meson build && \
-  ninja -C build && ninja -C build install && \
-
-  # MISC
-  git clone https://github.com/vapoursynth/vs-miscfilters-obsolete && cd vs-miscfilters-obsolete && meson build && \
-  ninja -C build && ninja -C build install && \
-
-  # RIFE
-  git clone https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan && cd VapourSynth-RIFE-ncnn-Vulkan && \
-  git submodule update --init --recursive --depth 1 && meson build && ninja -C build && ninja -C build install
-
-########################
 # vs plugins
 # Vapoursynth-VFRToCFR
 RUN git clone https://github.com/Irrational-Encoding-Wizardry/Vapoursynth-VFRToCFR && cd Vapoursynth-VFRToCFR && \
   mkdir build && cd build && meson --buildtype release .. && ninja && ninja install
 
 # vapoursynth-mvtools
-RUN git clone https://github.com/dubhater/vapoursynth-mvtools && cd vapoursynth-mvtools && ./autogen.sh && ./configure && make -j$(nproc) && make install 
+RUN apt install nasm -y && git clone https://github.com/dubhater/vapoursynth-mvtools && cd vapoursynth-mvtools && ./autogen.sh && ./configure && make -j$(nproc) && make install 
 
 # fmtconv
 RUN git clone https://github.com/EleonoreMizo/fmtconv && cd fmtconv/build/unix/ && ./autogen.sh && ./configure && make -j$(nproc) && make install
@@ -706,12 +629,13 @@ RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy mmedit meson ninja 
   # installing pip version due to
   # ModuleNotFoundError: No module named 'torch_tensorrt.fx.converters.impl'
   pip install torch-tensorrt-fx-only==1.5.0.dev0 && \
+  # holywu plugins currently only work with trt8.6
   pip install nvidia-pyindex tensorrt==8.6.1 && pip install polygraphy && rm -rf /root/.cache/
 
 # onnxruntime nightly (todo check: does pypi have 3.11 support)
 # https://aiinfra.visualstudio.com/PublicPackages/_artifacts/feed/ORT-Nightly/PyPI/ort-nightly-gpu/overview
 RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy && \
-  pip install ort-nightly-gpu==1.17.0.dev20231006005 --index-url=https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/ --no-deps
+  pip install ort-nightly-gpu==1.17.0.dev20231215001 --index-url=https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/ --no-deps
 
 # holywu plugins
 RUN git clone https://github.com/styler00dollar/vs-gmfss_union && cd vs-gmfss_union && pip install . && cd /workspace && rm -rf vs-gmfss_union
@@ -740,17 +664,17 @@ RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
 # ffmpeg: /usr/lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.38' not found (required by ffmpeg)
 RUN mkdir /workspace/hotfix
 WORKDIR /workspace/hotfix
-RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1.3.3+ds-1_amd64.deb \
-    http://mirrors.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.33-2_amd64.deb \
-    http://mirrors.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-2build2_amd64.deb \
-    http://mirrors.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.33-2_amd64.deb \
-    http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.38-1ubuntu6_amd64.deb \
-    http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.38-1ubuntu6_amd64.deb \
-    http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-bin_2.38-1ubuntu6_amd64.deb \
-    http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.38-1ubuntu6_amd64.deb \
-    http://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_5.4.0-166.183_amd64.deb \
-    http://mirrors.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu6_amd64.deb \
-    http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3_1.3.3+ds-1_amd64.deb
+RUN wget http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc-dev_1.3.4+ds-1_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-3_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/libn/libnsl/libnsl-dev_1.3.0-3_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/libx/libxcrypt/libcrypt1_4.4.36-3_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6_2.38-4_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6-dev_2.38-4_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-bin_2.38-4_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-dev-bin_2.38-4_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/l/linux/linux-libc-dev_6.6.4-1~exp1_all.deb \
+    http://ftp.us.debian.org/debian/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.3-1_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc3_1.3.4+ds-1_amd64.deb
 
 ####################
 
@@ -770,9 +694,8 @@ COPY --from=base /workspace/Python-3.11.3/libpython3.11.so* /workspace/Python-3.
   /workspace/Python-3.11.3/libpython3.so /usr/lib
 
 # vapoursynth
-# todo: installing with deb?
-COPY --from=base /workspace/zimg-release-3.0.4/zimg-release_3.0.4-1_amd64.deb zimg-release_3.0.4-1_amd64.deb
-RUN apt install ./zimg-release_3.0.4-1_amd64.deb -y && rm -rf zimg-release_3.0.4-1_amd64.deb
+COPY --from=base /workspace/zimg/zimg_0.0-1_amd64.deb zimg_0.0-1_amd64.deb
+RUN apt install ./zimg_0.0-1_amd64.deb -y && rm -rf zimg_0.0-1_amd64.deb
 
 COPY --from=base /usr/local/lib/vapoursynth /usr/local/lib/vapoursynth
 COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth /usr/local/lib/x86_64-linux-gnu/vapoursynth
@@ -781,23 +704,21 @@ COPY --from=base /usr/local/lib/libvapoursynth-script.so* /usr/local/lib/libvapo
 # vapoursynth
 COPY --from=base /usr/local/bin/vspipe  /usr/local/bin/vspipe
 
-# todo?: imagemagick
-# todo?: tensorflow
-
 # vs plugins
 COPY --from=base /usr/local/lib/libvstrt.so \
   /usr/local/lib/libmvtools.so \
   /usr/local/lib/libfmtconv.so /usr/local/lib/
+COPY --from=base /usr/lib/x86_64-linux-gnu/libfftw3f.so* /usr/lib/x86_64-linux-gnu/
 
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/liblsmash.so* /usr/local/lib/
 COPY --from=bestsource-lsmash-ffms2-vs /workspace/L-SMASH-Works/VapourSynth/build/libvslsmashsource.so /workspace/bestsource/build/libbestsource.so /usr/local/lib/vapoursynth
 COPY --from=bestsource-lsmash-ffms2-vs /workspace/ffms2/src/core/.libs/libffms2.so* /usr/lib/x86_64-linux-gnu/
 
-COPY --from=base /usr/local/lib/vapoursynth/libdescale.so /usr/local/lib/vapoursynth/librife.so /usr/local/lib/vapoursynth/libmiscfilters.so \
-  /usr/local/lib/vapoursynth/libvmaf.so /usr/local/lib/vapoursynth/libakarin.so \
+COPY --from=base /usr/local/lib/vapoursynth/libdescale.so \
+  /usr/local/lib/vapoursynth/libakarin.so \
   /usr/local/lib/vapoursynth/libjulek.so /usr/local/lib/vapoursynth/libcas.so /usr/local/lib/vapoursynth/
 
-COPY --from=base /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so \
+COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so \
   /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/
 
 # av1an / rav1e / svt / aom
@@ -829,9 +750,6 @@ COPY --from=base /usr/lib/x86_64-linux-gnu/libGL.so* /usr/lib/x86_64-linux-gnu/l
 
 # move trtexec so it can be globally accessed
 COPY --from=base /usr/src/tensorrt/bin/trtexec /usr/bin
-
-# vulkan
-COPY --from=base /usr/lib/x86_64-linux-gnu/libvulkan*.so* /usr/lib/x86_64-linux-gnu/
 
 # ffmpeg hotfix
 COPY --from=base /workspace/hotfix/* /workspace
