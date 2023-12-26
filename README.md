@@ -404,7 +404,7 @@ The clip property will then be used in frame interpolation inference when you ca
 Recently I started experimenting in training my own scene change detect models and I used a dataset with 272.016 images (90.884 triplets) which includes everything from animation to real video (vimeo90k + animeinterp + custom data). So these should work on any kind of video. The input images were area downscaled images.
 
 ```python
-clip_orig = scene_detect(
+clip = scene_detect(
     clip,
     thresh=0.98,
     onnx_path="path_to_onnx.onnx",
