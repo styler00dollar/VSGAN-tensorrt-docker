@@ -446,7 +446,7 @@ RUN python3.11 -m pip install --upgrade pip setuptools wheel && python3.11 -m pi
 
 
 ############################
-# TensorRT
+# TensorRT + ORT
 ############################
 FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as TensorRT-ubuntu
 
@@ -495,6 +495,35 @@ RUN cd /tmp && \
 # compiling
 RUN git clone https://github.com/NVIDIA/TensorRT && cd TensorRT && git switch release/9.2 && git submodule update --init --recursive
 RUN cd TensorRT && mkdir -p build && cd build && cmake .. -DTENSORRT_ROOT=/workspace/TensorRT -DTRT_LIB_DIR=/usr/lib/x86_64-linux-gnu -DGPU_ARCHS="60 61 70 75 80 86 87 89 90" -DTRT_OUT_DIR=`pwd`/out && make -j$(nproc) && make install
+
+# ORT
+# onnxruntime requires working tensorrt installation and thus can't be easily seperated into a seperate instance
+# https://github.com/microsoft/onnxruntime/blob/main/dockerfiles/Dockerfile.tensorrt
+ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
+ARG ONNXRUNTIME_BRANCH=rel-1.16.3
+ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;60;61;70;75;80;89
+
+RUN apt-get update &&\
+    apt-get install -y sudo git bash unattended-upgrades
+RUN unattended-upgrade
+
+WORKDIR /code
+ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
+
+# cmake 3.28 (CMake 3.26 or higher is required)
+RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.28.0-rc1/cmake-3.28.0-rc1-linux-x86_64.sh  && \
+    chmod +x cmake-3.28.0-rc1-linux-x86_64.sh  && sh cmake-3.28.0-rc1-linux-x86_64.sh  --skip-license && \
+    cp /code/bin/cmake /usr/bin/cmake && cp /code/bin/cmake /usr/lib/cmake && \
+    cp /code/bin/cmake /usr/local/bin/cmake && cp /code/bin/ctest /usr/local/bin/ctest && cp -r /code/share/cmake-3.28 /usr/local/share/ && \
+    rm -rf cmake-3.28.0-rc1-linux-x86_64.sh 
+
+# Prepare onnxruntime repository & build onnxruntime with TensorRT
+# --parallel crashes for me due to out of ram, only use it if you have ram
+# todo: check with --parallel 8 if oom
+RUN git clone --single-branch --branch ${ONNXRUNTIME_BRANCH} --recursive ${ONNXRUNTIME_REPO} onnxruntime &&\
+    /bin/sh onnxruntime/dockerfiles/scripts/install_common_deps.sh &&\
+    cd onnxruntime && PYTHONPATH=/usr/bin/python3 /bin/sh build.sh --allow_running_as_root --build_shared_lib --cuda_home /usr/local/cuda \
+      --cudnn_home /usr/lib/x86_64-linux-gnu/ --use_tensorrt --tensorrt_home /usr/lib/x86_64-linux-gnu/ --config Release --build_wheel --skip_tests --skip_submodule_sync --cmake_extra_defines '"CMAKE_CUDA_ARCHITECTURES='${CMAKE_CUDA_ARCHITECTURES}'"'
 
 ############################
 # VSGAN
@@ -694,10 +723,8 @@ RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy mmedit meson ninja 
   # holywu plugins currently only work with trt8.6
   pip install nvidia-pyindex tensorrt==8.6.1 && pip install polygraphy && rm -rf /root/.cache/
 
-# onnxruntime nightly (todo check: does pypi have 3.11 support)
-# https://aiinfra.visualstudio.com/PublicPackages/_artifacts/feed/ORT-Nightly/PyPI/ort-nightly-gpu/overview
-RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy && \
-  pip install ort-nightly-gpu==1.17.0.dev20231215001 --index-url=https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/ --no-deps
+COPY --from=TensorRT-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.16.3-cp311-cp311-linux_x86_64.whl /workspace
+RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.16.3-cp311-cp311-linux_x86_64.whl
 
 # holywu plugins
 RUN git clone https://github.com/styler00dollar/vs-gmfss_union && cd vs-gmfss_union && pip install . && cd /workspace && rm -rf vs-gmfss_union
@@ -734,11 +761,13 @@ RUN wget http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc-dev_1.
     http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6-dev_2.38-4_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-bin_2.38-4_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-dev-bin_2.38-4_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/l/linux/linux-libc-dev_6.6.4-1~exp1_all.deb \
+    http://ftp.us.debian.org/debian/pool/main/l/linux/linux-libc-dev_6.6.8-1_all.deb \
     http://ftp.us.debian.org/debian/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.3-1_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc3_1.3.4+ds-1_amd64.deb
 
-####################
+############################
+# final
+############################
 
 FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04 as final
 # maybe official tensorrt image is better, but it uses 20.04
