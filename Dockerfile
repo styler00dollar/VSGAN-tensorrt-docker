@@ -518,11 +518,10 @@ RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMa
     rm -rf cmake-3.28.0-rc1-linux-x86_64.sh 
 
 # Prepare onnxruntime repository & build onnxruntime with TensorRT
-# --parallel crashes for me due to out of ram, only use it if you have ram
-# todo: check with --parallel 8 if oom
+# --parallel 6 for 6 compile threads, using all threads ooms my ram
 RUN git clone --single-branch --branch ${ONNXRUNTIME_BRANCH} --recursive ${ONNXRUNTIME_REPO} onnxruntime &&\
     /bin/sh onnxruntime/dockerfiles/scripts/install_common_deps.sh &&\
-    cd onnxruntime && PYTHONPATH=/usr/bin/python3 /bin/sh build.sh --allow_running_as_root --build_shared_lib --cuda_home /usr/local/cuda \
+    cd onnxruntime && PYTHONPATH=/usr/bin/python3 /bin/sh build.sh --parallel 6 --allow_running_as_root --build_shared_lib --cuda_home /usr/local/cuda \
       --cudnn_home /usr/lib/x86_64-linux-gnu/ --use_tensorrt --tensorrt_home /usr/lib/x86_64-linux-gnu/ --config Release --build_wheel --skip_tests --skip_submodule_sync --cmake_extra_defines '"CMAKE_CUDA_ARCHITECTURES='${CMAKE_CUDA_ARCHITECTURES}'"'
 
 ############################
