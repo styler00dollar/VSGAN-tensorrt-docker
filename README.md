@@ -438,7 +438,15 @@ clip_orig = scene_detect(
     resolution=224,
 )
 
-clip = gmfss_union(clip, num_streams=2, trt=True, factor_num=2, ensemble=False, sc=True, trt_cache_path="/workspace/tensorrt/")  # any kind of interp
+clip = gmfss_union(
+    clip,
+    num_streams=2,
+    trt=True,
+    factor_num=2,
+    ensemble=False,
+    sc=True,
+    trt_cache_path="/workspace/tensorrt/",
+)  # any kind of interp
 clip_orig = core.std.Interleave([clip_orig] * 2)  # 2 means interpolation factor here
 clip = vfi_frame_merger(clip_orig, clip)  # swaps the frames if scene change is detected
 ```
