@@ -383,14 +383,14 @@ clip_orig = scene_detect(
 
 **Warning: Keep in mind that different models may require a different thresh to be good.**
 
-My personal favorites would be `efficientnetv2_b0`, `efficientformerv2_s0` and `swinv2_small` for video interpolation tasks. The rife models mean, that flow gets used as an additional input into the classification model. That should increase stability without major speed decrease.
+My personal favorites would be `efficientnetv2_b0`, `efficientformerv2_s0` and `swinv2_small` for video interpolation tasks. The rife models mean, that flow gets used as an additional input into the classification model. That should increase stability without major speed decrease. Models that are not linked will be converted later.
 
 Available onnx files:
-- efficientnetv2_b0
+- efficientnetv2_b0 ([fp16](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientnetv2b0_17957_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx) [fp32](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientnetv2b0_17957_256_CHW_6ch_clamp_softmax_op17_sim.onnx))
 - efficientnetv2_b0+rife46
-- efficientformerv2_s0
+- efficientformerv2_s0 ([fp16](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientformerv2_s0_12263_224_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx) [fp32](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientformerv2_s0_12263_224_CHW_6ch_clamp_softmax_op17_sim.onnx))
 - efficientformerv2_s0+rife46
-- swinv2_small
+- swinv2_small ([fp16](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_swinv2_small_window16_10412_256_CHW_6ch_clamp_softmax_op17_fp16.onnx) [fp32](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_swinv2_small_window16_10412_256_CHW_6ch_clamp_softmax_op17.onnx))
 - swinv2_small+rife46
 
 Other models I trained but are not available due to various reasons:
