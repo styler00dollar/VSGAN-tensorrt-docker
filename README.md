@@ -187,30 +187,130 @@ Small minimalistic example of how to configure inference. If you only want to pr
 ```
 video_path = "test.mkv"
 ```
-and then afterwards edit `inference_config.py`. Small example:
+and then afterwards edit `inference_config.py`. 
+
+Small example for upscaling with TensorRT:
 
 ```python
 import sys
-sys.path.append("/workspace/tensorrt/")
 import vapoursynth as vs
-core = vs.core
-vs_api_below4 = vs.__api_version__.api_major < 4
-core.num_threads = 4
-core.std.LoadPlugin(path="/usr/lib/x86_64-linux-gnu/libffms2.so")
 
+sys.path.append("/workspace/tensorrt/")
+core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
+core = vs.core
+core.num_threads = 4
+
+
+def inference_clip(video_path):
+    clip = core.bs.VideoSource(source=video_path)
+    clip = vs.core.resize.Bicubic(
+        clip, format=vs.RGBS, matrix_in_s="709"
+    )  # RGBS means fp32, RGBH means fp16
+
+    # upscaling
+    clip = core.trt.Model(
+        clip,
+        engine_path="/workspace/tensorrt/cugan.engine",  # read readme on how to build engine
+        num_streams=2,
+    )
+
+    clip = vs.core.resize.Bicubic(
+        clip, format=vs.YUV420P8, matrix_s="709"
+    )  # you can also use YUV420P10 for example
+    return clip
+```
+
+Small example for PyTorch interpolation with rife:
+
+```python
+import sys
+import vapoursynth as vs
 from src.rife import RIFE
 from src.vfi_inference import vfi_inference
 
+sys.path.append("/workspace/tensorrt/")
+core = vs.core
+core.num_threads = 4
+
+
 def inference_clip(video_path):
-    clip = core.ffms2.Source(source=video_path, cache=False)
-    clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
-    # apply one or multiple models, will be applied in order
-    model_inference = RIFE(scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=True)
+    clip = core.bs.VideoSource(source=video_path)
+    
+    clip = vs.core.resize.Bicubic(
+        clip, format=vs.RGBS, matrix_in_s="709"
+    )  # RGBS means fp32, RGBH means fp16
+    
+    # interpolation
+    model_inference = RIFE(
+        scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=True
+    )
     clip = vfi_inference(model_inference=model_inference, clip=clip, multi=2)
-    # return clip
+
     clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
     return clip
 ```
+
+Advanced example with upscaling + interpolation via TensorRT and model based scene change detection:
+
+```python
+import sys
+import vapoursynth as vs
+from src.vfi_inference import vfi_frame_merger
+from src.scene_detect import scene_detect
+from vsgmfss_fortuna import gmfss_fortuna
+
+sys.path.append("/workspace/tensorrt/")
+core = vs.core
+core.num_threads = 4
+
+
+def inference_clip(video_path):
+    clip = core.bs.VideoSource(source=video_path)
+    clip = vs.core.resize.Bicubic(
+        clip, format=vs.RGBH, matrix_in_s="709"
+    )  # RGBS means fp32, RGBH means fp16
+
+    # detecting scene changes
+    clip_orig = scene_detect(
+        clip,
+        thresh=0.98,
+        onnx_path="/workspace/tensorrt/sc_efficientformerv2_s0_12263_224_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx",
+        resolution=224,
+    )
+
+    # interpolation
+    clip = gmfss_fortuna(
+        clip,
+        num_streams=2,
+        trt=True,
+        factor_num=2,
+        factor_den=1,
+        model=1,
+        ensemble=False,
+        sc=True,
+        trt_cache_path="/workspace/tensorrt/",
+    )
+
+    clip_orig = vs.core.std.Interleave(
+        [clip_orig] * 2
+    ) # 2 means interpolation factor here, just making the original clip 2x in length
+
+    # swaps the frames if scene change is detected
+    clip = vfi_frame_merger(
+        clip_orig, clip
+    ) 
+
+    # upscaling
+    clip = core.trt.Model(
+        clip,
+        engine_path="/workspace/tensorrt/cugan.engine",
+        num_streams=2,
+    )
+
+    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+    return clip
+```
+
 Then use the commands above to render. For example:
 ```
 vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv
@@ -260,44 +360,40 @@ The properties in the clip will then be used to skip similar frames.
 
 ## Scene change detection
 
-Scene change detection is implemented in various different ways. To use traditional scene change without ai you can do:
+Scene change detection is implemented in various different ways. To use traditional scene change you can do:
 
 ```python
-clip = core.misc.SCDetect(clip=clip, threshold=0.100)
+clip = core.misc.SCDetect(
+  clip=clip, 
+  threshold=0.100
+)
 ```
-The clip property will then be used in frame interpolation inference.
+The clip property will then be used in frame interpolation inference when you call `vfi_frame_merger`.
 
-Recently I started experimenting in training my own scene change detect models and I used a dataset with 272.016 images (90.884 triplets) which includes everything from animation to real video (vimeo90k + animeinterp + custom data). So these should work on any kind of video.
+Recently I started experimenting in training my own scene change detect models and I used a dataset with 272.016 images (90.884 triplets) which includes everything from animation to real video (vimeo90k + animeinterp + custom data). So these should work on any kind of video. The input images were area downscaled images.
 
 ```python
-clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98)
+clip_orig = scene_detect(
+    clip,
+    thresh=0.98,
+    onnx_path="path_to_onnx.onnx",
+    resolution=resolution_of_onnx,
+)
 ```
 
 **Warning: Keep in mind that different models may require a different thresh to be good.**
 
-I think that `efficientnetv2_b0` is a good balance between speed and results. It overall did quite good. The other models which are included are not listed in an order. They looked all looked ok, but you would need to test yourself to dertermine an opinion.
+My personal favorites would be `efficientnetv2_b0`, `efficientformerv2_s0` and `swinv2_small` for video interpolation tasks. The rife models mean, that flow gets used as an additional input into the classification model. That should increase stability without major speed decrease.
 
-My personal favorites would be `efficientnetv2_b0`, `efficientformerv2_s0`, `maxvit_small` and `swinv2_small` for video interpolation tasks. Even if they overdetect a little, the main point is to avoid bad interpolation frames and the detection of bigger differences and scene changes is key because of that. Models will have a hard time discerning if bigger differences are a scene change and handle it in their own way. Some will trigger more and some less.
-
-Sidenote: "overdetect" is a bit hard to define with animation. There is no objective way of saying what frames are similar for drawn animation compared to irl videos. With a fast scene, fighting scene, zooming scene or scenes with particle effects covering a lot of the screen bigger differences can happen, but it does not necessarily mean a scene change. What about partial transitions and only partially changing screens? These are based on my opinion.
-
-Model list:
-- efficientnetv2_b0: Good overall
+Available onnx files:
+- efficientnetv2_b0
 - efficientnetv2_b0+rife46
-- efficientformerv2_s0: good overall
+- efficientformerv2_s0
 - efficientformerv2_s0+rife46
-- maxvit_small: good, but can overdetect at high movement
-- maxvit_small+rife46
-- regnetz_005: good overall
-- repvgg_b0: does barely overdetect, but seems to miss a few frames
-- resnetrs50: a bit hit and miss, but does not overdetect
-- resnetv2_50: might miss a bit, needs lower thresh like 0.9
-- rexnet_100: not too much and not too little, not perfect tho
-- swinv2_small: detects more than efficientnetv2_b0, but detects a bit too much at high movement
+- swinv2_small
 - swinv2_small+rife46
-- TimeSformer: it's alright, but might overdetect a little
 
-Models that I trained but seemed to be bad:
+Other models I trained but are not available due to various reasons:
 - hornet_tiny_7x7
 - renset50
 - STAM
@@ -308,6 +404,14 @@ Models that I trained but seemed to be bad:
 - swsl_resnet18
 - poolformer_m36
 - densenet121
+- TimeSformer: it's alright, but might overdetect a little
+- maxvit_small
+- maxvit_small+rife46
+- regnetz_005
+- repvgg_b0
+- resnetrs50
+- resnetv2_50
+- rexnet_100
 
 Interesting observations:
 - Applying means/stds seemingly worsened results, despite people doing that as standard practise.
@@ -318,7 +422,26 @@ Comparison to traditional methods:
 - [wwxd](https://github.com/dubhater/vapoursynth-wwxd) and [scxvid](https://github.com/dubhater/vapoursynth-scxvid) suffer from overdetection (at least in drawn animation).
 - The json that [master-of-zen/Av1an](https://github.com/master-of-zen/Av1an) produces with `--sc-only --sc-method standard --scenes test.json` returns too little scene changes. Changing the method does not really influence a lot. Not reliable enough for vfi.
 - I can't be bothered to [Breakthrough/PySceneDetect](https://github.com/Breakthrough/PySceneDetect) get working with vapousynth with FrameEval and by default it only works with video or image sequence as input. I may try in the future, but I don't understand why I cant just input two images.
-- `misc.SCDetect` seemed like the best traditional vapoursynth method that does currently exist, but I thought I could try to improve. It struggles harder with similar colors and tends to skip more changes compared to ai methods.
+- `misc.SCDetect` seemed like the best traditional vapoursynth method that does currently exist, but I thought I could try to improve. It struggles harder with similar colors and tends to skip more changes compared to methods.
+
+Decided to only do scene change inference with ORT with TensorRT backend to keep code small and optimized.
+
+Example usage:
+```python
+from src.vfi_inference import vfi_frame_merger
+from vsgmfss_union import gmfss_union
+
+clip_orig = scene_detect(
+    clip,
+    thresh=0.98,
+    onnx_path="sc_efficientformerv2_s0_12263_224_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx",  # files have resolution in them, its 224 here
+    resolution=224,
+)
+
+clip = gmfss_union(clip, num_streams=2, trt=True, factor_num=2, ensemble=False, sc=True, trt_cache_path="/workspace/tensorrt/")  # any kind of interp
+clip_orig = core.std.Interleave([clip_orig] * 2)  # 2 means interpolation factor here
+clip = vfi_frame_merger(clip_orig, clip)  # swaps the frames if scene change is detected
+```
 
 <div id='vs-mlrt'/>
 
@@ -490,7 +613,6 @@ Warnings:
 - Keep in mind that these benchmarks can get outdated very fast due to rapid code development and configurations.
 - The default is ffmpeg.
 - ModifyFrame is depricated. Trying to use FrameEval everywhere and is used by default.
-- ncnn did a lot of performance enhancements lately, so results may be a bit better.
 - TensorRT docker version and ONNX opset seem to influence speed but that wasn't known for quite some time. I have a hard time pinpointing which TensorRT and ONNX opset was used. Take benchmark as a rough indicator.
 - Colab may change hardware like CPU at any point.
 - Sometimes it takes a very long time to reach the final speed. It can happen that not enough time was waited.

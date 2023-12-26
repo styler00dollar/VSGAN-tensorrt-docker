@@ -1,3 +1,4 @@
+# todo: update script
 import sys
 import os
 

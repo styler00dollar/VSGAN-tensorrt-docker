@@ -5,7 +5,7 @@ sys.path.append("/workspace/tensorrt/")
 import vapoursynth as vs
 
 # video imports
-from src.vfi_inference import vfi_inference
+from src.vfi_inference import vfi_inference, vfi_frame_merger
 from src.vfi_model import video_model
 
 from src.rife import RIFE
@@ -82,7 +82,11 @@ def inference_clip(video_path="", clip=None):
     # model based scene detect
     # clip = scene_detect(clip, model_name="efficientnetv2_b0", thresh=0.98, fp16=False)
 
-    # dedup (requires you to call "vspipe parse.py -p ." to generate infos_running.txt and tmp.txt)
+    # apply model based scene detect
+    # clip_orig = vs.core.std.Interleave([clip_orig] * 2)
+    # clip = vfi_frame_merger(clip_orig, clip)
+
+    # DEDUP (requires you to call "vspipe parse.py -p ." to generate infos_running.txt and tmp.txt)
     # from src.dedup import get_dedup_frames
     # frames_duplicated, frames_duplicating = get_dedup_frames()
     # clip = core.std.DeleteFrames(clip, frames_duplicated)
