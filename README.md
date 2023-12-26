@@ -260,6 +260,7 @@ from src.scene_detect import scene_detect
 from vsgmfss_fortuna import gmfss_fortuna
 
 sys.path.append("/workspace/tensorrt/")
+core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 core = vs.core
 core.num_threads = 4
 
