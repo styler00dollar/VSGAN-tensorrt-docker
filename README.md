@@ -109,8 +109,8 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 
 | docker image  | compressed download | extracted container | short description |
 | ------------- | ------------------- | ------------------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest | 9gb | 17gb | default latest
-| chin39/vsgan_tensorrt:latest | 9gb | 17gb | default latest without AVX512
+| styler00dollar/vsgan_tensorrt:latest | 10gb | 19gb | default latest (TRT9.2 trtexec, TRT8.6 python)
+| chin39/vsgan_tensorrt:latest | 9gb | 17gb | default latest without AVX512 (TRT8.6, not maintained by myself)
 | styler00dollar/vsgan_tensorrt:minimal | 4gb | 8gb | ffmpeg + mlrt + lsmash
 | styler00dollar/vsgan_tensorrt:deprecated | 23gb | 43gb | old default
 | styler00dollar/vsgan_tensorrt:ffmpeg_trt | 9gb | 20gb | ffmpeg c++ trt inference plugin to use trt engines with ffmpeg directly without vapoursynth
@@ -404,7 +404,7 @@ Other models I trained but are not available due to various reasons:
 - swsl_resnet18
 - poolformer_m36
 - densenet121
-- TimeSformer: it's alright, but might overdetect a little
+- TimeSformer
 - maxvit_small
 - maxvit_small+rife46
 - regnetz_005
