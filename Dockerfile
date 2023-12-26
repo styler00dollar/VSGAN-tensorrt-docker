@@ -658,6 +658,18 @@ RUN apt install nasm -y && git clone https://github.com/dubhater/vapoursynth-mvt
 # fmtconv
 RUN git clone https://github.com/EleonoreMizo/fmtconv && cd fmtconv/build/unix/ && ./autogen.sh && ./configure && make -j$(nproc) && make install
 
+# VMAF
+RUN apt install nasm xxd -y && wget https://github.com/Netflix/vmaf/archive/refs/tags/v3.0.0.tar.gz && \
+  tar -xzf v3.0.0.tar.gz && cd vmaf-3.0.0/libvmaf/ && \
+  meson build --buildtype release -Denable_cuda=true -Denable_avx512=true && ninja -C build && \
+  ninja -C build install && cd /workspace && rm -rf v3.0.0.tar.gz vmaf-3.0.0 && \
+  git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF && cd VapourSynth-VMAF && meson build && \
+  ninja -C build && ninja -C build install
+
+# MISC
+RUN git clone https://github.com/vapoursynth/vs-miscfilters-obsolete && cd vs-miscfilters-obsolete && meson build && \
+  ninja -C build && ninja -C build install
+
 # akarin vs
 RUN apt install llvm-15 llvm-15-dev -y && git clone https://github.com/AkarinVS/vapoursynth-plugin && \
   cd vapoursynth-plugin && meson build && ninja -C build && \
@@ -796,21 +808,18 @@ COPY --from=base /usr/local/lib/libvapoursynth-script.so* /usr/local/lib/libvapo
 COPY --from=base /usr/local/bin/vspipe  /usr/local/bin/vspipe
 
 # vs plugins
-COPY --from=base /usr/local/lib/libvstrt.so \
-  /usr/local/lib/libmvtools.so \
-  /usr/local/lib/libfmtconv.so /usr/local/lib/
+COPY --from=base /usr/local/lib/libvstrt.so /usr/local/lib/libmvtools.so /usr/local/lib/libfmtconv.so /usr/local/lib/
 COPY --from=base /usr/lib/x86_64-linux-gnu/libfftw3f.so* /usr/lib/x86_64-linux-gnu/
 
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/liblsmash.so* /usr/local/lib/
 COPY --from=bestsource-lsmash-ffms2-vs /workspace/L-SMASH-Works/VapourSynth/build/libvslsmashsource.so /workspace/bestsource/build/libbestsource.so /usr/local/lib/vapoursynth
 COPY --from=bestsource-lsmash-ffms2-vs /workspace/ffms2/src/core/.libs/libffms2.so* /usr/lib/x86_64-linux-gnu/
 
-COPY --from=base /usr/local/lib/vapoursynth/libdescale.so \
-  /usr/local/lib/vapoursynth/libakarin.so \
-  /usr/local/lib/vapoursynth/libjulek.so /usr/local/lib/vapoursynth/libcas.so /usr/local/lib/vapoursynth/
+COPY --from=base /usr/local/lib/vapoursynth/libvmaf.so /usr/local/lib/vapoursynth/libdescale.so /usr/local/lib/vapoursynth/libakarin.so \
+  /usr/local/lib/vapoursynth/libmiscfilters.so /usr/local/lib/vapoursynth/libjulek.so /usr/local/lib/vapoursynth/libcas.so /usr/local/lib/vapoursynth/
 
-COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so \
-  /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/
+COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so \
+  /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/
 
 # av1an / rav1e / svt / aom
 COPY --from=base /usr/bin/av1an /usr/local/bin/rav1e /usr/bin/
