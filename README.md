@@ -203,7 +203,7 @@ core.num_threads = 4
 
 def inference_clip(video_path):
     clip = core.bs.VideoSource(source=video_path)
-    clip = vs.core.resize.Bicubic(
+    clip = core.resize.Bicubic(
         clip, format=vs.RGBS, matrix_in_s="709"
     )  # RGBS means fp32, RGBH means fp16
 
@@ -214,7 +214,7 @@ def inference_clip(video_path):
         num_streams=2,
     )
 
-    clip = vs.core.resize.Bicubic(
+    clip = core.resize.Bicubic(
         clip, format=vs.YUV420P8, matrix_s="709"
     )  # you can also use YUV420P10 for example
     return clip
@@ -236,7 +236,7 @@ core.num_threads = 4
 def inference_clip(video_path):
     clip = core.bs.VideoSource(source=video_path)
     
-    clip = vs.core.resize.Bicubic(
+    clip = core.resize.Bicubic(
         clip, format=vs.RGBS, matrix_in_s="709"
     )  # RGBS means fp32, RGBH means fp16
     
@@ -246,7 +246,7 @@ def inference_clip(video_path):
     )
     clip = vfi_inference(model_inference=model_inference, clip=clip, multi=2)
 
-    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+    clip = core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
     return clip
 ```
 
@@ -267,7 +267,7 @@ core.num_threads = 4
 
 def inference_clip(video_path):
     clip = core.bs.VideoSource(source=video_path)
-    clip = vs.core.resize.Bicubic(
+    clip = core.resize.Bicubic(
         clip, format=vs.RGBH, matrix_in_s="709"
     )  # RGBS means fp32, RGBH means fp16
 
@@ -292,7 +292,7 @@ def inference_clip(video_path):
         trt_cache_path="/workspace/tensorrt/",
     )
 
-    clip_orig = vs.core.std.Interleave(
+    clip_orig = core.std.Interleave(
         [clip_orig] * 2
     ) # 2 means interpolation factor here, just making the original clip 2x in length
 
@@ -308,7 +308,7 @@ def inference_clip(video_path):
         num_streams=2,
     )
 
-    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+    clip = core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
     return clip
 ```
 
@@ -343,19 +343,49 @@ If you are confused, here is a Youtube video showing how to use Python API based
 <div id='deduplicated'/>
 
 ## Deduplicated inference
-Calculate similarity between frames with [HomeOfVapourSynthEvolution/VapourSynth-VMAF](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF).
+Calculate similarity between frames with [HomeOfVapourSynthEvolution/VapourSynth-VMAF](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF) and skip similar frames in interpolation tasks. The properties in the clip will then be used to skip similar frames.
+
 ```python
-# requires yuv, convert if it isn't
-clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
-# adding metric to clip property
-# 0 = PSNR, 1 = PSNR-HVS, 2 = SSIM, 3 = MS-SSIM, 4 = CIEDE2000
-offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
-offs1 = core.std.CopyFrameProps(offs1, clip)
-clip = core.vmaf.Metric(clip, offs1, 2)
-# convert to rgbs if needed
-clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
+from src.vfi_inference import vfi_frame_merger
+from vsgmfss_fortuna import gmfss_fortuna
+
+# calculate metrics
+def metrics_func(clip):
+    offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
+    offs1 = core.std.CopyFrameProps(offs1, clip)
+    return core.vmaf.Metric(clip, offs1, 2)
+
+def inference_clip(video_path):
+    clip = core.bs.VideoSource(source=video_path)
+    clip = metrics_func(clip)  # only takes YUV, not RGB
+    clip = core.resize.Bicubic(clip, format=vs.RGBH, matrix_in_s="709")
+    
+    clip_orig = core.std.Interleave([clip] * 2)
+
+    # interpolation
+    clip = gmfss_fortuna(
+        clip,
+        num_streams=2,
+        trt=True,
+        factor_num=2,
+        factor_den=1,
+        model=1,
+        ensemble=False,
+        sc=True,
+        trt_cache_path="/workspace/tensorrt/",
+    )
+
+    # skip frames based on calculated metrics
+    clip = vfi_frame_merger(clip_orig, clip)
+
+    return clip
 ```
-The properties in the clip will then be used to skip similar frames.
+
+There are multiple different metrics that can be used, but be aware that you may need to adjust the threshold metric value in `vfi_inference.py`, since they work differently. SSIM has a maximum of 1 and PSNR has a maximum of infinity. I would recommend leaving the defaults unless you know what you do.
+```python
+# 0 = PSNR, 1 = PSNR-HVS, 2 = SSIM, 3 = MS-SSIM, 4 = CIEDE2000
+return core.vmaf.Metric(clip, offs1, 2)
+```
 
 <div id='scene-change'/>
 
