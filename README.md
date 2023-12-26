@@ -288,7 +288,7 @@ def inference_clip(video_path):
         factor_den=1,
         model=1,
         ensemble=False,
-        sc=True,
+        sc=False,  # disabling misc.SCDetect scene change detection, parameter not available in every model
         trt_cache_path="/workspace/tensorrt/",
     )
 
@@ -475,7 +475,7 @@ clip = gmfss_union(
     trt=True,
     factor_num=2,
     ensemble=False,
-    sc=True,
+    sc=False,
     trt_cache_path="/workspace/tensorrt/",
 )  # any kind of interp
 clip_orig = core.std.Interleave([clip_orig] * 2)  # 2 means interpolation factor here
