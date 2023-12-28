@@ -779,10 +779,7 @@ RUN wget http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc-dev_1.
 ############################
 # final
 ############################
-# using devel docker due to cupy jitify
-# cub/detail/detect_cuda_runtime.cuh(39): warning: cuda_runtime_api.h: [jitify] File not found
-# ../util_type.cuh(42): warning: cuda.h: [jitify] File not found
-FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as final
+FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04 as final
 # maybe official tensorrt image is better, but it uses 20.04
 #FROM nvcr.io/nvidia/tensorrt:23.04-py3 as final
 ARG DEBIAN_FRONTEND=noninteractive
@@ -790,6 +787,11 @@ ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES all
 
 WORKDIR workspace
+
+# due to cupy jitify
+# cub/detail/detect_cuda_runtime.cuh(39): warning: cuda_runtime_api.h: [jitify] File not found
+# ../util_type.cuh(42): warning: cuda.h: [jitify] File not found
+RUN apt update -y && apt install cuda-cudart-dev-12-1 linux-libc-dev -y
 
 # install python
 COPY --from=base /usr/local/bin/python /usr/local/bin/
