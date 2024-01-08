@@ -615,10 +615,10 @@ RUN pip install --upgrade pip && pip install cython && git clone https://github.
 
 #################################################################
 # pycuda
-RUN git clone https://github.com/inducer/pycuda --recursive && cd pycuda && python setup.py bdist_wheel
+RUN pip install numpy && git clone https://github.com/inducer/pycuda --recursive && cd pycuda && python setup.py bdist_wheel
 
 # color transfer
-RUN pip install numpy && pip install docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
+RUN pip install docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
 
 # vs-mlrt
 # trt9.2 with whl since apt still only has 8.6
@@ -765,14 +765,14 @@ RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
 RUN mkdir /workspace/hotfix
 WORKDIR /workspace/hotfix
 RUN wget http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc-dev_1.3.4+ds-1_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-3_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-2_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/libn/libnsl/libnsl-dev_1.3.0-3_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/libx/libxcrypt/libcrypt1_4.4.36-3_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6_2.38-4_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6-dev_2.38-4_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-bin_2.38-4_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-dev-bin_2.38-4_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/l/linux/linux-libc-dev_6.6.8-1_all.deb \
+    http://ftp.us.debian.org/debian/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6_2.38-5_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6-dev_2.38-5_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-bin_2.38-5_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-dev-bin_2.38-5_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/l/linux/linux-libc-dev_6.6.9-1_all.deb \
     http://ftp.us.debian.org/debian/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.3-1_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc3_1.3.4+ds-1_amd64.deb
 
