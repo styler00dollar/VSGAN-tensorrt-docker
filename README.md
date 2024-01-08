@@ -77,7 +77,7 @@ Get CUDA12.1 and latest Nvidia drivers. After that, follow the following steps:
 
 **WARNING FOR WINDOWS USERS: Docker Desktop `4.17.1` is broken. I confirmed that [4.25.0](https://desktop.docker.com/win/main/amd64/126437/Docker%20Desktop%20Installer.exe) should work. Older tested versions are [4.16.3](https://desktop.docker.com/win/main/amd64/96739/Docker%20Desktop%20Installer.exe) or [4.17.0](https://desktop.docker.com/win/main/amd64/99724/Docker%20Desktop%20Installer.exe). I would recommend to use `4.25.0`. `4.17.1` results in Docker not starting which is mentioned in [this issue](https://github.com/styler00dollar/VSGAN-tensorrt-docker/issues/34).**
 
-**ANOTHER WARNING FOR PEOPLE WITHOUT `AVX512`: Instead of using `styler00dollar/vsgan_tensorrt:latest`, which I build with my 7950x and thus with all AVX, use `chin39/vsgan_tensorrt:latest` in `compose.yaml` and the git branch `no_avx` to avoid `Illegal instruction (core dumped)` which is mentioned in [this issue](https://github.com/styler00dollar/VSGAN-tensorrt-docker/issues/48).**
+**ANOTHER WARNING FOR PEOPLE WITHOUT `AVX512`: Instead of using `styler00dollar/vsgan_tensorrt:latest`, which I build with my 7950x and thus with all AVX, use `styler00dollar/vsgan_tensorrt:latest_no_avx512` in `compose.yaml` to avoid `Illegal instruction (core dumped)` which is mentioned in [this issue](https://github.com/styler00dollar/VSGAN-tensorrt-docker/issues/48).**
 
 Quickstart:
 ```bash
@@ -97,9 +97,8 @@ docker-compose run --rm vsgan_tensorrt
 ```
 There are now multiple containers to choose from, if you don't want the default, then edit `compose.yaml`
 and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to running `docker-compose run --rm vsgan_tensorrt`.
-- `latest`: Default docker with everything.
-- The other latest image is by [chinrw](https://hub.docker.com/r/chin39/vsgan_tensorrt/tags) and built on a i9-13900K. Since The docker is built with all compatible instructions, it just crashes on cpus that
-  are not compatible. Use this instead if your cpu does not support all instruction sets. Use the branch `no_avx` for that, this was the git status when the docker image was created.
+- `latest`: Default docker with everything. Trying to keep everything updated and fixed.
+- `latest_no_avx512` is for cpus without avx512 support, otherwise it just crashes if you try to run avx512 binaries on cpus without such support. Use this if your cpu does not support all instruction sets.
 - `minimal`: Bare minimum to run `ffmpeg`, `mlrt` and `lsmash`.
 - `deprecated`: Container before changing dockerfile to copy stage, has same functionality as latest, but is way bigger in size. (not recommended)
 - `ffmpeg_trt`: Experimental ffmpeg trt plugin without vapoursynth, only for sm_89 for now, or recompile with your own gpu compute version.
@@ -109,10 +108,10 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 
 | docker image  | compressed download | extracted container | short description |
 | ------------- | ------------------- | ------------------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest | 10gb | 19gb | default latest (TRT9.2 trtexec, TRT8.6 python)
-| chin39/vsgan_tensorrt:latest | 9gb | 17gb | default latest without AVX512 (TRT8.6, not maintained by myself)
+| styler00dollar/vsgan_tensorrt:latest | 10gb | 19gb | default latest
+| styler00dollar/vsgan_tensorrt:latest_no_avx512 | 10gb | 19gb | default latest without avx512
 | styler00dollar/vsgan_tensorrt:minimal | 4gb | 8gb | ffmpeg + mlrt + lsmash
-| styler00dollar/vsgan_tensorrt:deprecated | 23gb | 43gb | old default
+| styler00dollar/vsgan_tensorrt:deprecated | 23gb | 43gb | old default (legacy, not supported)
 | styler00dollar/vsgan_tensorrt:ffmpeg_trt | 9gb | 20gb | ffmpeg c++ trt inference plugin to use trt engines with ffmpeg directly without vapoursynth
 
 Piping usage:
