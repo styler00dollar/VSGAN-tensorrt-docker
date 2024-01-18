@@ -39,8 +39,8 @@ def inference_clip(video_path="", clip=None):
     clip_orig = scene_detect(
         clip,
         thresh=0.98,
-        onnx_path="/workspace/tensorrt/sc_efficientformerv2_s0+rife46_flow_84119_224_CHW_6ch_clamp_softmax_op17_fp16.onnx",
-        resolution=224,
+        onnx_path="/workspace/tensorrt/sc_efficientnetv2b0+rife46_flow_1362_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx",
+        resolution=256,
     )
     clip_orig = vs.core.std.Interleave([clip_orig] * 4)
 
@@ -59,7 +59,7 @@ def inference_clip(video_path="", clip=None):
     # upscale
     upscaled = core.trt.Model(
         clip,
-        engine_path="/workspace/tensorrt/2x_AnimeJaNai_V3_SmoothRC21_Compact_50k_op18_fp16_clamp.engine",
+        engine_path="/workspace/tensorrt/2x_AnimeJaNai_V2_Compact_36k_op18_fp16_clamp.engine",
         num_streams=2,
     )
 
