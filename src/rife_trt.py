@@ -59,9 +59,6 @@ def rife_trt(
         clips, engine_path, device_id=device_id, num_streams=num_streams
     )
 
-    # using FrameEval is much faster than calling core.akarin.Expr
-    output = vfi_frame_merger(initial, output)
-
     if multi == 2:
         return core.std.Interleave([clip, output])
     else:
