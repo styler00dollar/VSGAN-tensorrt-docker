@@ -3,7 +3,6 @@ import os
 
 sys.path.append("/workspace/tensorrt/")
 import vapoursynth as vs
-import functools
 from src.scene_detect import scene_detect
 from src.vfi_inference import vfi_frame_merger
 from src.rife_trt import rife_trt
@@ -32,7 +31,9 @@ def inference_clip(video_path="", clip=None):
     )
     clip_metric = metrics_func(clip_metric)
 
-    # scene detect
+    clip = vs.core.resize.Bicubic(clip, format=vs.RGBH, matrix_in_s="709")
+
+    # scene change
     clip_sc = scene_detect(
         clip,
         thresh=0.98,
@@ -41,11 +42,11 @@ def inference_clip(video_path="", clip=None):
     )
 
     # adjusting clip length
-    clip = vs.core.resize.Bicubic(clip, format=vs.RGBH, matrix_in_s="709")
     clip_orig = vs.core.std.Interleave([clip] * interp_scale)
+    clip_sc = vs.core.std.Interleave([clip_sc] * interp_scale)
     clip_metric = vs.core.std.Interleave([clip_metric] * interp_scale)
 
-    # interp
+    # interpolation
     clip = rife_trt(
         clip,
         multi=interp_scale,
@@ -59,26 +60,5 @@ def inference_clip(video_path="", clip=None):
     clip = core.akarin.Select([clip, clip_orig], clip_metric, "x.float_ssim 0.999 >")
     clip = core.akarin.Select([clip, clip_orig], clip_sc, "x._SceneChangeNext 1 0 ?")
 
-    # upscale
-    upscaled = core.trt.Model(
-        clip,
-        engine_path="/workspace/tensorrt/2x_AnimeJaNai_V2_Compact_36k_op18_fp16_clamp.engine",
-        num_streams=2,
-    )
-
-    # ssim
-    upscaled_metrics = vs.core.resize.Bicubic(
-        clip, width=224, height=224, format=vs.YUV420P8, matrix_s="709"
-    )
-    upscaled_metrics = metrics_func(upscaled_metrics)
-
-    # replacing frames
-    clip = core.akarin.Select(
-        [upscaled, upscaled[1:] + upscaled[-1]],
-        upscaled_metrics,
-        "x.float_ssim 0.999 >",
-    )
-
-    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P10, matrix_s="709")
-
+    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
     return clip
