@@ -535,7 +535,7 @@ clip = core.ffms2.Source(source='input.mkv', fpsnum = 24000, fpsden = 1001, cach
 ```
 or convert everything to constant framerate with ffmpeg.
 ```bash
-ffmpeg -i video_input.mkv -vsync cfr -crf 10 -c:a copy video_out.mkv
+ffmpeg -i video_input.mkv -fps_mode cfr -crf 10 -c:a copy video_out.mkv
 ```
 or use my `vfr_to_cfr.py` to process a folder.
 
