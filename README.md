@@ -10,7 +10,6 @@ Table of contents
 <!--ts-->
    * [Usage](#usage)
    * [Usage example](#usage-example)
-   * [Video guide (depricated)](#video-guide)
    * [Deduplicated inference](#deduplicated)
    * [Scene change detection](#scene-change)
    * [vs-mlrt (C++ TRT)](#vs-mlrt)
@@ -192,34 +191,33 @@ Small example for upscaling with TensorRT:
 
 ```python
 import sys
-import vapoursynth as vs
+import os
 
 sys.path.append("/workspace/tensorrt/")
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
+import vapoursynth as vs
+
 core = vs.core
-core.num_threads = 4
+vs_api_below4 = vs.__api_version__.api_major < 4
+core.num_threads = 8
+
+core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
 
-def inference_clip(video_path):
+def inference_clip(video_path="", clip=None):
     clip = core.bs.VideoSource(source=video_path)
-    clip = core.resize.Bicubic(
-        clip, format=vs.RGBS, matrix_in_s="709"
-    )  # RGBS means fp32, RGBH means fp16
 
-    # upscaling
+    clip = vs.core.resize.Bicubic(clip, format=vs.RGBH, matrix_in_s="709")  # RGBS means fp32, RGBH means fp16
     clip = core.trt.Model(
         clip,
-        engine_path="/workspace/tensorrt/cugan.engine",  # read readme on how to build engine
+        engine_path="/workspace/tensorrt/2x_AnimeJaNai_V2_Compact_36k_op18_fp16_clamp.engine",  # read readme on how to build engine
         num_streams=2,
     )
+    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")  # you can also use YUV420P10 for example
 
-    clip = core.resize.Bicubic(
-        clip, format=vs.YUV420P8, matrix_s="709"
-    )  # you can also use YUV420P10 for example
     return clip
 ```
 
-Small example for PyTorch interpolation with rife:
+Small example for rife interpolation with TensorRT without scene change detection:
 
 ```python
 import sys
@@ -231,6 +229,40 @@ sys.path.append("/workspace/tensorrt/")
 core = vs.core
 core.num_threads = 4
 
+core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
+
+
+def inference_clip(video_path):
+    clip = core.bs.VideoSource(source=video_path)
+    
+    clip = core.resize.Bicubic(
+        clip, format=vs.RGBS, matrix_in_s="709"
+    )  # RGBS means fp32, RGBH means fp16
+    
+    # interpolation
+    clip = rife_trt(
+        clip,
+        multi=2,
+        scale=1.0,
+        device_id=0,
+        num_streams=2,
+        engine_path="/workspace/tensorrt/rife414_ensembleTrue_op18_fp16_clamp_sim.engine",  # read readme on how to build engine
+    )
+
+    clip = core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+    return clip
+```
+
+Small example for PyTorch interpolation with rife without scene change detection:
+```python
+import sys
+import vapoursynth as vs
+from src.rife import RIFE
+from src.vfi_inference import vfi_inference
+
+sys.path.append("/workspace/tensorrt/")
+core = vs.core
+core.num_threads = 4
 
 def inference_clip(video_path):
     clip = core.bs.VideoSource(source=video_path)
@@ -249,67 +281,7 @@ def inference_clip(video_path):
     return clip
 ```
 
-Advanced example with upscaling + interpolation via TensorRT and model based scene change detection:
-
-```python
-import sys
-import vapoursynth as vs
-from src.vfi_inference import vfi_frame_merger
-from src.scene_detect import scene_detect
-from vsgmfss_fortuna import gmfss_fortuna
-
-sys.path.append("/workspace/tensorrt/")
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
-core = vs.core
-core.num_threads = 4
-
-
-def inference_clip(video_path):
-    clip = core.bs.VideoSource(source=video_path)
-    clip = core.resize.Bicubic(
-        clip, format=vs.RGBH, matrix_in_s="709"
-    )  # RGBS means fp32, RGBH means fp16
-
-    # detecting scene changes
-    clip_orig = scene_detect(
-        clip,
-        thresh=0.98,
-        onnx_path="/workspace/tensorrt/sc_efficientformerv2_s0_12263_224_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx",
-        resolution=224,
-    )
-
-    # interpolation
-    clip = gmfss_fortuna(
-        clip,
-        num_streams=2,
-        trt=True,
-        factor_num=2,
-        factor_den=1,
-        model=1,
-        ensemble=False,
-        sc=False,  # disabling misc.SCDetect scene change detection, parameter not available in every model
-        trt_cache_path="/workspace/tensorrt/",
-    )
-
-    clip_orig = core.std.Interleave(
-        [clip_orig] * 2
-    ) # 2 means interpolation factor here, just making the original clip 2x in length
-
-    # swaps the frames if scene change is detected
-    clip = vfi_frame_merger(
-        clip_orig, clip
-    ) 
-
-    # upscaling
-    clip = core.trt.Model(
-        clip,
-        engine_path="/workspace/tensorrt/cugan.engine",
-        num_streams=2,
-    )
-
-    clip = core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
-    return clip
-```
+More examples in `custom_scripts/`.
 
 Then use the commands above to render. For example:
 ```
@@ -329,24 +301,16 @@ and configure `inference_config.py` like wanted. Afterwards just run
 python main.py
 ```
 
-<div id='video-guide'/>
-
-## Video guide (deprecated)
-
-**WARNING: I RECOMMEND READING THE README INSTEAD. THE VIDEO SHOULD GET RE-DONE AT SOME POINT.**
-
-If you are confused, here is a Youtube video showing how to use Python API based TensorRT on Windows. That's the easiest way to get my code running, but I would recommend trying to create `.engine` files instead. I wrote instructions for that further down below under [vs-mlrt (C++ TRT)](#vs-mlrt). The difference in speed can be quite big. Look at [benchmarks](#benchmarks) for further details.
-
-[![Tutorial](https://img.youtube.com/vi/B134jvhO8yk/0.jpg)](https://www.youtube.com/watch?v=B134jvhO8yk)
-
 <div id='deduplicated'/>
 
 ## Deduplicated inference
 Calculate similarity between frames with [HomeOfVapourSynthEvolution/VapourSynth-VMAF](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF) and skip similar frames in interpolation tasks. The properties in the clip will then be used to skip similar frames.
 
 ```python
-from src.vfi_inference import vfi_frame_merger
-from vsgmfss_fortuna import gmfss_fortuna
+from src.rife_trt import rife_trt
+
+core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
+
 
 # calculate metrics
 def metrics_func(clip):
@@ -355,27 +319,29 @@ def metrics_func(clip):
     return core.vmaf.Metric(clip, offs1, 2)
 
 def inference_clip(video_path):
+    interp_scale = 2
     clip = core.bs.VideoSource(source=video_path)
-    clip = metrics_func(clip)  # only takes YUV, not RGB
-    clip = core.resize.Bicubic(clip, format=vs.RGBH, matrix_in_s="709")
-    
-    clip_orig = core.std.Interleave([clip] * 2)
+
+    # ssim
+    clip_metric = vs.core.resize.Bicubic(
+        clip, width=224, height=224, format=vs.YUV420P8, matrix_s="709"  # resize before ssim for speedup
+    )
+    clip_metric = metrics_func(clip_metric)    
+    clip_orig = core.std.Interleave([clip] * interp_scale)
 
     # interpolation
-    clip = gmfss_fortuna(
+    clip = rife_trt(
         clip,
+        multi=interp_scale,
+        scale=1.0,
+        device_id=0,
         num_streams=2,
-        trt=True,
-        factor_num=2,
-        factor_den=1,
-        model=1,
-        ensemble=False,
-        sc=True,
-        trt_cache_path="/workspace/tensorrt/",
+        engine_path="/workspace/tensorrt/rife414_ensembleTrue_op18_fp16_clamp_sim.engine",
     )
 
     # skip frames based on calculated metrics
-    clip = vfi_frame_merger(clip_orig, clip)
+    # in this case if ssim > 0.999, then copy frame
+    clip = core.akarin.Select([clip, clip_orig], clip_metric, "x.float_ssim 0.999 >")
 
     return clip
 ```
@@ -393,17 +359,17 @@ return core.vmaf.Metric(clip, offs1, 2)
 Scene change detection is implemented in various different ways. To use traditional scene change you can do:
 
 ```python
-clip = core.misc.SCDetect(
+clip_sc = core.misc.SCDetect(
   clip=clip, 
   threshold=0.100
 )
 ```
-The clip property will then be used in frame interpolation inference when you call `vfi_frame_merger`.
+Afterwards you can call `clip = core.akarin.Select([clip, clip_orig], clip_sc, "x._SceneChangeNext 1 0 ?")` to apply it.
 
 Recently I started experimenting in training my own scene change detect models and I used a dataset with 272.016 images (90.884 triplets) which includes everything from animation to real video (vimeo90k + animeinterp + custom data). So these should work on any kind of video. The input images were area downscaled images.
 
 ```python
-clip = scene_detect(
+clip_sc = scene_detect(
     clip,
     thresh=0.98,
     onnx_path="path_to_onnx.onnx",
@@ -458,33 +424,37 @@ Decided to only do scene change inference with ORT with TensorRT backend to keep
 
 Example usage:
 ```python
-from src.vfi_inference import vfi_frame_merger
-from vsgmfss_union import gmfss_union
+from src.scene_detect import scene_detect
+from src.rife_trt import rife_trt
 
-clip_orig = scene_detect(
+core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
+
+
+clip_sc = scene_detect(
     clip,
     thresh=0.98,
-    onnx_path="sc_efficientformerv2_s0_12263_224_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx",  # files have resolution in them, its 224 here
-    resolution=224,
+    onnx_path="/workspace/tensorrt/sc_efficientnetv2b0+rife46_flow_1362_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx",
+    resolution=256,
 )
 
-clip = gmfss_union(
+clip = rife_trt(
     clip,
+    multi=2,
+    scale=1.0,
+    device_id=0,
     num_streams=2,
-    trt=True,
-    factor_num=2,
-    ensemble=False,
-    sc=False,
-    trt_cache_path="/workspace/tensorrt/",
-)  # any kind of interp
+    engine_path="/workspace/tensorrt/rife414_ensembleTrue_op18_fp16_clamp_sim.engine",
+)
+
 clip_orig = core.std.Interleave([clip_orig] * 2)  # 2 means interpolation factor here
-clip = vfi_frame_merger(clip_orig, clip)  # swaps the frames if scene change is detected
+clip = core.akarin.Select([clip, clip_orig], clip_sc, "x._SceneChangeNext 1 0 ?")
 ```
 
 <div id='vs-mlrt'/>
 
 ## vs-mlrt (C++ TRT)
 You need to convert onnx models into engines. You need to do that on the same system where you want to do inference. Download onnx models from [here]( https://github.com/AmusementClub/vs-mlrt/releases/download/v7/models.v7.7z) or from [my Github page](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models). You can technically just use any ONNX model you want or convert a pth into onnx with [convert_esrgan_to_onnx.py](https://github.com/styler00dollar/VSGAN-tensorrt-docker/blob/main/convert_esrgan_to_onnx.py) or [convert_compact_to_onnx.py](https://github.com/styler00dollar/VSGAN-tensorrt-docker/blob/main/convert_compact_to_onnx.py). Inside the docker, you do one of the following commands:
+
 
 Good default choice (Warning: Cugan with 3x scale requires same MIN/OPT/MAX shapes):
 ```
@@ -506,23 +476,7 @@ rvpV2 needs 6 channels, but does not support variable shapes.
 ```
 trtexec --fp16 --onnx=rvp2.onnx --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference
 ```
-and put that engine path into `inference_config.py`. Only do FP16 if your GPU does support it. 
-
-Recommended arguments:
-```
---tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT 
---infStreams=4 (and then using num_streams=4 in mlrt)
---builderOptimizationLevel=4 (5 can be result in segfault, default is 3)
-```
-Not recommended arguments which also showed reduction in speed:
-```
---heuristic
---refit
---maxAuxStreams=4
---preview="+fasterDynamicShapes0805,+profileSharing0806"
---tacticSources=+CUDNN,+CUBLAS,+CUBLAS_LT,+EDGE_MASK_CONVOLUTIONS,+JIT_CONVOLUTIONS (turning all on)
-```
-Testing was done on a 4090 with shuffle cugan.
+and put that engine path into `inference_config.py`. Only do FP16 if your GPU does support it. If your gpu supports bf16, you can also add `--bf16` additionally.
 
 **Warnings**: 
 - If you use the FP16 onnx you need to use `RGBH` colorspace, if you use FP32 onnx you need to use `RGBS` colorspace in `inference_config.py` 
@@ -555,8 +509,7 @@ https://user-images.githubusercontent.com/74594146/142829178-ff08b96f-9ca7-45ab-
 
 To use it, first you need to edit `ddfi.py` to select your interpolator of choice and then also apply the desired framerate. The official code uses 8x and I suggest you do so too. Small example:
 ```python
-clip = core.misc.SCDetect(clip=clip, threshold=0.100)
-clip = core.rife.RIFE(clip, model=9, sc=True, skip=False, multiplier=8)
+clip = # interp with 8x factor
 
 clip = core.vfrtocfr.VFRToCFR(
     clip, os.path.join(tmp_dir, "tsv2nX8.txt"), 192000, 1001, True
