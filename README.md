@@ -2,8 +2,6 @@
 
 Repository to use super resolution models and video frame interpolation models and also trying to speed them up with TensorRT. This repository contains the fastest inference code that you can find, at least I am trying to archive that. Not all codes can use TensorRT due to various reasons, but I try to add that if it works. Further model architectures are planned to be added later on.
 
-I also created a Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/styler00dollar/VSGAN-tensorrt-docker/blob/main/Colab-VSGAN.ipynb)
-
 Table of contents
 =================
 
