@@ -3,24 +3,37 @@ import vapoursynth as vs
 import onnxruntime as ort
 from threading import Lock
 
+ort.set_default_logger_severity(3)
+
 
 def scene_detect(
     clip: vs.VideoNode,
     thresh: float = 0.98,
     onnx_path: str = "test.onnx",
     resolution: int = 256,
+    num_sessions: int = 3,
 ) -> vs.VideoNode:
     core = vs.core
-    num_sessions = 3
+
+    # https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html
+    options = {}
+    options["device_id"] = 0
+    options["trt_engine_cache_enable"] = True
+    options[
+        "trt_timing_cache_enable"
+    ] = True  # Using TensorRT timing cache to accelerate engine build time on a device with the same compute capability
+    options["trt_engine_cache_path"] = "/workspace/tensorrt/"
+    options["trt_fp16_enable"] = True
+    options["trt_max_workspace_size"] = 7000000000  # ~7gb
+    options["trt_builder_optimization_level"] = 5
+
     sessions = [
         ort.InferenceSession(
             onnx_path,
-            providers=["TensorrtExecutionProvider"],
-            trt_engine_cache_enable=True,
-            trt_engine_cache_path="/workspace/tensorrt/",
-            trt_fp16_enable=True,
-            trt_max_workspace_size=7000000000,  # ~7gb
-            trt_builder_optimization_level=5,
+            providers=[
+                ("TensorrtExecutionProvider", options),
+                "CUDAExecutionProvider",
+            ],
         )
         for _ in range(num_sessions)
     ]
@@ -47,6 +60,7 @@ def scene_detect(
 
         ort_session = sessions[local_index]
         result = ort_session.run(None, {"input": in_sess})[0][0][0]
+
         if result > thresh:
             fout.props._SceneChangeNext = 1
         return fout
