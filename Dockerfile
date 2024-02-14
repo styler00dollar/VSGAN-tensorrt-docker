@@ -225,38 +225,6 @@ RUN cd FFmpeg && \
     make -j$(nproc)
   
 ############################
-# MMCV
-############################
-FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as mmcv-ubuntu
-
-ARG DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get -y update && apt-get install -y \
-  curl \
-  make \
-  gcc \
-  wget \
-  libssl-dev \
-  libffi-dev \
-  libopenblas-dev \
-  python3.11 \
-  python3.11-dev \
-  python3.11-venv \
-  python3-pip \
-  git && \
-  apt-get autoclean -y && \
-  apt-get autoremove -y && \
-  apt-get clean -y
-
-RUN python3.11 -m pip install --upgrade pip
-RUN python3.11 -m pip install torch torchvision torchaudio
-RUN python3.11 -m pip install ninja
-# own fork due to required c++17
-# error C++17 or later compatible compiler is required to use ATen.
-RUN git clone https://github.com/styler00dollar/mmcv --recursive && cd mmcv && MMCV_WITH_OPS=1 python3.11 setup.py build_ext && \
-  MMCV_WITH_OPS=1 MAKEFLAGS="-j$(nproc)" python3.11 setup.py bdist_wheel
-
-############################
 # cupy
 ############################
 
@@ -353,9 +321,10 @@ RUN apt-get install -y && git clone https://github.com/vapoursynth/bestsource &&
 # fatal error: libswresample/swresample.h: No such file or directory
 RUN apt remove ffmpeg -y
 RUN rm -rf FFmpeg
-RUN git clone https://github.com/HomeOfAviSynthPlusEvolution/FFmpeg --depth 1 
-RUN cd FFmpeg && \
-  LDFLAGS="-Wl,-Bsymbolic" CFLAGS=-fPIC ./configure --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-Wl,-Bsymbolic" --extra-cflags="-march=native" && \
+
+RUN git clone https://github.com/HomeOfAviSynthPlusEvolution/FFmpeg
+RUN cd FFmpeg && git switch "custom-patches-for-lsmashsource" && git checkout -b new_branch bf4d6ef && \
+  LDFLAGS="-Wl,-Bsymbolic" CFLAGS=-fPIC ./configure --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-Wl,-Bsymbolic" --extra-cflags="-march=native" --disable-vulkan && \
   make -j$(nproc) && make install -j$(nproc)
 
 # lsmash
@@ -444,7 +413,6 @@ RUN python3.11 -m pip install --upgrade pip setuptools wheel && python3.11 -m pi
   ENABLE_ROLLING=1 ENABLE_CONTRIB=1 MAKEFLAGS="-j$(nproc)" \
   python3.11 -m pip wheel . --verbose
 
-
 ############################
 # TensorRT + ORT
 ############################
@@ -474,34 +442,34 @@ RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.
 RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall
 
 # TensorRT9
-# trt9.2 with whl since apt still only has 8.6
-# https://github.com/samurdhikaru/TensorRT/blob/dev/release-9.0-EA/docker/ubuntu-22.04.Dockerfile
-# todo: check what is required (needed for mlrt)
-# TensorRT requires TensorRT https://github.com/NVIDIA/TensorRT/issues/85
-RUN apt-get update && apt-get install -y --no-install-recommends libnvinfer8 libnvonnxparsers8 libnvparsers8 libnvinfer-plugin8 libnvinfer-dev libnvonnxparsers-dev \
-  libnvparsers-dev libnvinfer-plugin-dev python3-libnvinfer tensorrt python3-libnvinfer-dev -yf --reinstall && apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-RUN apt-get install unzip wget git -y && wget https://pypi.nvidia.com/tensorrt-libs/tensorrt_libs-9.2.0.post12.dev5-py2.py3-none-manylinux_2_17_x86_64.whl \ 
-        && mkdir tensorrt-wheel-9.2.0 \
-        && unzip tensorrt_libs-9.2.0.post12.dev5-py2.py3-none-manylinux_2_17_x86_64.whl -d tensorrt-wheel-9.2.0 \
-        && cp tensorrt-wheel-9.2.0/tensorrt_libs/*.so* /usr/lib/x86_64-linux-gnu \
-        && cd /usr/lib/x86_64-linux-gnu \
-        && ldconfig
-# Install Cmake (TensorRT crashes with new cmake)
-RUN cd /tmp && \
-    wget https://github.com/Kitware/CMake/releases/download/v3.14.4/cmake-3.14.4-Linux-x86_64.sh && \
-    chmod +x cmake-3.14.4-Linux-x86_64.sh && \
-    ./cmake-3.14.4-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir --skip-license && \
-    rm ./cmake-3.14.4-Linux-x86_64.sh
-# compiling
-RUN git clone https://github.com/NVIDIA/TensorRT && cd TensorRT && git switch release/9.2 && git submodule update --init --recursive
-RUN cd TensorRT && mkdir -p build && cd build && cmake .. -DTENSORRT_ROOT=/workspace/TensorRT -DTRT_LIB_DIR=/usr/lib/x86_64-linux-gnu -DGPU_ARCHS="60 61 70 75 80 86 87 89 90" -DTRT_OUT_DIR=`pwd`/out && make -j$(nproc) && make install
+# trt9.3 with tar.gz since apt still only has 8.6
+
+# TensorRT-9.3.0.1/bin/trtexec
+# TensorRT-9.3.0.1/python/tensorrt-*-cp311-*.whl
+# TensorRT-9.3.0.1/onnx_graphsurgeon/onnx_graphsurgeon-0.4.0-py2.py3-none-any.whl
+# TensorRT-9.3.0.1/lib/*.so
+
+# https://github.com/NVIDIA/TensorRT-LLM/blob/main/docker/common/install_tensorrt.sh
+# https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=tensorrt
+RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/9.3.0/TensorRT-9.3.0.1.Linux.x86_64-gnu.cuda-12.2.tar.gz" -O /tmp/TensorRT.tar
+RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
+RUN mv /usr/local/TensorRT-9.3.0.1 /usr/local/tensorrt
+RUN pip3 install /usr/local/tensorrt/python/tensorrt-*-cp311-*.whl
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/tensorrt/lib
+
+# cudnn
+# https://gitlab.archlinux.org/archlinux/packaging/packages/cudnn/-/blob/main/PKGBUILD?ref_type=heads
+RUN wget "https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.7.29_cuda12-archive.tar.xz" -O /tmp/cudnn.tar
+RUN tar -xf /tmp/cudnn.tar -C /usr/local/
+RUN mv /usr/local/cudnn-linux-x86_64-8.9.7.29_cuda12-archive /usr/local/cudnn
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cudnn
 
 # ORT
 # onnxruntime requires working tensorrt installation and thus can't be easily seperated into a seperate instance
 # https://github.com/microsoft/onnxruntime/blob/main/dockerfiles/Dockerfile.tensorrt
 ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
-ARG ONNXRUNTIME_BRANCH=rel-1.16.3
-ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;60;61;70;75;80;89
+ARG ONNXRUNTIME_BRANCH=rel-1.17.0
+ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;53;60;61;62;70;72;75;80;89
 
 RUN apt-get update &&\
     apt-get install -y sudo git bash unattended-upgrades
@@ -509,6 +477,8 @@ RUN unattended-upgrade
 
 WORKDIR /code
 ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
+
+RUN apt install git -y
 
 # cmake 3.28 (CMake 3.26 or higher is required)
 RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.28.0-rc1/cmake-3.28.0-rc1-linux-x86_64.sh  && \
@@ -520,9 +490,10 @@ RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMa
 # Prepare onnxruntime repository & build onnxruntime with TensorRT
 # --parallel 6 for 6 compile threads, using all threads ooms my ram
 RUN git clone --single-branch --branch ${ONNXRUNTIME_BRANCH} --recursive ${ONNXRUNTIME_REPO} onnxruntime &&\
-    /bin/sh onnxruntime/dockerfiles/scripts/install_common_deps.sh &&\
-    cd onnxruntime && PYTHONPATH=/usr/bin/python3 /bin/sh build.sh --parallel 6 --allow_running_as_root --build_shared_lib --cuda_home /usr/local/cuda \
-      --cudnn_home /usr/lib/x86_64-linux-gnu/ --use_tensorrt --tensorrt_home /usr/lib/x86_64-linux-gnu/ --config Release --build_wheel --skip_tests --skip_submodule_sync --cmake_extra_defines '"CMAKE_CUDA_ARCHITECTURES='${CMAKE_CUDA_ARCHITECTURES}'"'
+    /bin/sh onnxruntime/dockerfiles/scripts/install_common_deps.sh 
+RUN /usr/local/bin/pip3 install psutil numpy wheel setuptools packaging
+RUN cd onnxruntime && PYTHONPATH=/usr/bin/python3 /bin/sh build.sh --nvcc_threads 2 --parallel 3 --allow_running_as_root --build_shared_lib --cuda_home /usr/local/cuda \
+      --cudnn_home /usr/local/cudnn --use_tensorrt --tensorrt_home /usr/local/tensorrt --config Release --build_wheel --skip_tests --skip_submodule_sync --cmake_extra_defines '"CMAKE_CUDA_ARCHITECTURES='${CMAKE_CUDA_ARCHITECTURES}'"'
 
 ############################
 # VSGAN
@@ -621,19 +592,15 @@ RUN pip install numpy && git clone https://github.com/inducer/pycuda --recursive
 RUN pip install docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
 
 # vs-mlrt
-# trt9.2 with whl since apt still only has 8.6
-RUN apt-get install unzip wget git -y && wget https://pypi.nvidia.com/tensorrt-libs/tensorrt_libs-9.2.0.post12.dev5-py2.py3-none-manylinux_2_17_x86_64.whl \ 
-        && mkdir tensorrt-wheel-9.2.0 \
-        && unzip tensorrt_libs-9.2.0.post12.dev5-py2.py3-none-manylinux_2_17_x86_64.whl -d tensorrt-wheel-9.2.0 \
-        && cp tensorrt-wheel-9.2.0/tensorrt_libs/*.so* /usr/lib/x86_64-linux-gnu \
-        && cd /usr/lib/x86_64-linux-gnu \
-        && ldconfig
-COPY --from=TensorRT-ubuntu /TensorRT/build/out/libnvinfer_plugin.so* /TensorRT/build/out/libnvinfer_vc_plugin.so* /TensorRT/build/out/libnvonnxparser.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=TensorRT-ubuntu /usr/lib/x86_64-linux-gnu/libcudnn*.so*  /usr/lib/x86_64-linux-gnu/
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer.so.9 /usr/lib/libnvinfer.so
-RUN ldconfig
-RUN git clone https://github.com/NVIDIA/TensorRT && cd TensorRT && git switch release/9.2
-ENV CPLUS_INCLUDE_PATH="/workspace/TensorRT/include"
+# trt9.3 with tar since apt still only has 8.6
+RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/9.3.0/TensorRT-9.3.0.1.Linux.x86_64-gnu.cuda-12.2.tar.gz" -O /tmp/TensorRT.tar
+RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
+RUN mv /usr/local/TensorRT-9.3.0.1/lib/* /usr/lib/x86_64-linux-gnu
+RUN mv /usr/local/TensorRT-9.3.0.1/include/* /usr/include/x86_64-linux-gnu/
+RUN cd /usr/lib/x86_64-linux-gnu \
+  && ldconfig
+ENV CPLUS_INCLUDE_PATH="/usr/include/x86_64-linux-gnu/"
+
 # upgrading g++
 RUN apt install build-essential manpages-dev software-properties-common -y && add-apt-repository ppa:ubuntu-toolchain-r/test -y && \
   apt update -y && apt install gcc-11 g++-11 -y && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11 && \
@@ -641,7 +608,6 @@ RUN apt install build-essential manpages-dev software-properties-common -y && ad
   # compiling
   git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt/vstrt && mkdir build && \
   cd build && cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth/include -D USE_NVINFER_PLUGIN=ON && make -j$(nproc) && make install 
-
 # descale
 RUN pip install meson ninja && git clone https://github.com/Irrational-Encoding-Wizardry/descale && cd descale && meson build && ninja -C build && ninja -C build install 
 
@@ -727,27 +693,31 @@ RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
 # pip
 RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy mmedit meson ninja numba numpy scenedetect \
     pytorch-msssim thop einops kornia mpgg vsutil onnx && \
-  pip install torch torchvision torchaudio --force-reinstall -U && \
-  # installing pip version due to
-  # ModuleNotFoundError: No module named 'torch_tensorrt.fx.converters.impl'
-  pip install torch-tensorrt-fx-only==1.5.0.dev0 && \
-  # holywu plugins currently only work with trt8.6
-  pip install nvidia-pyindex tensorrt==8.6.1 && pip install polygraphy && rm -rf /root/.cache/
+  pip install torch torchvision torchaudio --force-reinstall -U
 
-COPY --from=TensorRT-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.16.3-cp311-cp311-linux_x86_64.whl /workspace
-RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.16.3-cp311-cp311-linux_x86_64.whl
+# installing pip version due to
+# ModuleNotFoundError: No module named 'torch_tensorrt.fx.converters.impl'
+# holywu plugins currently only work with trt8.6, disabling holywu plugins for now due to broken fp16
+#RUN pip install torch-tensorrt-fx-only==1.5.0.dev0 --extra-index-url https://pypi.nvidia.com/  && \
+
+# deleting .so files to symlink them later on to save space
+RUN pip install tensorrt==9.3.0.post12.dev1 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
+  rm -rf /root/.cache/ /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer.so.9 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.9.3.0 \
+    /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_plugin.so.9 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvonnxparser.so.9
+
+COPY --from=TensorRT-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.17.0-cp311-cp311-linux_x86_64.whl /workspace
+RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.17.0-cp311-cp311-linux_x86_64.whl
 
 # holywu plugins
-RUN git clone https://github.com/styler00dollar/vs-gmfss_union && cd vs-gmfss_union && pip install . && cd /workspace && rm -rf vs-gmfss_union
-RUN git clone https://github.com/styler00dollar/vs-gmfss_fortuna && cd vs-gmfss_fortuna && pip install . && cd /workspace && rm -rf vs-gmfss_fortuna
-RUN git clone https://github.com/styler00dollar/vs-dpir && cd vs-dpir && pip install . && cd .. && rm -rf vs-dpir
-RUN pip install vsswinir vsbasicvsrpp --no-deps
+# currently does not work with trt 9.x because fp16 throws AssertionError: Dtype mismatch for 0th input(getitem_118). Expect torch.float16, got torch.float32
+#RUN git clone https://github.com/styler00dollar/vs-gmfss_union && cd vs-gmfss_union && pip install . && cd /workspace && rm -rf vs-gmfss_union
+#RUN git clone https://github.com/styler00dollar/vs-gmfss_fortuna && cd vs-gmfss_fortuna && pip install . && cd /workspace && rm -rf vs-gmfss_fortuna
+#RUN git clone https://github.com/styler00dollar/vs-dpir && cd vs-dpir && pip install . && cd .. && rm -rf vs-dpir
 
 # installing own versions
-COPY --from=mmcv-ubuntu /mmcv/dist/ /workspace
 COPY --from=cupy-ubuntu /cupy/dist/ /workspace
 COPY --from=opencv-ubuntu /opencv-python/opencv*.whl /workspace
-RUN pip uninstall -y mmcv* cupy* $(pip freeze | grep '^opencv' | cut -d = -f 1) && \
+RUN pip uninstall -y cupy* $(pip freeze | grep '^opencv' | cut -d = -f 1) && \
   find . -name "*whl" ! -path "./Python-3.11.3/*" -exec pip install {} \;
 
 # installing onnx tensorrt with a workaround, error with import otherwise
@@ -764,15 +734,15 @@ RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
 # ffmpeg: /usr/lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.38' not found (required by ffmpeg)
 RUN mkdir /workspace/hotfix
 WORKDIR /workspace/hotfix
-RUN wget http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc-dev_1.3.4+ds-1_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-2_amd64.deb \
+RUN wget http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc-dev_1.3.4+ds-1.1~exp2_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/libn/libnsl/libnsl-dev_1.3.0-3_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6_2.38-5_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6-dev_2.38-5_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-bin_2.38-5_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-dev-bin_2.38-5_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/l/linux/linux-libc-dev_6.6.9-1_all.deb \
+    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6_2.38-6_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6-dev_2.38-6_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-bin_2.38-6_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-dev-bin_2.38-6_amd64.deb \
+    http://ftp.us.debian.org/debian/pool/main/l/linux/linux-libc-dev_6.7.4-1~exp1_all.deb \
     http://ftp.us.debian.org/debian/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.3-1_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc3_1.3.4+ds-1_amd64.deb
 
@@ -835,9 +805,9 @@ RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1 /usr/lib/x86_64-linux-gnu
   /usr/lib/x86_64-linux-gnu/libnvcuvid.so.1 /usr/lib/x86_64-linux-gnu/libnvidia* /usr/lib/x86_64-linux-gnu/libcuda*
 
 # trt
-COPY --from=TensorRT-ubuntu /TensorRT/build/out/libnvinfer_plugin.so* /TensorRT/build/out/libnvinfer_vc_plugin.so* /TensorRT/build/out/libnvonnxparser.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=TensorRT-ubuntu /usr/lib/x86_64-linux-gnu/libcudnn*.so* /usr/lib/x86_64-linux-gnu/libnvinfer.so* /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so* \
-  /usr/lib/x86_64-linux-gnu/libnvonnxparser.so* /usr/lib/x86_64-linux-gnu/libnvparsers.so.8* /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.8* /usr/lib/x86_64-linux-gnu/
+COPY --from=TensorRT-ubuntu /usr/local/tensorrt/lib/libnvinfer_plugin.so* /usr/local/tensorrt/lib/libnvinfer_vc_plugin.so* /usr/local/tensorrt/lib/libnvonnxparser.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=TensorRT-ubuntu /usr/local/cudnn/lib/libcudnn*.so* /usr/local/tensorrt/lib/libnvinfer.so* /usr/local/tensorrt/lib/libnvinfer_builder_resource.so* \
+  /usr/local/tensorrt/lib/libnvonnxparser.so* /usr/local/tensorrt/lib/libnvparsers.so.8* /usr/local/tensorrt/lib/libnvinfer_plugin.so.8* /usr/lib/x86_64-linux-gnu/
 
 # ffmpeg (todo: try to make it fully static)
 COPY --from=base /usr/lib/x86_64-linux-gnu/libxcb*.so* /usr/lib/x86_64-linux-gnu/libgomp*.so* /usr/lib/x86_64-linux-gnu/libfontconfig.so* \
@@ -849,12 +819,44 @@ COPY --from=base /usr/lib/x86_64-linux-gnu/libxcb*.so* /usr/lib/x86_64-linux-gnu
   /usr/lib/x86_64-linux-gnu/
 COPY --from=ffmpeg-arch /usr/lib/libstdc++.so* /usr/lib/x86_64-linux-gnu/
 
-# opencv
+# opencv (uses ffmpeg dependencies? todo: check if it can be less)
 COPY --from=base /usr/lib/x86_64-linux-gnu/libGL.so* /usr/lib/x86_64-linux-gnu/libgthread-2.0.so* /usr/lib/x86_64-linux-gnu/libGLdispatch.so* \
   /usr/lib/x86_64-linux-gnu/libGLX.so* /usr/lib/x86_64-linux-gnu/libX11.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=opencv-ubuntu /usr/lib/x86_64-linux-gnu/libjpeg.so* /usr/lib/x86_64-linux-gnu/libavcodec.so* \
+  /usr/lib/x86_64-linux-gnu/libavformat.so* /usr/lib/x86_64-linux-gnu/libavutil.so* /usr/lib/x86_64-linux-gnu/libswscale.so* \
+  /usr/lib/x86_64-linux-gnu/libgtk-x11-2.0.so* /usr/lib/x86_64-linux-gnu/libgdk-x11-2.0.so* /usr/lib/x86_64-linux-gnu/libcairo.so* \
+  /usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so* /usr/lib/x86_64-linux-gnu/libgobject-2.0.so* /usr/lib/x86_64-linux-gnu/libtbb.so* \
+  /usr/lib/x86_64-linux-gnu/libswresample.so* /usr/lib/x86_64-linux-gnu/libvpx.so* /usr/lib/x86_64-linux-gnu/libwebpmux.so* \
+  /usr/lib/x86_64-linux-gnu/libwebp.so* /usr/lib/x86_64-linux-gnu/libdav1d.so* /usr/lib/x86_64-linux-gnu/librsvg-2.so* \
+  /usr/lib/x86_64-linux-gnu/libzvbi.so* /usr/lib/x86_64-linux-gnu/libsnappy.so* /usr/lib/x86_64-linux-gnu/libaom.so* \
+  /usr/lib/x86_64-linux-gnu/libcodec2.so* /usr/lib/x86_64-linux-gnu/libgsm.so* /usr/lib/x86_64-linux-gnu/libmp3lame.so* \
+  /usr/lib/x86_64-linux-gnu/libopenjp2.so* /usr/lib/x86_64-linux-gnu/libopus.so* /usr/lib/x86_64-linux-gnu/libshine.so* \
+  /usr/lib/x86_64-linux-gnu/libspeex.so* /usr/lib/x86_64-linux-gnu/libtheoraenc.so* /usr/lib/x86_64-linux-gnu/libtheoradec.so* \
+  /usr/lib/x86_64-linux-gnu/libtwolame.so* /usr/lib/x86_64-linux-gnu/libvorbis.so* /usr/lib/x86_64-linux-gnu/libvorbisenc.so* \
+  /usr/lib/x86_64-linux-gnu/libx264.so* /usr/lib/x86_64-linux-gnu/libx265.so* /usr/lib/x86_64-linux-gnu/libxvidcore.so* \
+  /usr/lib/x86_64-linux-gnu/libva.so* /usr/lib/x86_64-linux-gnu/libmfx.so* /usr/lib/x86_64-linux-gnu/libgme.so* \
+  /usr/lib/x86_64-linux-gnu/libopenmpt.so* /usr/lib/x86_64-linux-gnu/libchromaprint.so* /usr/lib/x86_64-linux-gnu/libbluray.so* \
+  /usr/lib/x86_64-linux-gnu/librabbitmq.so* /usr/lib/x86_64-linux-gnu/libsrt-gnutls.so* /usr/lib/x86_64-linux-gnu/libssh-gcrypt.so* \
+  /usr/lib/x86_64-linux-gnu/libzmq.so* /usr/lib/x86_64-linux-gnu/libva-drm.so* /usr/lib/x86_64-linux-gnu/libva-x11.so* \
+  /usr/lib/x86_64-linux-gnu/libvdpau.so* /usr/lib/x86_64-linux-gnu/libgmodule-2.0.so* /usr/lib/x86_64-linux-gnu/libpangocairo-1.0.so* \
+  /usr/lib/x86_64-linux-gnu/libXfixes.so* /usr/lib/x86_64-linux-gnu/libatk-1.0.so* /usr/lib/x86_64-linux-gnu/libgio-2.0.so* \
+  /usr/lib/x86_64-linux-gnu/libpangoft2-1.0.so* /usr/lib/x86_64-linux-gnu/libpango-1.0.so* /usr/lib/x86_64-linux-gnu/libXrender.so* \
+  /usr/lib/x86_64-linux-gnu/libXinerama.so* /usr/lib/x86_64-linux-gnu/libXi.so* /usr/lib/x86_64-linux-gnu/libXrandr.so* \
+  /usr/lib/x86_64-linux-gnu/libXcursor.so* /usr/lib/x86_64-linux-gnu/libXcomposite.so* /usr/lib/x86_64-linux-gnu/libXdamage.so* \
+  /usr/lib/x86_64-linux-gnu/libXext.so* /usr/lib/x86_64-linux-gnu/libpixman-1.so* /usr/lib/x86_64-linux-gnu/libcairo-gobject.so* \
+  /usr/lib/x86_64-linux-gnu/libogg.so* /usr/lib/x86_64-linux-gnu/libnuma.so* /usr/lib/x86_64-linux-gnu/libmpg123.so* \
+  /usr/lib/x86_64-linux-gnu/libvorbisfile.so* /usr/lib/x86_64-linux-gnu/libudfread.so* /usr/lib/x86_64-linux-gnu/libsodium.so* \
+  /usr/lib/x86_64-linux-gnu/libpgm-5.3.so* /usr/lib/x86_64-linux-gnu/libnorm.so* /usr/lib/x86_64-linux-gnu/libthai.so* \
+  /usr/lib/x86_64-linux-gnu/libdatrie.so* /usr/lib/x86_64-linux-gnu/
+
+# symlink python tensorrt
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.9 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer.so.9
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so.9.3.0 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.9.3.0
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.9 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_plugin.so.9
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.9 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvonnxparser.so.9
 
 # move trtexec so it can be globally accessed
-COPY --from=TensorRT-ubuntu /TensorRT/build/out/trtexec /usr/bin
+COPY --from=TensorRT-ubuntu /usr/local/tensorrt/bin/trtexec /usr/bin
 
 # ffmpeg hotfix
 COPY --from=base /workspace/hotfix/* /workspace
