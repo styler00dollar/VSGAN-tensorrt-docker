@@ -14,7 +14,6 @@ Table of contents
        * [multi-gpu](#multi-gpu)
    * [ddfi](#ddfi)
    * [VFR (variable refresh rate)](#vfr)
-   * [mpv](#mpv)
    * [Color transfer](#color)
    * [Benchmarks](#benchmarks)
    * [License](#license)
@@ -525,46 +524,6 @@ or convert everything to constant framerate with ffmpeg.
 ffmpeg -i video_input.mkv -fps_mode cfr -crf 10 -c:a copy video_out.mkv
 ```
 or use my `vfr_to_cfr.py` to process a folder.
-
-<div id='mpv'/>
-
-## mpv
-It is also possible to directly pipe the video into mpv, but you most likely wont be able to archive realtime speed. If you use a very efficient model, it may be possible on a very good GPU. Only tested in Manjaro. 
-```bash
-# add this to dockerfile or just execute it to install mpv
-RUN apt install mpv -y && apt-get update && \
-  DEBIAN_FRONTEND=noninteractive apt-get install --yes pulseaudio-utils && \
-  apt-get install -y pulseaudio && apt-get install pulseaudio libpulse-dev osspd -y && \
-  apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-
-# make sure you have pulseaudio on your host system
-yay -S pulseaudio
-
-# start docker with docker-compose
-# same instructions as above, but delete compose.yaml and rename compose_mpv.yaml to compose.yaml 
-docker-compose run --rm vsgan_tensorrt
-
-# start docker manually
-docker run --rm -i -t \
-    --network host \
-    -e DISPLAY \
-    -v /home/vsgan_path/:/workspace/tensorrt \
-    --ipc=host \
-    --privileged \
-    --gpus all \
-    -e PULSE_COOKIE=/run/pulse/cookie \
-    -v ~/.config/pulse/cookie:/run/pulse/cookie \
-    -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
-    -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
-    vsgan_tensorrt:latest
-    
-# run mpv
-vspipe --y4m inference.py - | mpv -
-# with custom audio and subtitles
-vspipe --y4m inference.py - | mpv - --audio-file=file.aac --sub-files=file.ass
-# to increase the buffer cache, you can use
---demuxer-max-bytes=250MiB
-```
 
 <div id='color'/>
 
