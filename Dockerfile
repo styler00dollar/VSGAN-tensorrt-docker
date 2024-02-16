@@ -225,9 +225,55 @@ RUN cd FFmpeg && \
     make -j$(nproc)
   
 ############################
+# torch
+############################
+# compiling own torch since the official whl is bloated
+# could be smaller in terms of dependencies and whl size, but for now, -500mb smaller docker size
+
+FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as torch-ubuntu
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get -y update && apt-get install -y \
+  curl \
+  make \
+  gcc \
+  wget \
+  libssl-dev \
+  libffi-dev \
+  libopenblas-dev \
+  python3.11 \
+  python3.11-dev \
+  python3.11-venv \
+  python3-pip \
+  git && \
+  apt-get autoclean -y && \
+  apt-get autoremove -y && \
+  apt-get clean -y
+
+# todo: clean
+RUN python3.11 -m pip install --upgrade pip
+RUN python3.11 -m pip install numpy pyyaml
+RUN git clone -b release/2.2 --recursive https://github.com/pytorch/pytorch
+
+WORKDIR /cmake
+
+# cmake 3.28 (CMake 3.18.0 or higher is required)
+RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.28.0-rc1/cmake-3.28.0-rc1-linux-x86_64.sh  && \
+    chmod +x cmake-3.28.0-rc1-linux-x86_64.sh  && sh cmake-3.28.0-rc1-linux-x86_64.sh  --skip-license && \
+    cp /cmake/bin/cmake /usr/bin/cmake && cp /cmake/bin/cmake /usr/lib/cmake && \
+    cp /cmake/bin/cmake /usr/local/bin/cmake && cp /cmake/bin/ctest /usr/local/bin/ctest && cp -r /cmake/share/cmake-3.28 /usr/local/share/ && \
+    rm -rf cmake-3.28.0-rc1-linux-x86_64.sh 
+
+WORKDIR /
+
+RUN cd pytorch && pip3 install -r requirements.txt \
+    && MAX_JOBS=4 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" USE_NCCL=OFF python3.11 setup.py build \
+    && MAX_JOBS=4 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" python3.11 setup.py bdist_wheel
+
+############################
 # cupy
 ############################
-
 FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as cupy-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -412,6 +458,7 @@ RUN python3.11 -m pip install --upgrade pip setuptools wheel && python3.11 -m pi
   -D CMAKE_BUILD_TYPE=RELEASE" \
   ENABLE_ROLLING=1 ENABLE_CONTRIB=1 MAKEFLAGS="-j$(nproc)" \
   python3.11 -m pip wheel . --verbose
+
 
 ############################
 # TensorRT + ORT
@@ -640,13 +687,6 @@ RUN apt install llvm-15 llvm-15-dev -y && git clone https://github.com/AkarinVS/
   cd vapoursynth-plugin && meson build && ninja -C build && \
   ninja -C build install
 
-# julek
-RUN apt install clang libstdc++-12-dev -y
-RUN git clone https://github.com/dnjulek/vapoursynth-julek-plugin --recurse-submodules -j8 && cd vapoursynth-julek-plugin/thirdparty && \
-  mkdir libjxl_build && cd libjxl_build && cmake -C ../libjxl_cache.cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -G Ninja ../libjxl && \
-  cmake --build . && cmake --install . && cd ../.. && cmake -DCMAKE_C_FLAGS=fPIC -DCMAKE_CXX_FLAGS=-fPIC -DCMAKE_CXX_COMPILER=clang++ -B build -DCMAKE_BUILD_TYPE=Release -G Ninja && \
-  cmake --build build && cmake --install build 
-
 # warpsharp
 RUN git clone https://github.com/dubhater/vapoursynth-awarpsharp2 && cd vapoursynth-awarpsharp2 && mkdir build && \
   cd build && meson ../ && ninja && ninja install
@@ -691,9 +731,11 @@ RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
   -DENABLE_TESTS=0 -DENABLE_NASM=on -DCMAKE_INSTALL_LIBDIR=lib .. && make -j$(nproc) && make install
 
 # pip
-RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy mmedit meson ninja numba numpy scenedetect \
-    pytorch-msssim thop einops kornia mpgg vsutil onnx && \
-  pip install torch torchvision torchaudio --force-reinstall -U
+COPY --from=torch-ubuntu /pytorch/dist/torch-2.2.0a0+git0aa3fd3-cp311-cp311-linux_x86_64.whl /workspace/torch-2.2.0a0+git0aa3fd3-cp311-cp311-linux_x86_64.whl
+
+RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy meson ninja numpy einops kornia vsutil onnx && \
+  #pip install torch torchvision torchaudio --force-reinstall -U
+  pip install /workspace/torch-2.2.0a0+git0aa3fd3-cp311-cp311-linux_x86_64.whl
 
 # installing pip version due to
 # ModuleNotFoundError: No module named 'torch_tensorrt.fx.converters.impl'
@@ -758,11 +800,6 @@ ENV NVIDIA_DRIVER_CAPABILITIES all
 
 WORKDIR workspace
 
-# due to cupy jitify
-# cub/detail/detect_cuda_runtime.cuh(39): warning: cuda_runtime_api.h: [jitify] File not found
-# ../util_type.cuh(42): warning: cuda.h: [jitify] File not found
-RUN apt update -y && apt install cuda-cudart-dev-12-1 linux-libc-dev -y
-
 # install python
 COPY --from=base /usr/local/bin/python /usr/local/bin/
 COPY --from=base /usr/local/lib/python3.11 /usr/local/lib/python3.11
@@ -789,7 +826,7 @@ COPY --from=bestsource-lsmash-ffms2-vs /workspace/L-SMASH-Works/VapourSynth/buil
 COPY --from=bestsource-lsmash-ffms2-vs /workspace/ffms2/src/core/.libs/libffms2.so* /usr/lib/x86_64-linux-gnu/
 
 COPY --from=base /usr/local/lib/vapoursynth/libvmaf.so /usr/local/lib/vapoursynth/libdescale.so /usr/local/lib/vapoursynth/libakarin.so \
-  /usr/local/lib/vapoursynth/libmiscfilters.so /usr/local/lib/vapoursynth/libjulek.so /usr/local/lib/vapoursynth/libcas.so /usr/local/lib/vapoursynth/
+  /usr/local/lib/vapoursynth/libmiscfilters.so /usr/local/lib/vapoursynth/libcas.so /usr/local/lib/vapoursynth/
 
 COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so \
   /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/
@@ -858,6 +895,11 @@ RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.9 /usr/local/lib/python3.
 # move trtexec so it can be globally accessed
 COPY --from=TensorRT-ubuntu /usr/local/tensorrt/bin/trtexec /usr/bin
 
+# torch
+COPY --from=torch-ubuntu /usr/lib/x86_64-linux-gnu/libopenblas.so* /usr/lib/x86_64-linux-gnu/libgfortran.so* \
+  /usr/lib/x86_64-linux-gnu/libquadmath.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=torch-ubuntu /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcupti.so /usr/lib/x86_64-linux-gnu/
+ 
 # ffmpeg hotfix
 COPY --from=base /workspace/hotfix/* /workspace
 RUN dpkg --force-all -i *.deb  && rm -rf *deb
