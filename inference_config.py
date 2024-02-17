@@ -105,7 +105,7 @@ def inference_clip(video_path="", clip=None):
     # VFI example for jit models
     # clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 
-    # Rife: model "rife40" up to "rife410" and "sudo_rife4"
+    # Rife: model "rife40" up to "rife412" and "sudo_rife4"
     # model_inference = RIFE(
     #    scale=1, fastmode=True, ensemble=False, model_version="rife46", fp16=True
     # )

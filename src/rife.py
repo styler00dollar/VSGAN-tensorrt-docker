@@ -1,3 +1,6 @@
+import itertools
+import numpy as np
+import vapoursynth as vs
 import torch
 from .rife_arch import IFNet
 from .download import check_and_download
@@ -29,6 +32,8 @@ class RIFE:
             "rife48": ("/workspace/tensorrt/models/rife48.pth", "4.7"),
             "rife49": ("/workspace/tensorrt/models/rife49.pth", "4.7"),
             "rife410": ("/workspace/tensorrt/models/rife410.pth", "4.10"),
+            "rife411": ("/workspace/tensorrt/models/rife411.pth", "4.10"),
+            "rife412": ("/workspace/tensorrt/models/rife412.pth", "4.10"),
             "sudo_rife4": (
                 "/workspace/tensorrt/models/sudo_rife4_269.662_testV1_scale1.pth",
                 "4.0",
