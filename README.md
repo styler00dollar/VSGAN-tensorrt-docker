@@ -85,19 +85,12 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 - `latest`: Default docker with everything. Trying to keep everything updated and fixed.
 - `latest_no_avx512` is for cpus without avx512 support, otherwise it just crashes if you try to run avx512 binaries on cpus without such support. Use this if your cpu does not support all instruction sets.
 - `minimal`: Bare minimum to run `ffmpeg`, `mlrt` and `lsmash`.
-- `deprecated`: Container before changing dockerfile to copy stage, has same functionality as latest, but is way bigger in size. (not recommended)
-- `ffmpeg_trt`: Experimental ffmpeg trt plugin without vapoursynth, only for sm_89 for now, or recompile with your own gpu compute version.
-   The ffmpeg in this docker is also barebones for now. since the plugin is currently only compatible with ffmpeg4 and is not compiled with many dependencies.
-   That means no av1 gpu encoding and not a lot of encoding/decoding options, but a ffmpeg trt plugin should avoid any upscaling bottleneck. 
-   With this plugin you can direclty encode data that is located in the gpu without needing to copy back the data to the cpu with nvenc.
 
 | docker image  | compressed download | extracted container | short description |
 | ------------- | ------------------- | ------------------- | ----------------- |
 | styler00dollar/vsgan_tensorrt:latest | 8gb | 15gb | default latest
 | styler00dollar/vsgan_tensorrt:latest_no_avx512 | 8gb | 15gb | default latest without avx512
 | styler00dollar/vsgan_tensorrt:minimal | 4gb | 8gb | ffmpeg + mlrt + lsmash
-| styler00dollar/vsgan_tensorrt:deprecated | 23gb | 43gb | old default (legacy, not supported)
-| styler00dollar/vsgan_tensorrt:ffmpeg_trt | 9gb | 20gb | ffmpeg c++ trt inference plugin to use trt engines with ffmpeg directly without vapoursynth
 
 Piping usage:
 ```
