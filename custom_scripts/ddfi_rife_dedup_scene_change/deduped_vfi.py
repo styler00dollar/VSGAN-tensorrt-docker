@@ -1,8 +1,3 @@
-# example usage: python main.py
-# vapoursynth does not have audio support and processing multiple files is not really possible
-# hacky script to make batch processing with audio and subtitle support
-# make sure tmp_dir is also set in inference.py
-# maybe should pass arguments instead of a text file instead
 import glob
 import os
 
