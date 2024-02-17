@@ -24,7 +24,7 @@ def processInfo():
         lines[i][1] = int(float(lines[i][1]) * 1000)
         lines[i][2] = float(lines[i][2])
     lines.sort()
-    startpts = lines[0][1]
+    lines[0][1]
     consecutive = 0
 
     dels = []

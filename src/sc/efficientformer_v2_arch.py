@@ -6,9 +6,7 @@ import os
 import copy
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import math
-from typing import Dict
 import itertools
 
 from timm.data import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
@@ -99,7 +97,7 @@ class Attention4D(torch.nn.Module):
         self.d = int(attn_ratio * key_dim)
         self.dh = int(attn_ratio * key_dim) * num_heads
         self.attn_ratio = attn_ratio
-        h = self.dh + nh_kd * 2
+        self.dh + nh_kd * 2
         self.q = nn.Sequential(
             nn.Conv2d(dim, self.num_heads * self.key_dim, 1),
             nn.BatchNorm2d(self.num_heads * self.key_dim),
@@ -263,7 +261,7 @@ class Attention4DDownsample(torch.nn.Module):
         self.d = int(attn_ratio * key_dim)
         self.dh = int(attn_ratio * key_dim) * num_heads
         self.attn_ratio = attn_ratio
-        h = self.dh + nh_kd * 2
+        self.dh + nh_kd * 2
 
         if out_dim is not None:
             self.out_dim = out_dim

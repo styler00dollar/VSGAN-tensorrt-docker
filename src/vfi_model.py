@@ -2,7 +2,6 @@ import vapoursynth as vs
 import torch
 import numpy as np
 import kornia
-from torch.nn import functional as F
 import kornia
 import functools
 

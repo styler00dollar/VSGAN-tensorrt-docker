@@ -41,7 +41,7 @@ def inference_clip(video_path="", clip=None):
         # clip = core.lsmas.LWLibavSource(source=video_path)
         # lsmash with hw decoding preferred
         # clip = core.lsmas.LWLibavSource(source=video_path, prefer_hw=3)
-        
+
         # bestsource
         clip = core.bs.VideoSource(source=video_path)
 

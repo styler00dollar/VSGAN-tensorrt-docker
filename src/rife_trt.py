@@ -3,7 +3,6 @@
 
 import vapoursynth as vs
 from vapoursynth import core
-from .vfi_inference import vfi_frame_merger
 import tensorrt as trt
 from polygraphy.backend.trt import TrtRunner
 

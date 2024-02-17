@@ -226,10 +226,9 @@ RUN cd FFmpeg && \
   
 ############################
 # torch
-############################
 # compiling own torch since the official whl is bloated
 # could be smaller in terms of dependencies and whl size, but for now, -500mb smaller docker size
-
+############################
 FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as torch-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -664,9 +663,6 @@ RUN pip install meson ninja && git clone https://github.com/Irrational-Encoding-
 RUN git clone https://github.com/Irrational-Encoding-Wizardry/Vapoursynth-VFRToCFR && cd Vapoursynth-VFRToCFR && \
   mkdir build && cd build && meson --buildtype release .. && ninja && ninja install
 
-# vapoursynth-mvtools
-RUN apt install nasm -y && git clone https://github.com/dubhater/vapoursynth-mvtools && cd vapoursynth-mvtools && ./autogen.sh && ./configure && make -j$(nproc) && make install 
-
 # fmtconv
 RUN git clone https://github.com/EleonoreMizo/fmtconv && cd fmtconv/build/unix/ && ./autogen.sh && ./configure && make -j$(nproc) && make install
 
@@ -770,6 +766,9 @@ RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
   cp -r onnx_tensorrt /usr/local/lib/python3.11/dist-packages && \
   cd .. && rm -rf onnx-tensorrt
 
+# ddfi csv
+RUN pip install pandas
+
 # workaround for arch updates
 # ffmpeg: /usr/lib/x86_64-linux-gnu/libstdc++.so.6: version `GLIBCXX_3.4.32' not found (required by ffmpeg)
 # ffmpeg: /usr/lib/x86_64-linux-gnu/libm.so.6: version `GLIBC_2.38' not found (required by ffmpeg)
@@ -818,7 +817,7 @@ COPY --from=base /usr/local/lib/libvapoursynth-script.so* /usr/local/lib/libvapo
 COPY --from=base /usr/local/bin/vspipe  /usr/local/bin/vspipe
 
 # vs plugins
-COPY --from=base /usr/local/lib/libvstrt.so /usr/local/lib/libmvtools.so /usr/local/lib/libfmtconv.so /usr/local/lib/
+COPY --from=base /usr/local/lib/libvstrt.so /usr/local/lib/libfmtconv.so /usr/local/lib/
 COPY --from=base /usr/lib/x86_64-linux-gnu/libfftw3f.so* /usr/lib/x86_64-linux-gnu/
 
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/liblsmash.so* /usr/local/lib/

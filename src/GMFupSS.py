@@ -1,6 +1,3 @@
-import itertools
-import numpy as np
-import vapoursynth as vs
 from .GMFupSS_arch import Model_inference
 import torch
 

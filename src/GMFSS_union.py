@@ -1,9 +1,5 @@
-import itertools
-import numpy as np
-import vapoursynth as vs
 from .GMFSS_union_arch import Model_inference
 import torch
-import traceback
 
 
 # https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py

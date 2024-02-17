@@ -1,5 +1,4 @@
 import sys
-import os
 
 sys.path.append("/workspace/tensorrt/")
 from inference_config import inference_clip

@@ -6,9 +6,7 @@ import numpy as np
 import argparse
 import os
 from tqdm import tqdm
-from color_matcher import ColorMatcher, __version__
-from color_matcher.io_handler import load_img_file
-from color_matcher.normalizer import Normalizer
+from color_matcher import ColorMatcher
 
 cm = ColorMatcher()
 
@@ -717,10 +715,14 @@ class Regrain:
         """
 
         [width, height, c] = target.shape
-        first_pad_0 = lambda arr: np.concatenate((arr[:1, :], arr[:-1, :]), axis=0)
-        first_pad_1 = lambda arr: np.concatenate((arr[:, :1], arr[:, :-1]), axis=1)
-        last_pad_0 = lambda arr: np.concatenate((arr[1:, :], arr[-1:, :]), axis=0)
-        last_pad_1 = lambda arr: np.concatenate((arr[:, 1:], arr[:, -1:]), axis=1)
+        def first_pad_0(arr):
+            return np.concatenate((arr[:1, :], arr[:-1, :]), axis=0)
+        def first_pad_1(arr):
+            return np.concatenate((arr[:, :1], arr[:, :-1]), axis=1)
+        def last_pad_0(arr):
+            return np.concatenate((arr[1:, :], arr[-1:, :]), axis=0)
+        def last_pad_1(arr):
+            return np.concatenate((arr[:, 1:], arr[:, -1:]), axis=1)
 
         delta_x = last_pad_1(target) - first_pad_1(target)
         delta_y = last_pad_0(target) - first_pad_0(target)
@@ -1137,7 +1139,7 @@ def paired_walk_dir(
     from itertools import repeat
 
     with Pool(threads) as p:
-        r = list(
+        list(
             tqdm(
                 p.starmap(
                     apply_transfer,

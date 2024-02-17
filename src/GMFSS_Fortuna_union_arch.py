@@ -19,7 +19,6 @@ https://github.com/98mxr/GMFSS_Fortuna/blob/b5d0bd544e3f1eee6a059e49c69bcd3124c8
 from torch import nn
 from torch.nn import functional as F
 from torch.nn.modules.utils import _pair
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -1349,7 +1348,7 @@ class GMFlow(nn.Module):
             if (
                 self.training
             ):  # only need to upsample intermediate flow predictions at training time
-                flow_bilinear = self.upsample_flow(
+                self.upsample_flow(
                     flow, None, bilinear=True, upsample_factor=upsample_factor
                 )
 
@@ -1822,7 +1821,7 @@ def cuda_kernel(strFunction: str, strKernel: str, objVariables: typing.Dict):
                 objMatch.group(),
                 str(
                     intSizes[intArg]
-                    if torch.is_tensor(intSizes[intArg]) == False
+                    if torch.is_tensor(intSizes[intArg]) is False
                     else intSizes[intArg].item()
                 ),
             )
@@ -1867,7 +1866,7 @@ def cuda_kernel(strFunction: str, strKernel: str, objVariables: typing.Dict):
                     + ")*"
                     + str(
                         intStrides[intArg]
-                        if torch.is_tensor(intStrides[intArg]) == False
+                        if torch.is_tensor(intStrides[intArg]) is False
                         else intStrides[intArg].item()
                     )
                     + ")"
@@ -1919,7 +1918,7 @@ def cuda_kernel(strFunction: str, strKernel: str, objVariables: typing.Dict):
                     + ")*"
                     + str(
                         intStrides[intArg]
-                        if torch.is_tensor(intStrides[intArg]) == False
+                        if torch.is_tensor(intStrides[intArg]) is False
                         else intStrides[intArg].item()
                     )
                     + ")"
@@ -1956,7 +1955,7 @@ def cuda_launch(strKey: str):
                 "-I " + os.environ["CUDA_HOME"] + "/include",
             ]
         ),
-        jitify = False,
+        jitify=False,
     )
 
 
@@ -2033,7 +2032,7 @@ class softsplat_func(torch.autograd.Function):
             [tenIn.shape[0], tenIn.shape[1], tenIn.shape[2], tenIn.shape[3]]
         )
 
-        if tenIn.is_cuda == True:
+        if tenIn.is_cuda is True:
             cuda_launch(
                 cuda_kernel(
                     "softsplat_out",
@@ -2106,7 +2105,7 @@ class softsplat_func(torch.autograd.Function):
                 ),
             )
 
-        elif tenIn.is_cuda != True:
+        elif tenIn.is_cuda is not True:
             assert False
 
         # end
@@ -2123,20 +2122,20 @@ class softsplat_func(torch.autograd.Function):
         tenIn, tenFlow = self.saved_tensors
 
         tenOutgrad = tenOutgrad.contiguous()
-        assert tenOutgrad.is_cuda == True
+        assert tenOutgrad.is_cuda is True
 
         tenIngrad = (
             tenIn.new_zeros(
                 [tenIn.shape[0], tenIn.shape[1], tenIn.shape[2], tenIn.shape[3]]
             )
-            if self.needs_input_grad[0] == True
+            if self.needs_input_grad[0] is True
             else None
         )
         tenFlowgrad = (
             tenFlow.new_zeros(
                 [tenFlow.shape[0], tenFlow.shape[1], tenFlow.shape[2], tenFlow.shape[3]]
             )
-            if self.needs_input_grad[1] == True
+            if self.needs_input_grad[1] is True
             else None
         )
 
