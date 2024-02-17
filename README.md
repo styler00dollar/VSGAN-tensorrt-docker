@@ -488,7 +488,7 @@ Visual examples from that repository:
 
 https://user-images.githubusercontent.com/74594146/142829178-ff08b96f-9ca7-45ab-82f0-4e95be045f2d.mp4
 
-Example usage is in `custom_scripts/ddfi_rife_dedup_scene_change/`. As a quick summary, you need to passes. One pass to calculate metrics and another to use interpolation combined with VFRToCFR. You need to use `deduped_vfi.py` similar to how you used `main.py`.
+Example usage is in `custom_scripts/ddfi_rife_dedup_scene_change/`. As a quick summary, you need to do two processing passes. One pass to calculate metrics and another to use interpolation combined with VFRToCFR. You need to use `deduped_vfi.py` similar to how you used `main.py`.
 
 <div id='vfr'/>
 
