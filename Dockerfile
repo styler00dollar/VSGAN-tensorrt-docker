@@ -727,11 +727,7 @@ RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
   -DENABLE_TESTS=0 -DENABLE_NASM=on -DCMAKE_INSTALL_LIBDIR=lib .. && make -j$(nproc) && make install
 
 # pip
-COPY --from=torch-ubuntu /pytorch/dist/torch-2.2.0a0+git0aa3fd3-cp311-cp311-linux_x86_64.whl /workspace/torch-2.2.0a0+git0aa3fd3-cp311-cp311-linux_x86_64.whl
-
-RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy meson ninja numpy einops kornia vsutil onnx && \
-  #pip install torch torchvision torchaudio --force-reinstall -U
-  pip install /workspace/torch-2.2.0a0+git0aa3fd3-cp311-cp311-linux_x86_64.whl
+RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy meson ninja numpy einops kornia vsutil onnx
 
 # installing pip version due to
 # ModuleNotFoundError: No module named 'torch_tensorrt.fx.converters.impl'
@@ -755,6 +751,7 @@ RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxrunti
 # installing own versions
 COPY --from=cupy-ubuntu /cupy/dist/ /workspace
 COPY --from=opencv-ubuntu /opencv-python/opencv*.whl /workspace
+COPY --from=torch-ubuntu /pytorch/dist/ /workspace
 RUN pip uninstall -y cupy* $(pip freeze | grep '^opencv' | cut -d = -f 1) && \
   find . -name "*whl" ! -path "./Python-3.11.3/*" -exec pip install {} \;
 
