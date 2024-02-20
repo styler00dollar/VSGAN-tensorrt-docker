@@ -38,7 +38,7 @@ def scene_detect(
         )
         for _ in range(num_sessions)
     ]
-    sessions_lock = [Lock() for _ in range(num_sessions)]
+    [Lock() for _ in range(num_sessions)]
 
     index = -1
     index_lock = Lock()
@@ -71,6 +71,8 @@ def scene_detect(
 
         if result > thresh:
             fout.props._SceneChangeNext = 1
+        else:
+            fout.props._SceneChangeNext = 0
         return fout
 
     clip_down = clip.resize.Bicubic(

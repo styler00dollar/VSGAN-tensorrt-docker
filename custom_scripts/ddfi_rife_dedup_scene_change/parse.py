@@ -1,13 +1,18 @@
+import sys
+
+sys.path.append("/workspace/tensorrt/")
+
 import vapoursynth as vs
-import os
 import functools
+from src.scene_detect import scene_detect
 
 core = vs.core
-core.num_threads = 32
+core.num_threads = 4
 core.max_cache_size = 4096 * 8
 
-core.std.LoadPlugin(path="/usr/lib/x86_64-linux-gnu/libffms2.so")
 core.std.LoadPlugin(path="/usr/local/lib/libfmtconv.so")
+
+import sys
 
 
 # https://github.com/xyx98/my-vapoursynth-script/blob/master/xvs.py
@@ -45,7 +50,15 @@ def props2csv(
     return core.std.FrameEval(clip, functools.partial(tocsv, clip=clip), prop_src=clip)
 
 
-clip = core.ffms2.Source(globals()["source"], cache=False)
+clip = core.bs.VideoSource(source=globals()["source"])
+
+clip = scene_detect(
+    clip,
+    thresh=0.98,
+    onnx_path="/workspace/tensorrt/sc_efficientnetv2b0+rife46_flow_1362_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx",
+    resolution=256,
+)
+
 offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
 offs1 = core.std.CopyFrameProps(offs1, clip)
 offs1 = core.vmaf.Metric(clip, offs1, 2)
@@ -53,10 +66,11 @@ offs1 = core.std.MakeDiff(offs1, clip)
 offs1 = core.fmtc.bitdepth(offs1, bits=16)
 offs1 = core.std.Expr(offs1, "x 32768 - abs")
 offs1 = core.std.PlaneStats(offs1)
+
 offs1 = props2csv(
     offs1,
-    props=["_AbsoluteTime", "float_ssim", "PlaneStatsMax"],
+    props=["_AbsoluteTime", "float_ssim", "PlaneStatsMax", "_SceneChangeNext"],
     output="/workspace/tensorrt/tmp/infos_running.txt",
-    titles=[],
+    titles=["_AbsoluteTime", "float_ssim", "PlaneStatsMax", "_SceneChangeNext"],
 )
 offs1.set_output()

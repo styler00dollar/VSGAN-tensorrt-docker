@@ -1,6 +1,5 @@
 # https://github.com/HolyWu/vs-realesrgan/blob/5a1bef43acb18c346457df717238ac3cebc8c656/vsrealesrgan/utils.py#L34
 import math
-import torch
 from torch.nn import functional as F
 
 

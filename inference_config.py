@@ -9,31 +9,16 @@ from src.vfi_inference import vfi_inference, vfi_frame_merger
 from src.vfi_model import video_model
 
 from src.rife import RIFE
-from src.IFRNet import IFRNet
 from src.GMFupSS import GMFupSS
 from src.GMFSS_union import GMFSS_union
-from vsgmfss_union import gmfss_union
-from src.M2M import M2M
-from src.sepconv_enhanced import sepconv
-from src.IFUNet import IFUNet
-from src.stmfnet import STMFNet
 from src.rife_trt import rife_trt
 from src.cain_trt import cain_trt
 from src.GMFSS_Fortuna_union import GMFSS_Fortuna_union
 from src.GMFSS_Fortuna import GMFSS_Fortuna
-from vsgmfss_fortuna import gmfss_fortuna
-from vsdpir import dpir
-
-# upscale imports
-from vsbasicvsrpp import basicvsrpp
-from vsswinir import SwinIR
-
 from src.scene_detect import scene_detect
 
 from src.color_transfer import vs_color_match
 
-core = vs.core
-vs_api_below4 = vs.__api_version__.api_major < 4
 core = vs.core
 core.num_threads = 4  # can influence ram usage
 # only needed if you are inside docker
@@ -56,7 +41,7 @@ def inference_clip(video_path="", clip=None):
         # clip = core.lsmas.LWLibavSource(source=video_path)
         # lsmash with hw decoding preferred
         # clip = core.lsmas.LWLibavSource(source=video_path, prefer_hw=3)
-        
+
         # bestsource
         clip = core.bs.VideoSource(source=video_path)
 
@@ -120,25 +105,13 @@ def inference_clip(video_path="", clip=None):
     # VFI example for jit models
     # clip = video_model(clip, fp16=False, model_path="/workspace/rvpV1_105661_G.pt")
 
-    # Rife: model "rife40" up to "rife46" and "sudo_rife4"
+    # Rife: model "rife40" up to "rife412" and "sudo_rife4"
     # model_inference = RIFE(
     #    scale=1, fastmode=True, ensemble=False, model_version="rife46", fp16=True
     # )
 
-    # IFRNet: model="small" or "large"
-    # model_inference = IFRNet(model="small", fp16=False)
-
-    # use gmfss_union instead for more speed
     # model_inference = GMFupSS(partial_fp16=False)
     # model_inference = GMFSS_union(partial_fp16=False)
-
-    # model_inference = M2M()
-
-    # model_inference = sepconv() # only 2x supported because architecture only outputs one image
-
-    # model_inference = IFUNet()
-
-    # model_inference = STMFNet()  # only 2x supported because architecture only outputs one image
 
     # model_inference = GMFSS_Fortuna_union()
 
@@ -151,13 +124,6 @@ def inference_clip(video_path="", clip=None):
     # clip = rife_trt(clip, multi = 2, scale = 1.0, device_id = 0, num_streams = 2, engine_path = "/workspace/tensorrt/rife46.engine")
 
     # clip = cain_trt(clip, device_id = 0, num_streams = 4, engine_path = "/workspace/tensorrt/rvp.engine")
-
-    # clip = gmfss_union(clip, num_streams=4, trt=True, factor_num=2, ensemble=False, sc=True, trt_cache_path="/workspace/tensorrt/")
-
-    # clip = gmfss_union(clip, num_streams=4, trt=True, factor_num=2, ensemble=False, sc=True, trt_cache_path="/workspace/tensorrt/")
-
-    # more information here: https://github.com/HolyWu/vs-gmfss_fortuna/blob/master/vsgmfss_fortuna/__init__.py
-    # clip = gmfss_fortuna(clip, num_streams=4, trt=True, factor_num=2, factor_den=1, model=1, ensemble=False, sc=True, trt_cache_path="/workspace/tensorrt/",)
 
     ######
     # UPSCALING WITH TENSORRT
@@ -180,36 +146,6 @@ def inference_clip(video_path="", clip=None):
     #    engine_path="dpir.engine",
     #    tilesize=[1280, 720],
     #    num_streams=2,
-    # )
-
-    ######
-    # external vs plugins
-    ######
-
-    # BasicVSR++
-    # model list: https://github.com/HolyWu/vs-basicvsrpp/blob/0ad97ca908707d883922f092428337972a8d0215/vsbasicvsrpp/__init__.py#L42
-    # clip = basicvsrpp(clip, model = 1, length = 15, cpu_cache = False, tile_w = 0, tile_h = 0, tile_pad = 16)
-
-    # SwinIR
-    # clip = SwinIR(clip, task="lightweight_sr", scale=2)
-
-    ###############################################
-    # ncnn (works in docker, but only on linux, because wsl on windows does not support vulkan)
-    ###############################################
-
-    # Rife ncnn (C++)
-    # Model list can be found in https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan
-    # clip = core.misc.SCDetect(clip=clip, threshold=0.100)
-    # clip = core.rife.RIFE(
-    #    clip,
-    #    model=9,
-    #    factor_num=2,
-    #    gpu_id=0,
-    #    gpu_thread=4,
-    #    tta=False,
-    #    uhd=False,
-    #    skip=True,
-    #    sc=True,
     # )
 
     ######

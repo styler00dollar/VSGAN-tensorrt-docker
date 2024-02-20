@@ -14,7 +14,6 @@ Table of contents
        * [multi-gpu](#multi-gpu)
    * [ddfi](#ddfi)
    * [VFR (variable refresh rate)](#vfr)
-   * [mpv](#mpv)
    * [Color transfer](#color)
    * [Benchmarks](#benchmarks)
    * [License](#license)
@@ -23,27 +22,14 @@ Table of contents
 -------
 
 Currently working networks:
-- ESRGAN with [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN) and [HolyWu/vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
-- RealESRGAN / RealESERGANVideo with [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) and [rlaphoenix/VSGAN](https://github.com/rlaphoenix/VSGAN)
 - [Rife4 with HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/) and [hzwer/Practical-RIFE](https://github.com/hzwer/Practical-RIFE) ([rife4.0](https://drive.google.com/file/d/1mUK9iON6Es14oK46-cCflRoPTeGiI_A9/view) [rife4.1](https://drive.google.com/file/d/1CPJOzo2CHr8AN3GQCGKOKMVXIdt1RBR1/view) [rife4.2](https://drive.google.com/file/d/1JpDAJPrtRJcrOZMMlvEJJ8MUanAkA-99/view)
 [rife4.3](https://drive.google.com/file/d/1xrNofTGMHdt9sQv7-EOG0EChl8hZW_cU/view) [rife4.4](https://drive.google.com/file/d/1eI24Kou0FUdlHLkwXfk-_xiZqKaZZFZX/view) [rife4.5](https://drive.google.com/file/d/17Bl_IhTBexogI9BV817kTjf7eTuJEDc0/view) [rife4.6](https://drive.google.com/file/d/1EAbsfY7mjnXNa6RAsATj2ImAEqmHTjbE/view) [rife4.7.1](https://drive.google.com/file/d/1s2zMMIJrUAFLexktm1rWNhlIyOYJ3_ju/view) [rife4.8.1](https://drive.google.com/file/d/1wZa3SyegLPUwBQWmoDLM0MumWd2-ii63/view)
 [rife4.9.2](https://drive.google.com/file/d/1UssCvbL8N-ty0xIKM5G5ZTEgp9o4w3hp/view) [rife4.10.1](https://drive.google.com/file/d/1WNot1qYBt05LUyY1O9Uwwv5_K8U6t8_x/view) [rife4.11.1](https://drive.google.com/file/d/1Dwbp4qAeDVONPz2a10aC2a7-awD6TZvL/view) [rife4.12.2](https://drive.google.com/file/d/1ZHrOBL217ItwdpUBcBtRE3XBD-yy-g2S/view) [rife4.12 lite](https://drive.google.com/file/d/1KoEJ5x6aisxOpkhdNptsGUrL3yf4iy8b/view) [rife4.13.2](https://drive.google.com/file/d/1mj9lH6Be7ztYtHAr1xUUGT3hRtWJBy_5/view) [rife4.13 lite](https://drive.google.com/file/d/1l3lH9QxQQeZVWtBpdB22jgJ-0kmGvXra/view) [rife4.14](https://drive.google.com/file/d/1BjuEY7CHZv1wzmwXSQP9ZTj0mLWu_4xy/view) [rife4.14 lite](https://drive.google.com/file/d/1eULia_onOtRXHMAW9VeDL8N2_7z8J1ba/view))
 
-- [SwinIR with HolyWu/vs-swinir](https://github.com/HolyWu/vs-swinir)
-- [Sepconv (enhanced) with sniklaus/revisiting-sepconv](https://github.com/sniklaus/revisiting-sepconv/)
-- EGVSR with [Thmen/EGVSR](https://github.com/Thmen/EGVSR)
-- BasicVSR++ with [HolyWu/vs-basicvsrpp](https://github.com/HolyWu/vs-basicvsrpp)
-- RealBasicVSR with [ckkelvinchan/RealBasicVSR](https://github.com/ckkelvinchan/RealBasicVSR)
 - RealCUGAN with [bilibili/ailab](https://github.com/bilibili/ailab/blob/main/Real-CUGAN/README_EN.md)
-- IFRNet with [ltkong218/IFRNet](https://github.com/ltkong218/IFRNet)
-- M2M with [feinanshan/M2M_VFI](https://github.com/feinanshan/M2M_VFI)
-- IFUNet with [98mxr/IFUNet](https://github.com/98mxr/IFUNet/)
-- SCUNet with [cszn/SCUNet](https://github.com/cszn/SCUNet)
 - GMFupSS with [98mxr/GMFupSS](https://github.com/98mxr/GMFupSS)
-- ST-MFNet with [danielism97/ST-MFNet](https://github.com/danielism97/ST-MFNet)
-- GMFSS_union with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union), [styler00dollar/vs-gmfss_union](https://github.com/styler00dollar/vs-gmfss_union), [98mxr/GMFSS_union](https://github.com/98mxr/GMFSS_union)
-- GMFSS_Fortuna and GMFSS_Fortuna_union with [98mxr/GMFSS_Fortuna](https://github.com/98mxr/GMFSS_Fortuna), [HolyWu/vs-gmfss_fortuna](https://github.com/HolyWu/vs-gmfss_fortuna) and [styler00dollar/vs-gmfss_fortuna](https://github.com/styler00dollar/vs-gmfss_fortuna)
-- SAFMN with [sunny2109/SAFMN](https://github.com/sunny2109/SAFMN)
+- GMFSS_union with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union)
+- GMFSS_Fortuna and GMFSS_Fortuna_union with [98mxr/GMFSS_Fortuna](https://github.com/98mxr/GMFSS_Fortuna)
 - SRVGGNetCompact with [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) and [the-database/mpv-upscale-2x_animejanai](https://github.com/the-database/mpv-upscale-2x_animejanai)
 - Model based scene detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer), [lucidrains/TimeSformer-pytorch](https://github.com/lucidrains/TimeSformer-pytorch) and [OpenGVLab/UniFormerV2](https://github.com/OpenGVLab/UniFormerV2)
 
@@ -55,10 +41,12 @@ Also used:
 - bestsource with [vapoursynth/bestsource](https://github.com/vapoursynth/bestsource)
 - trt precision check and upscale frame skip with [mafiosnik777/enhancr](https://github.com/mafiosnik777/enhancr)
 
-Model | ESRGAN | SRVGGNetCompact | Rife | SwinIR | Sepconv | EGVSR | BasicVSR++ | Waifu2x | RealBasicVSR | RealCUGAN | DPIR | PAN | IFRNet | M2M | IFUNet | SCUNet | GMFupSS | ST-MFNet | VapSR | GMFSS_union | GMFSS_Fortuna / GMFSS_Fortuna_union | SAFMN
----  | ------- | --------------- | ---- | ------ | ------- | ----- | ---------- | ------- | ------------ | --------- | ---- | ---- | --- | ------ | --- | ------ | ----- | ------ | ---- | ---- | --- | --- 
-CUDA | - | - | yes (4.0-4.12) | [yes](https://github.com/HolyWu/vs-swinir/tree/master/vsswinir) | [yes](http://content.sniklaus.com/resepconv/network-paper.pytorch) | [yes](https://github.com/Thmen/EGVSR/raw/master/pretrained_models/EGVSR_iter420000.pth) | [yes](https://github.com/HolyWu/vs-basicvsrpp/releases/tag/model) | - | [yes](https://drive.google.com/file/d/1OYR1J2GXE90Zu2gVU5xc0t0P_UmKH7ID/view) | [yes](https://drive.google.com/drive/folders/1jAJyBf2qKe2povySwsGXsVMnzVyQzqDD) | - | [yes](https://github.com/zhaohengyuan1/PAN/tree/master/experiments/pretrained_models) | [yes](https://www.dropbox.com/sh/hrewbpedd2cgdp3/AADbEivu0-CKDQcHtKdMNJPJa?dl=0) | [yes](https://drive.google.com/file/d/1dO-ArTLJ4cMZuN6dttIFFMLtp4I2LnSG/view) | [yes](https://drive.google.com/file/d/1psrM4PkPhuM2iCwwVngT0NCtx6xyiqXa/view) | [yes](https://github.com/cszn/SCUNet/blob/main/main_download_pretrained_models.py) | [yes](https://github.com/98mxr/GMFupSS/tree/main/train_log) | [yes](https://drive.google.com/file/d/1s5JJdt5X69AO2E2uuaes17aPwlWIQagG/view) | - | yes ([vanilla](https://drive.google.com/file/d/1AsA7a4HNR4RjCeEmNUJWy5kY3dBC-mru/view) / [wgan](https://drive.google.com/file/d/1GAp9DljP1RCQXz0uu_GNn751NBMEQOUB/view)) | [base](https://drive.google.com/file/d/1BKz8UDAPEt713IVUSZSpzpfz_Fi2Tfd_/view) / [union](https://drive.google.com/file/d/1Mvd1GxkWf-DpfE9OPOtqRM9KNk20kLP3/view) | -
-TensorRT | yes (torch_tensorrt / C++ TRT) | yes (onnx_tensorrt / C++ TRT) [v2](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/RealESRGANv2_v1.7z), [v3](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/RealESRGANv3_v1.7z) | yes (4.0-4.14) | - | - | - | - | [yes (C++ TRT)](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/waifu2x_v3.7z) | - | [yes (C++ TRT)](https://github.com/AmusementClub/vs-mlrt/releases/download/v9.2/models.v9.2.7z) | [yes (C++ TRT)](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/dpir_v3.7z) | - | - | - | - | - | - | - | [yes (C++ TRT)](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models) | - | - | [yes (C++ TRT)](https://github.com/sunny2109/SAFMN/releases/tag/v0.1.0)
+Model | Rife | GMFupSS | GMFSS_union | GMFSS_Fortuna / GMFSS_Fortuna_union
+----- | ---- | ------- | ----------- | -----------------------------------
+CUDA | yes (4.0-4.12) | [yes](https://github.com/98mxr/GMFupSS/tree/main/train_log) | yes ([vanilla](https://drive.google.com/file/d/1AsA7a4HNR4RjCeEmNUJWy5kY3dBC-mru/view) / [wgan](https://drive.google.com/file/d/1GAp9DljP1RCQXz0uu_GNn751NBMEQOUB/view)) | yes ([base](https://drive.google.com/file/d/1BKz8UDAPEt713IVUSZSpzpfz_Fi2Tfd_/view) / [union](https://drive.google.com/file/d/1Mvd1GxkWf-DpfE9OPOtqRM9KNk20kLP3/view))
+TensorRT | yes (4.0-4.14) | - | - | -
+
+Further stuff that can use TensorRT via [mlrt](https://github.com/AmusementClub/vs-mlrt) with onnx is for example [Real-ESRGAN / SRVGGNetCompact](https://github.com/xinntao/Real-ESRGAN), [sunny2109/SAFMN](https://github.com/sunny2109/SAFMN), [DPIR](https://github.com/cszn/DPIR), [Waifu2x](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/waifu2x_v3.7z), [real-cugan](https://drive.google.com/drive/folders/1jAJyBf2qKe2povySwsGXsVMnzVyQzqDD). Onnx files can be found [here](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models).
 
 Some important things:
 - If you are on Windows, install all the latest updates first, otherwise wsl won't work properly. 21H2 minimum.
@@ -75,6 +63,8 @@ Get CUDA12.1 and latest Nvidia drivers. After that, follow the following steps:
 **WARNING FOR WINDOWS USERS: Docker Desktop `4.17.1` is broken. I confirmed that [4.25.0](https://desktop.docker.com/win/main/amd64/126437/Docker%20Desktop%20Installer.exe) should work. Older tested versions are [4.16.3](https://desktop.docker.com/win/main/amd64/96739/Docker%20Desktop%20Installer.exe) or [4.17.0](https://desktop.docker.com/win/main/amd64/99724/Docker%20Desktop%20Installer.exe). I would recommend to use `4.25.0`. `4.17.1` results in Docker not starting which is mentioned in [this issue](https://github.com/styler00dollar/VSGAN-tensorrt-docker/issues/34).**
 
 **ANOTHER WARNING FOR PEOPLE WITHOUT `AVX512`: Instead of using `styler00dollar/vsgan_tensorrt:latest`, which I build with my 7950x and thus with all AVX, use `styler00dollar/vsgan_tensorrt:latest_no_avx512` in `compose.yaml` to avoid `Illegal instruction (core dumped)` which is mentioned in [this issue](https://github.com/styler00dollar/VSGAN-tensorrt-docker/issues/48).**
+
+**AND AS A FINAL INFO, `Error opening input file pipe:` IS NOT A REAL ERROR MESSAGE. That means invalid data got piped into ffmpeg and can be piped error messages for example. To see the actual error messages and what got piped, you can use `vspipe -c y4m inference.py -`.**
 
 Quickstart:
 ```bash
@@ -97,19 +87,12 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 - `latest`: Default docker with everything. Trying to keep everything updated and fixed.
 - `latest_no_avx512` is for cpus without avx512 support, otherwise it just crashes if you try to run avx512 binaries on cpus without such support. Use this if your cpu does not support all instruction sets.
 - `minimal`: Bare minimum to run `ffmpeg`, `mlrt` and `lsmash`.
-- `deprecated`: Container before changing dockerfile to copy stage, has same functionality as latest, but is way bigger in size. (not recommended)
-- `ffmpeg_trt`: Experimental ffmpeg trt plugin without vapoursynth, only for sm_89 for now, or recompile with your own gpu compute version.
-   The ffmpeg in this docker is also barebones for now. since the plugin is currently only compatible with ffmpeg4 and is not compiled with many dependencies.
-   That means no av1 gpu encoding and not a lot of encoding/decoding options, but a ffmpeg trt plugin should avoid any upscaling bottleneck. 
-   With this plugin you can direclty encode data that is located in the gpu without needing to copy back the data to the cpu with nvenc.
 
 | docker image  | compressed download | extracted container | short description |
 | ------------- | ------------------- | ------------------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest | 10gb | 19gb | default latest
-| styler00dollar/vsgan_tensorrt:latest_no_avx512 | 10gb | 19gb | default latest without avx512
+| styler00dollar/vsgan_tensorrt:latest | 8gb | 15gb | default latest
+| styler00dollar/vsgan_tensorrt:latest_no_avx512 | 8gb | 15gb | default latest without avx512
 | styler00dollar/vsgan_tensorrt:minimal | 4gb | 8gb | ffmpeg + mlrt + lsmash
-| styler00dollar/vsgan_tensorrt:deprecated | 23gb | 43gb | old default (legacy, not supported)
-| styler00dollar/vsgan_tensorrt:ffmpeg_trt | 9gb | 20gb | ffmpeg c++ trt inference plugin to use trt engines with ffmpeg directly without vapoursynth
 
 Piping usage:
 ```
@@ -505,16 +488,7 @@ Visual examples from that repository:
 
 https://user-images.githubusercontent.com/74594146/142829178-ff08b96f-9ca7-45ab-82f0-4e95be045f2d.mp4
 
-To use it, first you need to edit `ddfi.py` to select your interpolator of choice and then also apply the desired framerate. The official code uses 8x and I suggest you do so too. Small example:
-```python
-clip = # interp with 8x factor
-
-clip = core.vfrtocfr.VFRToCFR(
-    clip, os.path.join(tmp_dir, "tsv2nX8.txt"), 192000, 1001, True
-) # 23.97 * 8
-``` 
-
-Afterwards, you need to use `deduped_vfi.py` similar to how you used `main.py`. Adjust paths and file extention.
+Example usage is in `custom_scripts/ddfi_rife_dedup_scene_change/`. As a quick summary, you need to do two processing passes. One pass to calculate metrics and another to use interpolation combined with VFRToCFR. You need to use `deduped_vfi.py` similar to how you used `main.py`.
 
 <div id='vfr'/>
 
@@ -536,46 +510,6 @@ or convert everything to constant framerate with ffmpeg.
 ffmpeg -i video_input.mkv -fps_mode cfr -crf 10 -c:a copy video_out.mkv
 ```
 or use my `vfr_to_cfr.py` to process a folder.
-
-<div id='mpv'/>
-
-## mpv
-It is also possible to directly pipe the video into mpv, but you most likely wont be able to archive realtime speed. If you use a very efficient model, it may be possible on a very good GPU. Only tested in Manjaro. 
-```bash
-# add this to dockerfile or just execute it to install mpv
-RUN apt install mpv -y && apt-get update && \
-  DEBIAN_FRONTEND=noninteractive apt-get install --yes pulseaudio-utils && \
-  apt-get install -y pulseaudio && apt-get install pulseaudio libpulse-dev osspd -y && \
-  apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y
-
-# make sure you have pulseaudio on your host system
-yay -S pulseaudio
-
-# start docker with docker-compose
-# same instructions as above, but delete compose.yaml and rename compose_mpv.yaml to compose.yaml 
-docker-compose run --rm vsgan_tensorrt
-
-# start docker manually
-docker run --rm -i -t \
-    --network host \
-    -e DISPLAY \
-    -v /home/vsgan_path/:/workspace/tensorrt \
-    --ipc=host \
-    --privileged \
-    --gpus all \
-    -e PULSE_COOKIE=/run/pulse/cookie \
-    -v ~/.config/pulse/cookie:/run/pulse/cookie \
-    -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
-    -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
-    vsgan_tensorrt:latest
-    
-# run mpv
-vspipe --y4m inference.py - | mpv -
-# with custom audio and subtitles
-vspipe --y4m inference.py - | mpv - --audio-file=file.aac --sub-files=file.ass
-# to increase the buffer cache, you can use
---demuxer-max-bytes=250MiB
-```
 
 <div id='color'/>
 

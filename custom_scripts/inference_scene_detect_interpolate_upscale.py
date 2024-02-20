@@ -1,11 +1,8 @@
 import sys
-import os
 
 sys.path.append("/workspace/tensorrt/")
 import vapoursynth as vs
-import functools
 from src.scene_detect import scene_detect
-from src.vfi_inference import vfi_frame_merger
 from src.rife_trt import rife_trt
 
 core = vs.core

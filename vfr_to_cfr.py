@@ -6,7 +6,7 @@ output_dir = "/"
 files = glob.glob(input_dir + "/**/*.mkv", recursive=True)
 files.sort()
 
-if os.path.exists(output_dir) == False:
+if os.path.exists(output_dir) is False:
     os.mkdir(output_dir)
 
 for f in files:

@@ -1,7 +1,5 @@
-import numpy as np
 import vapoursynth as vs
 import os
-import numpy as np
 import torch
 import sys
 from contextlib import contextmanager
@@ -66,7 +64,7 @@ class compact_inference:
             torch.onnx.export(
                 self.model,
                 (torch.rand(1, 3, clip.height, clip.width)),
-                f"/workspace/tensorrt/models/test.onnx",
+                "/workspace/tensorrt/models/test.onnx",
                 verbose=False,
                 opset_version=14,
                 # dynamic_axes=dynamic_axes,

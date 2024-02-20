@@ -36,7 +36,7 @@ def cm_to_frame(img: np.ndarray, frame):
     for p in range(3):
         pls = frame[p]
         frame_arr = np.asarray(pls)
-        slice = int_img[:, :, p]
+        int_img[:, :, p]
         np.copyto(frame_arr, int_img[:, :, p])
 
 

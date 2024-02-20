@@ -4,12 +4,9 @@ https://github.com/hzwer/Practical-RIFE
 https://github.com/hzwer/Practical-RIFE/blob/main/model/warplayer.py
 https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 """
-from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.optim import AdamW
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
-import torch.optim as optim
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -383,7 +380,7 @@ class IFNet(nn.Module):
         img1 = F.pad(img1, padding)
         x = torch.cat((img0, img1), 1)
 
-        if training == False:
+        if training is False:
             channel = x.shape[1] // 2
             img0 = x[:, :channel]
             img1 = x[:, channel:]
