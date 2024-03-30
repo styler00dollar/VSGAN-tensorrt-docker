@@ -90,9 +90,10 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 
 | docker image  | compressed download | extracted container | short description |
 | ------------- | ------------------- | ------------------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest | 8gb | 15gb | default latest
-| styler00dollar/vsgan_tensorrt:latest_no_avx512 | 8gb | 15gb | default latest without avx512
-| styler00dollar/vsgan_tensorrt:minimal | 4gb | 8gb | ffmpeg + mlrt + lsmash
+| styler00dollar/vsgan_tensorrt:latest | 8gb | 15gb | default latest trt9.3
+| styler00dollar/vsgan_tensorrt:latest_no_avx512 | 8gb | 15gb | default latest trt9.3 without avx512
+| styler00dollar/vsgan_tensorrt:minimal | 4gb | 8gb | trt8.6 + ffmpeg + mlrt + lsmash
+| styler00dollar/vsgan_tensorrt:trt10.0 | 8gb | 15gb | trt10.0 (not recommended, rife broken)
 
 Piping usage:
 ```
@@ -434,36 +435,38 @@ clip = core.akarin.Select([clip, clip_orig], clip_sc, "x._SceneChangeNext 1 0 ?"
 <div id='vs-mlrt'/>
 
 ## vs-mlrt (C++ TRT)
-You need to convert onnx models into engines. You need to do that on the same system where you want to do inference. Download onnx models from [here]( https://github.com/AmusementClub/vs-mlrt/releases/download/v7/models.v7.7z) or from [my Github page](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models). You can technically just use any ONNX model you want or convert a pth into onnx with [convert_esrgan_to_onnx.py](https://github.com/styler00dollar/VSGAN-tensorrt-docker/blob/main/convert_esrgan_to_onnx.py) or [convert_compact_to_onnx.py](https://github.com/styler00dollar/VSGAN-tensorrt-docker/blob/main/convert_compact_to_onnx.py). Inside the docker, you do one of the following commands:
+You need to convert onnx models into engines. You need to do that on the same system where you want to do inference. Download onnx models from [here]( https://github.com/AmusementClub/vs-mlrt/releases/download/v7/models.v7.7z) or from [my Github page](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models). You can technically just use any ONNX model you want or convert a pth into onnx with for example [convert_compact_to_onnx.py](https://github.com/styler00dollar/VSGAN-tensorrt-docker/blob/main/convert_compact_to_onnx.py). Inside the docker, you do one of the following commands:
 
 
-Good default choice (Warning: Cugan with 3x scale requires same MIN/OPT/MAX shapes):
+Good default choice:
 ```
-trtexec --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference
+trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
 ```
-With some arguments known for speedup (Assuming enough vram for 4 stream inference):
+If you have the vram to fit the model multiple times, add `--infStreams`.
 ```
-trtexec --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --infStreams=4 --builderOptimizationLevel=4
+trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --infStreams=4
 ```
-Be aware that DPIR (color) needs 4 channels.
+DPIR (color) needs 4 channels.
 ```
-trtexec --fp16 --onnx=dpir_drunet_color.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference
+trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
 ```
 Rife needs 8 channels. Setting `fasterDynamicShapes0805` since trtexec recommends it.
 ```
-trtexec --fp16 --onnx=rife.onnx --minShapes=input:1x8x64x64 --optShapes=input:1x8x720x1280 --maxShapes=input:1x8x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --preview=+fasterDynamicShapes0805
+trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x8x64x64 --optShapes=input:1x8x720x1280 --maxShapes=input:1x8x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --preview=+fasterDynamicShapes0805
 ```
-rvpV2 needs 6 channels, but does not support variable shapes.
-```
-trtexec --fp16 --onnx=rvp2.onnx --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference
-```
-and put that engine path into `inference_config.py`. Only do FP16 if your GPU does support it. If your gpu supports bf16, you can also add `--bf16` additionally.
+
+Put that engine path into `inference_config.py`.
 
 **Warnings**: 
-- If you use the FP16 onnx you need to use `RGBH` colorspace, if you use FP32 onnx you need to use `RGBS` colorspace in `inference_config.py` 
-- Engines are system specific, don't use across multiple systems
+- Only add `--bf16` if your GPU supports it, otherwise remove it. If model looks broken, remove `--fp16`.
+- Cugan with 3x scale requires same MIN/OPT/MAX shapes.
+- rvpV2 needs 6 channels, but does not support variable shapes.
+- If you use the FP16 onnx you need to use `RGBH` colorspace, if you use FP32 onnx you need to use `RGBS` colorspace in `inference_config.py` .
+- Engines are system specific, don't use across multiple systems.
 - Don't use reuse engines for different GPUs.
 - If you run out of memory, then you need to adjust the resolutions in that command. If your video is bigger than what you can input in the command, use tiling.
+- If you get segfault, reduce `builderOptimizationLevel`. Change can change it down to 1 to speed up the engine building, but may result in worse speeds.
+- If you set min, opt and max to the same resolution, it might result in a faster engine.
 
 <div id='multi-gpu'/>
 
