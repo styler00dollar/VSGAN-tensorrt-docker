@@ -1,7 +1,7 @@
 ############################
 # FFMPEG
 ############################
-FROM archlinux as ffmpeg-arch
+FROM archlinux/archlinux:latest as ffmpeg-arch
 RUN --mount=type=cache,sharing=locked,target=/var/cache/pacman \
   pacman -Syu --noconfirm --needed base base-devel cuda git
 ENV NVIDIA_VISIBLE_DEVICES all
@@ -49,8 +49,8 @@ RUN git clone https://github.com/sekrit-twc/zimg --depth 1 --recurse-submodules 
   ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install
 
 ENV PATH /usr/local/bin:$PATH
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R65.tar.gz && \
-  tar -zxvf R65.tar.gz && cd vapoursynth-R65 && ./autogen.sh && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R66.tar.gz && \
+  tar -zxvf R66.tar.gz && cd vapoursynth-R66 && ./autogen.sh && \
   PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/local/lib/pkgconfig" ./configure --enable-static --disable-shared && \
   make && make install && cd .. && ldconfig
 
@@ -163,7 +163,8 @@ RUN git clone git://git.openssl.org/openssl.git && cd openssl && LIBS="-ldl -lz"
 
 # https://stackoverflow.com/questions/18185618/how-to-use-static-linking-with-openssl-in-c-c
 RUN git clone https://github.com/FFmpeg/FFmpeg
-ENV NVCC_PREPEND_FLAGS='-ccbin /usr/bin/g++-12'
+#RUN ls /usr/bin/ && error
+ENV NVCC_PREPEND_FLAGS='-ccbin /usr/bin/g++'
 RUN cd FFmpeg && \
   PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/:/home/makepkg/ssl/lib64/pkgconfig/ ./configure \
     --extra-cflags="-fopenmp -lcrypto -lz -ldl -static-libgcc -I/opt/cuda/include" \
@@ -328,8 +329,8 @@ RUN git clone https://github.com/sekrit-twc/zimg --recursive && cd zimg && \
   apt install /workspace/zimg/zimg_0.0-1_amd64.deb -y
 
 # vapoursynth
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R65.tar.gz && \
-  tar -zxvf R65.tar.gz && mv vapoursynth-R65 vapoursynth && cd vapoursynth && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R66.tar.gz && \
+  tar -zxvf R66.tar.gz && mv vapoursynth-R66 vapoursynth && cd vapoursynth && \
   ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install && ldconfig
 
 # dav1d
@@ -368,7 +369,7 @@ RUN apt remove ffmpeg -y
 RUN rm -rf FFmpeg
 
 RUN git clone https://github.com/HomeOfAviSynthPlusEvolution/FFmpeg
-RUN cd FFmpeg && git switch "custom-patches-for-lsmashsource" && git checkout -b new_branch bf4d6ef && \
+RUN cd FFmpeg && \
   LDFLAGS="-Wl,-Bsymbolic" CFLAGS=-fPIC ./configure --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-Wl,-Bsymbolic" --extra-cflags="-march=native" --disable-vulkan && \
   make -j$(nproc) && make install -j$(nproc)
 
@@ -736,8 +737,8 @@ RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy meson ninja numpy e
 
 # deleting .so files to symlink them later on to save space
 RUN pip install tensorrt==9.3.0.post12.dev1 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
-  rm -rf /root/.cache/ /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer.so.9 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.9.3.0 \
-    /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_plugin.so.9 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvonnxparser.so.9
+  rm -rf /root/.cache/ /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer.so.* /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.* \
+    /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_plugin.so.* /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvonnxparser.so.*
 
 COPY --from=TensorRT-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.17.0-cp311-cp311-linux_x86_64.whl /workspace
 RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.17.0-cp311-cp311-linux_x86_64.whl
@@ -772,7 +773,7 @@ RUN pip install pandas
 # ffmpeg: /usr/lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.38' not found (required by ffmpeg)
 RUN mkdir /workspace/hotfix
 WORKDIR /workspace/hotfix
-RUN wget http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc-dev_1.3.4+ds-1.1~exp2_amd64.deb \
+RUN wget http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc-dev_1.3.4+ds-1_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/libn/libnsl/libnsl-dev_1.3.0-3_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4_amd64.deb \
@@ -780,7 +781,7 @@ RUN wget http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc-dev_1.
     http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6-dev_2.38-6_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-bin_2.38-6_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-dev-bin_2.38-6_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/l/linux/linux-libc-dev_6.7.4-1~exp1_all.deb \
+    http://ftp.us.debian.org/debian/pool/main/l/linux/linux-libc-dev_6.7.9-2_all.deb \
     http://ftp.us.debian.org/debian/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.3-1_amd64.deb \
     http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc3_1.3.4+ds-1_amd64.deb
 
