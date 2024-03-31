@@ -304,7 +304,7 @@ RUN git clone https://github.com/cupy/cupy --recursive && cd cupy && git submodu
 # bestsource / lsmash / ffms2
 # todo: check if CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" --extra-ldflags="-static" is required
 ############################
-FROM ubuntu:22.04 as bestsource-lsmash-ffms2-vs
+FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as bestsource-lsmash-ffms2-vs
 
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR workspace
@@ -337,22 +337,22 @@ RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R66.tar.gz
 RUN git clone https://code.videolan.org/videolan/dav1d/ && \
   cd dav1d && meson build --buildtype release -Ddefault_library=static && ninja -C build install
 
-# ffmpeg
-RUN apt remove ffmpeg -y
-RUN git clone https://git.ffmpeg.org/ffmpeg.git --depth 1 && cd ffmpeg && \
-  CFLAGS=-fPIC ./configure --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-swresample --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-static" --extra-cflags="-march=native" && \
-  make -j$(nproc) && make install -j$(nproc)
-
-# jansson
-RUN git clone https://github.com/akheron/jansson && cd jansson && autoreconf -fi && CFLAGS=-fPIC ./configure --disable-shared --enable-static && \
-  make -j$(nproc) && make install
-
 # Vulkan-Headers
 Run apt install cmake -y
 RUN git clone https://github.com/KhronosGroup/Vulkan-Headers.git && cd Vulkan-Headers/ && cmake -S . -DBUILD_SHARED_LIBS=OFF -B build/ && cmake --install build
 
 # nv-codec-headers
 RUN git clone https://github.com/FFmpeg/nv-codec-headers && cd nv-codec-headers && make -j$(nproc) && make install
+
+# ffmpeg
+RUN apt remove ffmpeg -y
+RUN git clone https://git.ffmpeg.org/ffmpeg.git --depth 1 && cd ffmpeg && \
+  CFLAGS=-fPIC ./configure --enable-cuda --enable-nonfree --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-swresample --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-static" --extra-cflags="-march=native" && \
+  make -j$(nproc) && make install -j$(nproc)
+
+# jansson
+RUN git clone https://github.com/akheron/jansson && cd jansson && autoreconf -fi && CFLAGS=-fPIC ./configure --disable-shared --enable-static && \
+  make -j$(nproc) && make install
 
 # bzip2
 RUN git clone https://github.com/libarchive/bzip2 && cd bzip2 && \
@@ -370,7 +370,7 @@ RUN rm -rf FFmpeg
 
 RUN git clone https://github.com/HomeOfAviSynthPlusEvolution/FFmpeg
 RUN cd FFmpeg && \
-  LDFLAGS="-Wl,-Bsymbolic" CFLAGS=-fPIC ./configure --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-Wl,-Bsymbolic" --extra-cflags="-march=native" --disable-vulkan && \
+  LDFLAGS="-Wl,-Bsymbolic" CFLAGS=-fPIC ./configure --enable-cuda --enable-nonfree --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-Wl,-Bsymbolic" --extra-cflags="-march=native" && \
   make -j$(nproc) && make install -j$(nproc)
 
 # lsmash
@@ -896,7 +896,7 @@ COPY --from=TensorRT-ubuntu /usr/local/tensorrt/bin/trtexec /usr/bin
 COPY --from=torch-ubuntu /usr/lib/x86_64-linux-gnu/libopenblas.so* /usr/lib/x86_64-linux-gnu/libgfortran.so* \
   /usr/lib/x86_64-linux-gnu/libquadmath.so* /usr/lib/x86_64-linux-gnu/
 COPY --from=torch-ubuntu /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcupti.so /usr/lib/x86_64-linux-gnu/
- 
+
 # ffmpeg hotfix
 COPY --from=base /workspace/hotfix/* /workspace
 RUN dpkg --force-all -i *.deb  && rm -rf *deb
