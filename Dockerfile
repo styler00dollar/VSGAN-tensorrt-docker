@@ -359,7 +359,7 @@ RUN git clone https://github.com/libarchive/bzip2 && cd bzip2 && \
   mkdir build && cd build && cmake .. -DBUILD_SHARED_LIBS=OFF && make -j$(nproc) && make install
 
 # bestsource
-RUN apt-get install -y && git clone https://github.com/vapoursynth/bestsource && cd bestsource && git clone https://github.com/sekrit-twc/libp2p.git --depth 1 && \
+RUN apt-get install libxxhash-dev -y && git clone https://github.com/vapoursynth/bestsource.git --depth 1 --recurse-submodules --shallow-submodules && cd bestsource && \
   CFLAGS=-fPIC meson setup -Dlink_static=true build && CFLAGS=-fPIC ninja -C build && ninja -C build install
 
 # ffmpeg (HomeOfAviSynthPlusEvolution version with sws)
