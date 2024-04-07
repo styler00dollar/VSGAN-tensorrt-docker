@@ -9,7 +9,7 @@ Table of contents
    * [Usage](#usage)
    * [Usage example](#usage-example)
    * [Deduplicated inference](#deduplicated)
-   * [Scene change detection](#scene-change)
+   * [Shot Boundary Detection](#shot-boundry)
    * [vs-mlrt (C++ TRT)](#vs-mlrt)
        * [multi-gpu](#multi-gpu)
    * [ddfi](#ddfi)
@@ -31,7 +31,7 @@ Currently working networks:
 - GMFSS_union with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union)
 - GMFSS_Fortuna and GMFSS_Fortuna_union with [98mxr/GMFSS_Fortuna](https://github.com/98mxr/GMFSS_Fortuna)
 - SRVGGNetCompact with [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) and [the-database/mpv-upscale-2x_animejanai](https://github.com/the-database/mpv-upscale-2x_animejanai)
-- Model based scene detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer), [lucidrains/TimeSformer-pytorch](https://github.com/lucidrains/TimeSformer-pytorch) and [OpenGVLab/UniFormerV2](https://github.com/OpenGVLab/UniFormerV2)
+- Model based shot boundary detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer) and [wentaozhu/AutoShot](https://github.com/wentaozhu/AutoShot)
 
 Also used:
 - TensorRT C++ inference and python script usage with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
@@ -334,11 +334,11 @@ There are multiple different metrics that can be used, but be aware that you may
 return core.vmaf.Metric(clip, offs1, 2)
 ```
 
-<div id='scene-change'/>
+<div id='shot-boundry'/>
 
-## Scene change detection
+## Shot Boundary Detection
 
-Scene change detection is implemented in various different ways. To use traditional scene change you can do:
+Detection is implemented in various different ways. To use traditional scene change you can do:
 
 ```python
 clip_sc = core.misc.SCDetect(
@@ -348,20 +348,20 @@ clip_sc = core.misc.SCDetect(
 ```
 Afterwards you can call `clip = core.akarin.Select([clip, clip_orig], clip_sc, "x._SceneChangeNext 1 0 ?")` to apply it.
 
-Recently I started experimenting in training my own scene change detect models and I used a dataset with 272.016 images (90.884 triplets) which includes everything from animation to real video (vimeo90k + animeinterp + custom data). So these should work on any kind of video. The input images were area downscaled images.
+Or use models like this. Adjust thresh to a value between 0 and 1, higher means to ignore with less confidence.
 
 ```python
 clip_sc = scene_detect(
     clip,
-    thresh=0.98,
-    onnx_path="path_to_onnx.onnx",
-    resolution=resolution_of_onnx,
+    fp16=True,
+    thresh=0.5,
+    model=3,
 )
 ```
 
 **Warning: Keep in mind that different models may require a different thresh to be good.**
 
-My personal favorites would be `efficientnetv2_b0`, `efficientformerv2_s0` and `swinv2_small` for video interpolation tasks. The rife models mean, that flow gets used as an additional input into the classification model. That should increase stability without major speed decrease. Models that are not linked will be converted later.
+The rife models mean, that flow gets used as an additional input into the classification model. That should increase stability without major speed decrease. Models that are not linked will be converted later.
 
 Available onnx files:
 - efficientnetv2_b0 (256px) ([fp16](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientnetv2b0_17957_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx) [fp32](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientnetv2b0_17957_256_CHW_6ch_clamp_softmax_op17_sim.onnx))
@@ -414,9 +414,9 @@ core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
 clip_sc = scene_detect(
     clip,
-    thresh=0.98,
-    onnx_path="/workspace/tensorrt/sc_efficientnetv2b0+rife46_flow_1362_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx",
-    resolution=256,
+    fp16=True,
+    thresh=0.5,
+    model=3,
 )
 
 clip = rife_trt(

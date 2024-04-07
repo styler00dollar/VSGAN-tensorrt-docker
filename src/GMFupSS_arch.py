@@ -5,7 +5,6 @@ import collections
 import cupy
 import os
 import re
-import torch
 import typing
 from torch.nn.modules.utils import _pair
 import math
@@ -137,12 +136,16 @@ class MultiScaleTridentConv(nn.Module):
                     inputs[0],
                     self.weight,
                     self.bias,
-                    self.strides[self.test_branch_idx]
-                    if self.test_branch_idx == -1
-                    else self.strides[-1],
-                    self.paddings[self.test_branch_idx]
-                    if self.test_branch_idx == -1
-                    else self.paddings[-1],
+                    (
+                        self.strides[self.test_branch_idx]
+                        if self.test_branch_idx == -1
+                        else self.strides[-1]
+                    ),
+                    (
+                        self.paddings[self.test_branch_idx]
+                        if self.test_branch_idx == -1
+                        else self.paddings[-1]
+                    ),
                     self.dilation,
                     self.groups,
                 )
@@ -664,9 +667,9 @@ class FeatureTransformer(nn.Module):
                     nhead=nhead,
                     attention_type=attention_type,
                     ffn_dim_expansion=ffn_dim_expansion,
-                    with_shift=True
-                    if attention_type == "swin" and i % 2 == 1
-                    else False,
+                    with_shift=(
+                        True if attention_type == "swin" and i % 2 == 1 else False
+                    ),
                 )
                 for i in range(num_layers)
             ]

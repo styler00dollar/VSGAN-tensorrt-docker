@@ -1,6 +1,3 @@
-import itertools
-import numpy as np
-import vapoursynth as vs
 import torch
 from .rife_arch import IFNet
 from .download import check_and_download

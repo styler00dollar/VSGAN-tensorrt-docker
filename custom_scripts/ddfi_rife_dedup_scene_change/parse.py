@@ -30,9 +30,7 @@ def props2csv(
     tostring = (
         tostring
         if callable(tostring)
-        else lambda x: x.decode("utf-8")
-        if isinstance(x, bytes)
-        else str(x)
+        else lambda x: x.decode("utf-8") if isinstance(x, bytes) else str(x)
     )
 
     def tocsv(n, f, clip):

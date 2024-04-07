@@ -2,7 +2,6 @@ import vapoursynth as vs
 import torch
 import numpy as np
 import kornia
-import kornia
 import functools
 
 core = vs.core

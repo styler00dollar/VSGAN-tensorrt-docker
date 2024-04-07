@@ -4,6 +4,7 @@ https://github.com/hzwer/Practical-RIFE
 https://github.com/hzwer/Practical-RIFE/blob/main/model/warplayer.py
 https://github.com/HolyWu/vs-rife/blob/master/vsrife/__init__.py
 """
+
 import torch
 import torch.nn.functional as F
 import torch.nn as nn

@@ -715,12 +715,16 @@ class Regrain:
         """
 
         [width, height, c] = target.shape
+
         def first_pad_0(arr):
             return np.concatenate((arr[:1, :], arr[:-1, :]), axis=0)
+
         def first_pad_1(arr):
             return np.concatenate((arr[:, :1], arr[:, :-1]), axis=1)
+
         def last_pad_0(arr):
             return np.concatenate((arr[1:, :], arr[-1:, :]), axis=0)
+
         def last_pad_1(arr):
             return np.concatenate((arr[:, 1:], arr[:, -1:]), axis=1)
 
