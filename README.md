@@ -30,7 +30,7 @@ Currently working networks:
 - GMFupSS with [98mxr/GMFupSS](https://github.com/98mxr/GMFupSS)
 - GMFSS_union with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union)
 - GMFSS_Fortuna and GMFSS_Fortuna_union with [98mxr/GMFSS_Fortuna](https://github.com/98mxr/GMFSS_Fortuna)
-- SRVGGNetCompact with [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) and [the-database/mpv-upscale-2x_animejanai](https://github.com/the-database/mpv-upscale-2x_animejanai)
+- SRVGGNetCompact with [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)
 - Model based shot boundary detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer) and [wentaozhu/AutoShot](https://github.com/wentaozhu/AutoShot)
 
 Also used:
@@ -46,7 +46,7 @@ Model | Rife | GMFupSS | GMFSS_union | GMFSS_Fortuna / GMFSS_Fortuna_union
 CUDA | yes (4.0-4.12) | [yes](https://github.com/98mxr/GMFupSS/tree/main/train_log) | yes ([vanilla](https://drive.google.com/file/d/1AsA7a4HNR4RjCeEmNUJWy5kY3dBC-mru/view) / [wgan](https://drive.google.com/file/d/1GAp9DljP1RCQXz0uu_GNn751NBMEQOUB/view)) | yes ([base](https://drive.google.com/file/d/1BKz8UDAPEt713IVUSZSpzpfz_Fi2Tfd_/view) / [union](https://drive.google.com/file/d/1Mvd1GxkWf-DpfE9OPOtqRM9KNk20kLP3/view))
 TensorRT | yes (4.0-4.15) | - | - | -
 
-Further stuff that can use TensorRT via [mlrt](https://github.com/AmusementClub/vs-mlrt) with onnx is for example [Real-ESRGAN / SRVGGNetCompact](https://github.com/xinntao/Real-ESRGAN), [sunny2109/SAFMN](https://github.com/sunny2109/SAFMN), [DPIR](https://github.com/cszn/DPIR), [Waifu2x](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/waifu2x_v3.7z), [real-cugan](https://drive.google.com/drive/folders/1jAJyBf2qKe2povySwsGXsVMnzVyQzqDD), [apisr](https://github.com/kiteretsu77/apisr) and [AniScale](https://github.com/Sirosky/Upscale-Hub). Onnx files can be found [here](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models).
+Further stuff that can use TensorRT via [mlrt](https://github.com/AmusementClub/vs-mlrt) with onnx is for example [Real-ESRGAN / SRVGGNetCompact](https://github.com/xinntao/Real-ESRGAN), [SAFMN](https://github.com/sunny2109/SAFMN), [DPIR](https://github.com/cszn/DPIR), [Waifu2x](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/waifu2x_v3.7z), [real-cugan](https://drive.google.com/drive/folders/1jAJyBf2qKe2povySwsGXsVMnzVyQzqDD), [apisr](https://github.com/kiteretsu77/apisr), [AnimeJaNai](https://github.com/the-database/mpv-upscale-2x_animejanai), [ModernSpanimation](https://github.com/TNTwise/Models/releases/tag/2x_ModernSpanimationV1) and [AniScale](https://github.com/Sirosky/Upscale-Hub). Onnx files can be found [here](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models).
 
 Some important things:
 - If you are on Windows, install all the latest updates first, otherwise wsl won't work properly. 21H2 minimum.
