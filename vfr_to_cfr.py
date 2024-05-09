@@ -11,12 +11,15 @@ if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 
 
-def process_file(f):
+def process_file(file_path):
+    fixed_file_path = file_path.replace("'", "").replace("!", "")
+    os.rename(file_path, fixed_file_path)
+
     out_path = os.path.join(
-        output_dir, os.path.splitext(os.path.basename(f))[0] + "_mux.mkv"
+        output_dir, os.path.splitext(os.path.basename(fixed_file_path))[0] + "_mux.mkv"
     )
     os.system(
-        f"ffmpeg -i '{f}' -map 0 -c:v av1_nvenc -preset p7 -c:a copy -c:s copy -fps_mode cfr -cq 1 '{out_path}' -y"
+        f"ffmpeg -i '{f}' -map 0 -c:a copy -c:s copy -fps_mode cfr -crf 5 '{out_path}' -y"
     )
 
 
