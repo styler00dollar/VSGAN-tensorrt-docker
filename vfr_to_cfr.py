@@ -15,5 +15,5 @@ for f in files:
     )
 
     os.system(
-        f"ffmpeg -i '{f}' -map 0 -c:v libx264 -c:a copy -c:s copy -fps_mode cfr -crf 5 -preset medium '{out_path}' -y"
+        f"ffmpeg -i '{f}' -map 0 -c:v av1_nvenc -preset p7 -c:a copy -c:s copy -fps_mode cfr -cq 1 '{out_path}' -y"
     )
