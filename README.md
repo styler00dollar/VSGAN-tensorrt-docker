@@ -99,12 +99,6 @@ Piping usage:
 ```
 # you can use it in various ways, ffmpeg example
 vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv -y
-# nvencc example
-vspipe -c y4m inference.py - | nvencc -i pipe: --codec av1 -o example.mkv
-# x264 example
-vspipe -c y4m inference.py - | x264 - --demuxer y4m -o example.mkv -y
-# x265 example
-vspipe -c y4m inference.py - | x265 - --y4m -o example.mkv -y
 
 # example without vspipe
 ffmpeg -f vapoursynth -i inference.py example.mkv -y
