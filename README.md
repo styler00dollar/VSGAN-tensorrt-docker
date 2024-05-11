@@ -86,7 +86,7 @@ There are now multiple containers to choose from, if you don't want the default,
 and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to running `docker-compose run --rm vsgan_tensorrt`.
 - `latest`: Default docker with everything. Trying to keep everything updated and fixed.
 - `latest_no_avx512` is for cpus without avx512 support, otherwise it just crashes if you try to run avx512 binaries on cpus without such support. Use this if your cpu does not support all instruction sets.
-- `minimal`: Bare minimum to run `ffmpeg`, `mlrt` and `lsmash`.
+- `minimal`: Bare minimum to run `ffmpeg`, `mlrt` and a few video readers.
 
 | docker image  | compressed download | extracted container | short description |
 | ------------- | ------------------- | ------------------- | ----------------- |
