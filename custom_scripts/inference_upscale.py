@@ -4,7 +4,6 @@ sys.path.append("/workspace/tensorrt/")
 import vapoursynth as vs
 
 core = vs.core
-vs_api_below4 = vs.__api_version__.api_major < 4
 core.num_threads = 8
 
 core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")

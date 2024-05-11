@@ -4,8 +4,6 @@ sys.path.append("/workspace/tensorrt/")
 import vapoursynth as vs
 
 core = vs.core
-vs_api_below4 = vs.__api_version__.api_major < 4
-core = vs.core
 core.num_threads = 4  # can influence ram usage
 # only needed if you are inside docker
 core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
@@ -13,7 +11,9 @@ core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
 def inference_clip(video_path="", clip=None):
     if clip is None:
-        clip = core.lsmas.LWLibavSource(source=video_path)
+        clip = core.bs.VideoSource(source=video_path)
+        #clip = core.lsmas.LWLibavSource(source=video_path)
+        #clip = core.ffms2.Source(source=video_path, cache=False)
 
     # convert colorspace
     clip = vs.core.resize.Bicubic(clip, format=vs.RGBH, matrix_in_s="709")

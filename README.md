@@ -92,7 +92,7 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 | ------------- | ------------------- | ------------------- | ----------------- |
 | styler00dollar/vsgan_tensorrt:latest | 8gb | 15gb | default latest trt9.3
 | styler00dollar/vsgan_tensorrt:latest_no_avx512 | 8gb | 15gb | default latest trt9.3 without avx512
-| styler00dollar/vsgan_tensorrt:minimal | 4gb | 8gb | trt8.6 + ffmpeg + mlrt + lsmash
+| styler00dollar/vsgan_tensorrt:minimal | 4gb | 8gb | trt8.6 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
 | styler00dollar/vsgan_tensorrt:trt10.0 | 8gb | 15gb | trt10.0 (not recommended, rife broken)
 
 Piping usage:
