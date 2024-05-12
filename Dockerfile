@@ -1,7 +1,7 @@
 ############################
 # FFMPEG
 ############################
-FROM archlinux/archlinux:latest as ffmpeg-arch
+FROM archlinux as ffmpeg-arch
 RUN --mount=type=cache,sharing=locked,target=/var/cache/pacman \
   pacman -Syu --noconfirm --needed base base-devel cuda git
 ENV NVIDIA_VISIBLE_DEVICES all
@@ -18,17 +18,19 @@ RUN git clone https://aur.archlinux.org/yay.git && \
   rm -rf .cache yay
 
 RUN yay -Syu rust tcl nasm cmake jq libtool wget fribidi fontconfig libsoxr meson pod2man nvidia-utils base-devel --noconfirm --ask 4
+RUN yay -S python-pip python311 --noconfirm --ask 4
+
 USER root
 
 RUN mkdir -p "/home/makepkg/python311"
-RUN wget https://github.com/python/cpython/archive/refs/tags/v3.11.3.tar.gz && tar xf v3.11.3.tar.gz && cd cpython-3.11.3 && \
+RUN wget https://github.com/python/cpython/archive/refs/tags/v3.11.9.tar.gz && tar xf v3.11.9.tar.gz && cd cpython-3.11.9 && \
   mkdir debug && cd debug && ../configure --enable-optimizations --disable-shared --prefix="/home/makepkg/python311" && make -j$(nproc) && make install && \
   /home/makepkg/python311/bin/python3.11 -m ensurepip --upgrade
 RUN cp /home/makepkg/python311/bin/python3.11 /usr/bin/python
 ENV PYTHONPATH /home/makepkg/python311/bin/
 ENV PATH "/home/makepkg/python311/bin/:$PATH"
 
-RUN pip3 install cython meson
+RUN pip3 install "cython<3" meson
 
 ENV PATH "$PATH:/opt/cuda/bin/nvcc"
 ENV PATH "$PATH:/opt/cuda/bin"
@@ -45,12 +47,12 @@ ARG LDFLAGS="-Wl,-z,relro,-z,now"
 
 # master is broken https://github.com/sekrit-twc/zimg/issues/181
 # No rule to make target 'graphengine/graphengine/cpuinfo.cpp', needed by 'graphengine/graphengine/libzimg_internal_la-cpuinfo.lo'.  Stop.
-RUN git clone https://github.com/sekrit-twc/zimg --depth 1 --recurse-submodules --shallow-submodules && cd zimg && \
-  ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install
+RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.5.tar.gz && tar -zxvf release-3.0.5.tar.gz && cd zimg-release-3.0.5 && \
+  ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
 ENV PATH /usr/local/bin:$PATH
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R66.tar.gz && \
-  tar -zxvf R66.tar.gz && cd vapoursynth-R66 && ./autogen.sh && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R68.tar.gz && \
+  tar -zxvf R68.tar.gz && cd vapoursynth-R68 && ./autogen.sh && \
   PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/local/lib/pkgconfig" ./configure --enable-static --disable-shared && \
   make && make install && cd .. && ldconfig
 
@@ -143,10 +145,6 @@ RUN git clone https://github.com/pkuvcl/davs2/ && \
   cd davs2/build/linux && ./configure --disable-asm --enable-pic && \
   make -j$(nproc) install
 
-RUN git clone https://github.com/pkuvcl/xavs2/ && \
-  cd xavs2/build/linux && ./configure --disable-asm --enable-pic && \
-  make -j$(nproc) install
-
 RUN git clone https://github.com/Netflix/vmaf/ && \
   cd vmaf/libvmaf && meson build --buildtype release -Ddefault_library=static && ninja -vC build install
 
@@ -163,8 +161,6 @@ RUN git clone git://git.openssl.org/openssl.git && cd openssl && LIBS="-ldl -lz"
 
 # https://stackoverflow.com/questions/18185618/how-to-use-static-linking-with-openssl-in-c-c
 RUN git clone https://github.com/FFmpeg/FFmpeg
-#RUN ls /usr/bin/ && error
-ENV NVCC_PREPEND_FLAGS='-ccbin /usr/bin/g++'
 RUN cd FFmpeg && \
   PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/:/home/makepkg/ssl/lib64/pkgconfig/ ./configure \
     --extra-cflags="-fopenmp -lcrypto -lz -ldl -static-libgcc -I/opt/cuda/include" \
@@ -175,7 +171,6 @@ RUN cd FFmpeg && \
     --toolchain=hardened \
     --disable-debug \
     --disable-shared \
-    --disable-doc \
     --disable-ffplay \
     --enable-static \
     --enable-gpl \
@@ -208,7 +203,6 @@ RUN cd FFmpeg && \
     --enable-libsrt \
     --enable-libsvtav1 \
     --enable-libdavs2 \
-    --enable-libxavs2 \
     --enable-libvmaf \
     --enable-cuda-nvcc \
     --enable-vapoursynth \
@@ -254,7 +248,7 @@ RUN apt-get -y update && apt-get install -y \
 # todo: clean
 RUN python3.11 -m pip install --upgrade pip
 RUN python3.11 -m pip install numpy pyyaml
-RUN git clone -b release/2.2 --recursive https://github.com/pytorch/pytorch
+RUN git clone -b release/2.3 --recursive https://github.com/pytorch/pytorch
 
 WORKDIR /cmake
 
@@ -329,8 +323,8 @@ RUN git clone https://github.com/sekrit-twc/zimg --recursive && cd zimg && \
   apt install /workspace/zimg/zimg_0.0-1_amd64.deb -y
 
 # vapoursynth
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R66.tar.gz && \
-  tar -zxvf R66.tar.gz && mv vapoursynth-R66 vapoursynth && cd vapoursynth && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R68.tar.gz && \
+  tar -zxvf R68.tar.gz && mv vapoursynth-R68 vapoursynth && cd vapoursynth && \
   ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install && ldconfig
 
 # dav1d
@@ -347,7 +341,7 @@ RUN git clone https://github.com/FFmpeg/nv-codec-headers && cd nv-codec-headers 
 # ffmpeg
 RUN apt remove ffmpeg -y
 RUN git clone https://git.ffmpeg.org/ffmpeg.git --depth 1 && cd ffmpeg && \
-  CFLAGS=-fPIC ./configure --enable-cuda --enable-nonfree --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-swresample --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-static" --extra-cflags="-march=native" && \
+  CFLAGS=-fPIC ./configure --enable-libdav1d --enable-cuda --enable-nonfree --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-swresample --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-static" --extra-cflags="-march=native" && \
   make -j$(nproc) && make install -j$(nproc)
 
 # jansson
@@ -360,7 +354,7 @@ RUN git clone https://github.com/libarchive/bzip2 && cd bzip2 && \
 
 # bestsource
 RUN apt-get install libxxhash-dev -y && git clone https://github.com/vapoursynth/bestsource.git --depth 1 --recurse-submodules --shallow-submodules && cd bestsource && \
-  CFLAGS=-fPIC meson setup -Dlink_static=true build && CFLAGS=-fPIC ninja -C build && ninja -C build install
+  CFLAGS=-fPIC meson setup -Denable_plugin=true build && CFLAGS=-fPIC ninja -C build && ninja -C build install
 
 # ffmpeg (HomeOfAviSynthPlusEvolution version with sws)
 # official ffmpeg does not compile
@@ -370,7 +364,7 @@ RUN rm -rf FFmpeg
 
 RUN git clone https://github.com/HomeOfAviSynthPlusEvolution/FFmpeg
 RUN cd FFmpeg && \
-  LDFLAGS="-Wl,-Bsymbolic" CFLAGS=-fPIC ./configure --enable-cuda --enable-nonfree --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-Wl,-Bsymbolic" --extra-cflags="-march=native" && \
+  LDFLAGS="-Wl,-Bsymbolic" CFLAGS=-fPIC ./configure --enable-libdav1d --enable-cuda --enable-nonfree --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-Wl,-Bsymbolic" --extra-cflags="-march=native" && \
   make -j$(nproc) && make install -j$(nproc)
 
 # lsmash
@@ -474,8 +468,8 @@ ARG DEBIAN_FRONTEND=noninteractive
 # todo: test CFLAGS="-fPIC -march=native"
 RUN apt update -y && apt install liblzma-dev libbz2-dev ca-certificates openssl libssl-dev libncurses5-dev libsqlite3-dev libreadline-dev libtk8.6 libgdm-dev \
   libdb4o-cil-dev libpcap-dev software-properties-common wget zlib1g-dev -y && \
-  wget https://www.python.org/ftp/python/3.11.3/Python-3.11.3.tar.xz && \
-  tar -xf Python-3.11.3.tar.xz && cd Python-3.11.3 && \
+  wget https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tar.xz && \
+  tar -xf Python-3.11.9.tar.xz && cd Python-3.11.9 && \
   CFLAGS=-fPIC ./configure --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
   make -j$(nproc) && make altinstall && make install
 # todo: update-alternatives may not be required
@@ -515,7 +509,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cudnn
 # onnxruntime requires working tensorrt installation and thus can't be easily seperated into a seperate instance
 # https://github.com/microsoft/onnxruntime/blob/main/dockerfiles/Dockerfile.tensorrt
 ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
-ARG ONNXRUNTIME_BRANCH=rel-1.17.0
+ARG ONNXRUNTIME_BRANCH=rel-1.17.3
 ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;53;60;61;62;70;72;75;80;89
 
 RUN apt-get update &&\
@@ -593,8 +587,8 @@ WORKDIR workspace
 # todo: test CFLAGS="-fPIC -march=native"
 RUN apt update -y && apt install liblzma-dev libbz2-dev ca-certificates openssl libssl-dev libncurses5-dev libsqlite3-dev libreadline-dev libtk8.6 libgdm-dev \
   libdb4o-cil-dev libpcap-dev software-properties-common wget zlib1g-dev -y && \
-  wget https://www.python.org/ftp/python/3.11.3/Python-3.11.3.tar.xz && \
-  tar -xf Python-3.11.3.tar.xz && cd Python-3.11.3 && \
+  wget https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tar.xz && \
+  tar -xf Python-3.11.9.tar.xz && cd Python-3.11.9 && \
   CFLAGS=-fPIC ./configure --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
   make -j$(nproc) && make altinstall && make install
 # todo: update-alternatives may not be required
@@ -607,7 +601,7 @@ RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.
 RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall
 
 # python shared (for ffmpeg)
-RUN rm -rf Python-3.11.3 && tar -xf Python-3.11.3.tar.xz && cd Python-3.11.3 && \
+RUN rm -rf Python-3.11.9 && tar -xf Python-3.11.9.tar.xz && cd Python-3.11.9 && \
   CFLAGS=-fPIC ./configure --enable-shared --with-ssl --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
   make -j$(nproc)
 
@@ -740,8 +734,8 @@ RUN pip install tensorrt==9.3.0.post12.dev1 --pre tensorrt --extra-index-url htt
   rm -rf /root/.cache/ /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer.so.* /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.* \
     /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_plugin.so.* /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvonnxparser.so.*
 
-COPY --from=TensorRT-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.17.0-cp311-cp311-linux_x86_64.whl /workspace
-RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.17.0-cp311-cp311-linux_x86_64.whl
+COPY --from=TensorRT-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.17.3-cp311-cp311-linux_x86_64.whl /workspace
+RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.17.3-cp311-cp311-linux_x86_64.whl
 
 # holywu plugins
 # currently does not work with trt 9.x because fp16 throws AssertionError: Dtype mismatch for 0th input(getitem_118). Expect torch.float16, got torch.float32
@@ -754,7 +748,7 @@ COPY --from=cupy-ubuntu /cupy/dist/ /workspace
 COPY --from=opencv-ubuntu /opencv-python/opencv*.whl /workspace
 COPY --from=torch-ubuntu /pytorch/dist/ /workspace
 RUN pip uninstall -y cupy* $(pip freeze | grep '^opencv' | cut -d = -f 1) && \
-  find . -name "*whl" ! -path "./Python-3.11.3/*" -exec pip install {} \;
+  find . -name "*whl" ! -path "./Python-3.11.9/*" -exec pip install {} \;
 
 # installing onnx tensorrt with a workaround, error with import otherwise
 # https://github.com/onnx/onnx-tensorrt/issues/643
@@ -773,17 +767,17 @@ RUN pip install pandas
 # ffmpeg: /usr/lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.38' not found (required by ffmpeg)
 RUN mkdir /workspace/hotfix
 WORKDIR /workspace/hotfix
-RUN wget http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc-dev_1.3.4+ds-1_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/libn/libnsl/libnsl-dev_1.3.0-3_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6_2.38-6_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc6-dev_2.38-6_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-bin_2.38-6_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/g/glibc/libc-dev-bin_2.38-6_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/l/linux/linux-libc-dev_6.7.9-2_all.deb \
-    http://ftp.us.debian.org/debian/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.3-1_amd64.deb \
-    http://ftp.us.debian.org/debian/pool/main/libt/libtirpc/libtirpc3_1.3.4+ds-1_amd64.deb
+RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1.3.4+ds-1.1build1_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-3build3_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb \
+    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.39-0ubuntu8.1_amd64.deb \
+    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.39-0ubuntu8.1_amd64.deb \
+    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc-bin_2.39-0ubuntu8.1_amd64.deb \
+    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.39-0ubuntu8.1_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-31.31_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
+    http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4+ds-1.1build1_amd64.deb
 
 ############################
 # final
@@ -800,8 +794,8 @@ WORKDIR workspace
 # install python
 COPY --from=base /usr/local/bin/python /usr/local/bin/
 COPY --from=base /usr/local/lib/python3.11 /usr/local/lib/python3.11
-COPY --from=base /workspace/Python-3.11.3/libpython3.11.so* /workspace/Python-3.11.3/libpython3.so \
-  /workspace/Python-3.11.3/libpython3.so /usr/lib
+COPY --from=base /workspace/Python-3.11.9/libpython3.11.so* /workspace/Python-3.11.9/libpython3.so \
+  /workspace/Python-3.11.9/libpython3.so /usr/lib
 
 # vapoursynth
 COPY --from=base /workspace/zimg/zimg_0.0-1_amd64.deb zimg_0.0-1_amd64.deb
@@ -819,8 +813,10 @@ COPY --from=base /usr/local/lib/libvstrt.so /usr/local/lib/libfmtconv.so /usr/lo
 COPY --from=base /usr/lib/x86_64-linux-gnu/libfftw3f.so* /usr/lib/x86_64-linux-gnu/
 
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/liblsmash.so* /usr/local/lib/
-COPY --from=bestsource-lsmash-ffms2-vs /workspace/L-SMASH-Works/VapourSynth/build/libvslsmashsource.so /workspace/bestsource/build/libbestsource.so /usr/local/lib/vapoursynth
-COPY --from=bestsource-lsmash-ffms2-vs /workspace/ffms2/src/core/.libs/libffms2.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/vapoursynth/libvslsmashsource.so* /usr/local/lib/vapoursynth/
+COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/vapoursynth/bestsource.so* /usr/local/lib/vapoursynth/bestsource.so
+COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/x86_64-linux-gnu/libbestsource.so* /usr/local/lib/x86_64-linux-gnu/libbestsource.so
+COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/libffms2.so* /usr/local/lib/
 
 COPY --from=base /usr/local/lib/vapoursynth/libvmaf.so /usr/local/lib/vapoursynth/libdescale.so /usr/local/lib/vapoursynth/libakarin.so \
   /usr/local/lib/vapoursynth/libmiscfilters.so /usr/local/lib/vapoursynth/libcas.so /usr/local/lib/vapoursynth/
