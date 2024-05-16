@@ -629,10 +629,13 @@ A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 
 2x3090² (C++ TRT+vs_threads=10+num_threads=2+no tiling+opset14) | 22 | 9.5 | 4.2
 4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 8.8* | ? / 3.9*
 
+Rife v2 refers to a custom implementation made by [WolframRhodium](https://github.com/WolframRhodium).
+
 Rife4+vs (ensemble False) | 480p | 720p | 1080p 
 ---  | -------  | ------- | ------- 
 4090 rife4.6 (TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? / 1083.3* | ? / 469.9*
 4090 rife4.15 (TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? / 573.9* | ? / 245*
+4090 rife4.15 v2 (TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op20) | ? | ? / 850.3* | ? / 346.2*
 Steam Deck rife4.6 (ncnn+RGBS) | ? | ? / 19.2* | ? / 8.8*
 Steam Deck rife4.7 (ncnn+RGBS) | ? | ? / 15.2* | ? / 7.2*
 
@@ -640,6 +643,7 @@ Rife4+vs (ensemble True) | 480p | 720p | 1080p
 ---  | -------  | ------- | ------- 
 4090 rife4.6 (TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? / 671.4* | ? / 303.8*
 4090 rife4.15 (TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? / 348.5* | ? / 149.6*
+4090 rife4.15 v2 (TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op20) | ? | ? / 460.5* | ? / 179.1*
 
 * Benchmarks made with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union) with threading and partial TensorRT and without setting `tactic` to `JIT_CONVOLUTIONS` and `EDGE_MASK_CONVOLUTIONS` due to performance penalty. I added [a modified version](https://github.com/styler00dollar/vs-gmfss_union) as a plugin to VSGAN, but I need to add enhancements to my own repo later.
 
