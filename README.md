@@ -629,7 +629,7 @@ A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 
 2x3090² (C++ TRT+vs_threads=10+num_threads=2+no tiling+opset14) | 22 | 9.5 | 4.2
 4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 8.8* | ? / 3.9*
 
-Rife v2 refers to a custom implementation made by [WolframRhodium](https://github.com/WolframRhodium). `int8` output looks usable and close to `fp16`/`bf16`. TRT10 is slower than 9.3 and thus not recommended. Windows seems slower than Linux by quite a margin. Only rife 4.6 v2 seemingly had a big improvement with more streams.
+Rife v2 refers to a custom implementation made by [WolframRhodium](https://github.com/WolframRhodium). `int8` output looks usable and close to `fp16`/`bf16`, but noticibly different. I would recommend to avoid `int8`. TRT10 is slower than 9.3 and thus not recommended. Windows seems slower than Linux by quite a margin. Only rife 4.6 v2 seemingly had a big improvement with more streams.
 
 Rife4+vs (ensemble False) | 480p | 720p | 1080p 
 -------  | -------  | ------- | ------- 
