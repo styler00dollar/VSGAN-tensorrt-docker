@@ -629,7 +629,7 @@ A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 
 2x3090² (C++ TRT+vs_threads=10+num_threads=2+no tiling+opset14) | 22 | 9.5 | 4.2
 4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 8.8* | ? / 3.9*
 
-Rife v2 refers to a custom implementation made by [WolframRhodium](https://github.com/WolframRhodium). `int8` output looks usable and close to `fp16`/`bf16`, but noticibly different. I would recommend to avoid `int8`. TRT10 is slower than 9.3 and thus not recommended. Windows seems slower than Linux by quite a margin. Only rife 4.6 v2 seemingly had a big improvement with more streams.
+Rife v2 refers to a custom implementation made by [WolframRhodium](https://github.com/WolframRhodium). `int8` output looks usable and close to `fp16`/`bf16`, but noticibly different. I would recommend to avoid `int8`. TRT10 is slower than 9.3 and thus not recommended. Windows seems slower than Linux by quite a margin. Not all show major improvement with above 3 streams.
 
 Rife4+vs (ensemble False) | 480p | 720p | 1080p 
 -------  | -------  | ------- | ------- 
@@ -651,6 +651,7 @@ Rife 4.15  | -------  | ------- | -------
 4090 rife4.15 v2 (Win11 mlrt+TRT9.2+num_streams=3+RGBH) | ? | ? | ? / 276.8*
 4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op20) | ? | ? / 930.9* | ? / 360.1*
 4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3+num_streams=3+(int8+fp16+bf16)+RGBH+op20) | ? | ? / 995.3* | ? / 424*
+4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3+num_streams=8+(int8+fp16+bf16)+RGBH+op20) | ? | ? / 1117.6* | ? / 444.5*
 
 Rife4+vs (ensemble True) | 480p | 720p | 1080p 
 -------  | -------  | ------- | ------- 
