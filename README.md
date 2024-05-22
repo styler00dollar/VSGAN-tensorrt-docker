@@ -641,6 +641,7 @@ Rife 4.6  | -------  | ------- | -------
 4090 rife4.6 (Manjaro Gnome VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? / 1083.3* | ? / 469.9*
 4090 rife4.6 v2 (Win11 mlrt+TRT9.2+num_streams=3+RGBH) | ? | ? | ? / 442.4*
 4090 rife4.6 v2 (Win11 mlrt+TRT9.2+num_streams=8+RGBH) | ?  | ? | ? / 480.2*
+4090 rife4.6 v2 (Arch KDE VSGAN+TRT9.3+num_streams=3+RGBH+op16 (fp16 converted mlrt onnx)) | ?  | ? / 1228.4* | ? / 511*
 Steam Deck rife4.6 (ncnn+RGBS) | ? | ? / 19.2* | ? / 8.8*
 Rife 4.15  | -------  | ------- | ------- 
 4090 rife4.15 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 115.2*
@@ -660,6 +661,7 @@ Rife 4.6  | -------  | ------- | -------
 4090 rife4.6 (Win11 VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? | ? / 228.7*
 4090 rife4.6 (Manjaro Gnome VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? / 671.4* | ? / 303.8*
 4090 rife4.6 v2 (Win11 mlrt+TRT9.3+num_streams=3) | ? | ? | ? / 251.8*
+4090 rife4.6 v2 (Arch KDE VSGAN+TRT9.3+num_streams=3+RGBH+op16 (fp16 converted mlrt onnx)) | ?  | ? / 843.8* | ? / 346.2*
 Rife 4.15  | -------  | ------- | ------- 
 4090 rife4.15 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 67*
 4090 rife4.15 (Win11 mlrt+TRT9.2+num_streams=3+RGBH) | ? | ? | ? / 133.4*
