@@ -633,48 +633,50 @@ A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 
 2x3090² (C++ TRT+vs_threads=10+num_threads=2+no tiling+opset14) | 22 | 9.5 | 4.2
 4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 8.8* | ? / 3.9*
 
-Rife v2 refers to a custom implementation made by [WolframRhodium](https://github.com/WolframRhodium). I would recommend to avoid `int8` for 1080p, the warping looks a bit broken. `int8` seems usable with 720p and looks closer to `bf16`/`fp16`. TRT10 is slower than 9.3 and thus not recommended. Windows seems slower than Linux by quite a margin. Not all show major improvement with above 3 streams.
+Rife v2 refers to a custom implementation made by [WolframRhodium](https://github.com/WolframRhodium). I would recommend to avoid `int8` for 1080p, the warping looks a bit broken. `int8` seems usable with 720p and looks closer to `bf16`/`fp16`. TRT10 is slower than 9.3 and thus not recommended. Windows seems slower than Linux by quite a margin. Not all show major improvement with above 3 streams. There mostly seems to be no difference between level 3 and 5.
 
 Rife4+vs (ensemble False) | 480p | 720p | 1080p
 -------  | -------  | ------- | -------
 Rife 4.6  | -------  | ------- | -------
 4090 rife4.6 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 134.3*
-4090 rife4.6 (Arch Gnome vs-rife+TRT8.6+num_streams=3+RGBH) | ? | ? | ? / 287.9*
-4090 rife4.6 (Win11 mlrt+TRT9.2+num_streams=3+RGBH) | ? | ? | ? / 294.5*
-4090 rife4.6 (Win11 VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? | ? / 372.7*
-4090 rife4.6 (Manjaro Gnome VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? / 1083.3* | ? / 469.9*
-4090 rife4.6 v2 (Win11 mlrt+TRT9.2+num_streams=3+RGBH) | ? | ? | ? / 442.4*
-4090 rife4.6 v2 (Win11 mlrt+TRT9.2+num_streams=8+RGBH) | ?  | ? | ? / 480.2*
-4090 rife4.6 v2 (Arch KDE VSGAN+TRT9.3+num_streams=3+RGBH+op16 (fp16 converted mlrt onnx)) | ?  | ? / 1228.4* | ? / 511*
+4090 rife4.6 (Arch KDE vs-rife+TRT10 (level 5)+num_streams=3+RGBH) | ? | ? / 827.1* | ? / 357.9*
+4090 rife4.6 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 294.5*
+4090 rife4.6 (Win11 VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? | ? / 372.7*
+4090 rife4.6 (Manjaro Gnome VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? / 1083.3* | ? / 469.9*
+4090 rife4.6 v2 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 442.4*
+4090 rife4.6 v2 (Win11 mlrt+TRT9.2 (level 3)+num_streams=8+RGBH) | ?  | ? | ? / 480.2*
+4090 rife4.6 v2 (Arch KDE VSGAN+TRT9.3 (level 5)+num_streams=3+RGBH+op16 (fp16 converted mlrt onnx)) | ?  | ? / 1228.4* | ? / 511*
 Steam Deck rife4.6 (ncnn+RGBS) | ? | ? / 19.2* | ? / 8.8*
 Rife 4.15  | -------  | ------- | -------
 4090 rife4.15 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 115.2*
-4090 rife4.15 (Win11 mlrt+TRT9.2+num_streams=3+RGBH) | ? | ? | ? / 237.7*
-4090 rife4.15 (Win11 VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 205*
-4090 rife4.15 (Arch Gnome VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 245.5*
-4090 rife4.15 v2 (Win11 mlrt+TRT9.2+num_streams=3+RGBH) | ? | ? | ? / 276.8*
-4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op20) | ? | ? / 930.9* | ? / 360.1*
-4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3+num_streams=3+(int8+fp16+bf16)+RGBH+op20) | ? | ? / 995.3* | ? / 424*
-4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3+num_streams=8+(int8+fp16+bf16)+RGBH+op20) | ? | ? / 1117.6* | ? / 444.5*
+4090 rife4.6 (Arch KDE vs-rife+TRT10 (level 5)+num_streams=3+RGBH) | ? | ? / 506.3* | ? / 204.2*
+4090 rife4.15 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 237.7*
+4090 rife4.15 (Win11 VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 205*
+4090 rife4.15 (Arch Gnome VSGAN (level 5)+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 245.5*
+4090 rife4.15 v2 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 276.8*
+4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op20) | ? | ? / 930.9* | ? / 360.1*
+4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3 (level 5)+num_streams=3+(int8+fp16+bf16)+RGBH+op20) | ? | ? / 995.3* | ? / 424*
+4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3 (level 5)+num_streams=8+(int8+fp16+bf16)+RGBH+op20) | ? | ? / 1117.6* | ? / 444.5*
 
 Rife4+vs (ensemble True) | 480p | 720p | 1080p
 -------  | -------  | ------- | -------
 Rife 4.6  | -------  | ------- | -------
 4090 rife4.6 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 89.5*
-4090 rife4.6 (Arch Gnome vs-rife+TRT8.6+num_streams=3+RGBH) | ? | ? | ? / 220.4*
-4090 rife4.6 (Win11 mlrt+TRT9.3+num_streams=3) | ? | ? | ? / 226.7*
-4090 rife4.6 (Win11 VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? | ? / 228.7*
-4090 rife4.6 (Manjaro Gnome VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? / 671.4* | ? / 303.8*
-4090 rife4.6 v2 (Win11 mlrt+TRT9.3+num_streams=3) | ? | ? | ? / 251.8*
-4090 rife4.6 v2 (Arch KDE VSGAN+TRT9.3+num_streams=3+RGBH+op16 (fp16 converted mlrt onnx)) | ?  | ? / 843.8* | ? / 346.2*
+4090 rife4.6 (Arch KDE vs-rife+TRT10 (level 5)+num_streams=3+RGBH) | ? | ? / 649.6* | ? / 237.7*
+4090 rife4.6 (Win11 mlrt+TRT9.3 (level 3)+num_streams=3) | ? | ? | ? / 226.7*
+4090 rife4.6 (Win11 VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? | ? / 228.7*
+4090 rife4.6 (Manjaro Gnome VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? / 671.4* | ? / 303.8*
+4090 rife4.6 v2 (Win11 mlrt+TRT9.3 (level 3)+num_streams=3) | ? | ? | ? / 251.8*
+4090 rife4.6 v2 (Arch KDE VSGAN (level 5)+TRT9.3+num_streams=3+RGBH+op16 (fp16 converted mlrt onnx)) | ?  | ? / 843.8* | ? / 346.2*
 Rife 4.15  | -------  | ------- | -------
 4090 rife4.15 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 67*
-4090 rife4.15 (Win11 mlrt+TRT9.2+num_streams=3+RGBH) | ? | ? | ? / 133.4*
-4090 rife4.15 (Win11 VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 139.8*
-4090 rife4.15 (Manjaro Gnome VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? / 348.5* | ? / 149.6*
-4090 rife4.15 v2 (Win11 mlrt+TRT9.2+num_streams=3+RGBH) | ? | ? | ? / 147.3*
-4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op20) | ? | ? / 463.1* | ? / 181.3*
-4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3+num_streams=3+(int8+fp16+bf16)+RGBH+op20) | ? | ? / 557.5* | ? / 210.6*
+4090 rife4.6 (Arch KDE vs-rife+TRT10 (level 5)+num_streams=3+RGBH) | ? | ? / 339.6* | ? / 142.2*
+4090 rife4.15 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 133.4*
+4090 rife4.15 (Win11 VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 139.8*
+4090 rife4.15 (Manjaro Gnome VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? / 348.5* | ? / 149.6*
+4090 rife4.15 v2 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 147.3*
+4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op20) | ? | ? / 463.1* | ? / 181.3*
+4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3 (level 5)+num_streams=3+(int8+fp16+bf16)+RGBH+op20) | ? | ? / 557.5* | ? / 210.6*
 
 * Benchmarks made with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union) with threading and partial TensorRT and without setting `tactic` to `JIT_CONVOLUTIONS` and `EDGE_MASK_CONVOLUTIONS` due to performance penalty. I added [a modified version](https://github.com/styler00dollar/vs-gmfss_union) as a plugin to VSGAN, but I need to add enhancements to my own repo later.
 
