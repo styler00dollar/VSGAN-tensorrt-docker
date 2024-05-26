@@ -124,7 +124,7 @@ Manual ways of downloading the docker image:
 # Download prebuild image from dockerhub (recommended)
 docker pull styler00dollar/vsgan_tensorrt:latest
 
-# if you have `unauthorized: authentication required` problems, download the docker with 
+# if you have `unauthorized: authentication required` problems, download the docker with
 git clone https://github.com/NotGlop/docker-drag
 cd docker-drag
 python docker_pull.py styler00dollar/vsgan_tensorrt:latest
@@ -138,7 +138,7 @@ Manually building docker image from scratch:
 # this command will only work in linux. Run that inside that directory
 DOCKER_BUILDKIT=1 docker build -t styler00dollar/vsgan_tensorrt:latest .
 # If you want to rebuild from scratch or have errors, try to build without cache
-DOCKER_BUILDKIT=1 docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest . 
+DOCKER_BUILDKIT=1 docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest .
 ```
 Manually run docker:
 ```
@@ -152,7 +152,7 @@ docker run --privileged --gpus all -it --rm -v /home/vsgan_path/:/workspace/tens
 Example for C://path
 docker run --privileged --gpus all -it --rm -v /mnt/c/path:/workspace/tensorrt styler00dollar/vsgan_tensorrt:latest
 docker run --privileged --gpus all -it --rm -v //c/path:/workspace/tensorrt styler00dollar/vsgan_tensorrt:latest
-``` 
+```
 <div id='usage-example'/>
 
 ## Usage example
@@ -161,7 +161,7 @@ Small minimalistic example of how to configure inference. If you only want to pr
 ```
 video_path = "test.mkv"
 ```
-and then afterwards edit `inference_config.py`. 
+and then afterwards edit `inference_config.py`.
 
 Small example for upscaling with TensorRT:
 
@@ -210,11 +210,11 @@ core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
 def inference_clip(video_path):
     clip = core.bs.VideoSource(source=video_path)
-    
+
     clip = core.resize.Bicubic(
         clip, format=vs.RGBS, matrix_in_s="709"
     )  # RGBS means fp32, RGBH means fp16
-    
+
     # interpolation
     clip = rife_trt(
         clip,
@@ -242,11 +242,11 @@ core.num_threads = 4
 
 def inference_clip(video_path):
     clip = core.bs.VideoSource(source=video_path)
-    
+
     clip = core.resize.Bicubic(
         clip, format=vs.RGBS, matrix_in_s="709"
     )  # RGBS means fp32, RGBH means fp16
-    
+
     # interpolation
     model_inference = RIFE(
         scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=True
@@ -302,7 +302,7 @@ def inference_clip(video_path):
     clip_metric = vs.core.resize.Bicubic(
         clip, width=224, height=224, format=vs.YUV420P8, matrix_s="709"  # resize before ssim for speedup
     )
-    clip_metric = metrics_func(clip_metric)    
+    clip_metric = metrics_func(clip_metric)
     clip_orig = core.std.Interleave([clip] * interp_scale)
 
     # interpolation
@@ -336,7 +336,7 @@ Detection is implemented in various different ways. To use traditional scene cha
 
 ```python
 clip_sc = core.misc.SCDetect(
-  clip=clip, 
+  clip=clip,
   threshold=0.100
 )
 ```
@@ -444,14 +444,18 @@ DPIR (color) needs 4 channels.
 ```
 trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
 ```
-Rife needs 8 channels. Setting `fasterDynamicShapes0805` since trtexec recommends it.
+Rife v1 needs 8 channels. Setting `fasterDynamicShapes0805` since trtexec recommends it.
 ```
 trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x8x64x64 --optShapes=input:1x8x720x1280 --maxShapes=input:1x8x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --preview=+fasterDynamicShapes0805
+```
+Rife v2 needs 7 channels. Set the same shape everywhere to avoid build errors.
+```
+trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x7x1080x1920 --optShapes=input:1x7x1080x1920 --maxShapes=input:1x7x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
 ```
 
 Put that engine path into `inference_config.py`.
 
-**Warnings**: 
+**Warnings**:
 - Only add `--bf16` if your GPU supports it, otherwise remove it. If model looks broken, remove `--fp16`.
 - Cugan with 3x scale requires same MIN/OPT/MAX shapes.
 - rvpV2 needs 6 channels, but does not support variable shapes.
@@ -479,7 +483,7 @@ clip = core.std.Interleave([stream0, stream1, stream2])
 
 ## ddfi
 
-To quickly explain what ddfi is, the repository [Mr-Z-2697/ddfi-rife](https://github.com/Mr-Z-2697/ddfi-rife) deduplicates frames and interpolates between frames. Normally, frames which are duplicated can create a stuttering visual effect and to mitigate that, a higher interpolation factor is used on scenes which have a duplicated frames to compensate. 
+To quickly explain what ddfi is, the repository [Mr-Z-2697/ddfi-rife](https://github.com/Mr-Z-2697/ddfi-rife) deduplicates frames and interpolates between frames. Normally, frames which are duplicated can create a stuttering visual effect and to mitigate that, a higher interpolation factor is used on scenes which have a duplicated frames to compensate.
 
 Visual examples from that repository:
 
@@ -529,7 +533,7 @@ python color_transfer.py -s input -t target -o output -algo mkl -threads 8
 
 ## Benchmarks
 
-Warnings: 
+Warnings:
 - Keep in mind that these benchmarks can get outdated very fast due to rapid code development and configurations.
 - The default is ffmpeg.
 - ModifyFrame is depricated. Trying to use FrameEval everywhere and is used by default.
@@ -585,12 +589,12 @@ A100 (Colab) (vs+CUDA+FrameEval) | 12 | 5.6 | 2.9
 A100 (Colab) (jpg+CUDA) | ? | ?| 3 (4 Threads)
 4090³ (TensorRT8.4GA+10 vs threads+fp16) | ? | ? / 56* (5 streams) | ? / 19.4* (2 streams)
 
-UltraCompact (2x) | 480p | 720p | 1080p 
+UltraCompact (2x) | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
 4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 113.7* | ? / 52.7*
 6700xt (vs_threads=4+mlrt ncnn) | ? / 14.5* | ? / 6.1* | ? / 2.76*
 
-cugan (2x) | 480p | 720p | 1080p 
+cugan (2x) | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
 1070ti (vs+TensorRT8.4+ffmpeg+C++ TRT+num_streams=2+no tiling+opset13) | 6 | 2.7 | OOM
 V100 (Colab) (vs+CUDA+ffmpeg+FrameEval) | 7 | 3.1 | ?
@@ -622,7 +626,7 @@ Note: The offical RealESRGAN-6b model uses 6 blocks for the anime model and uses
 RealESRGAN (4x) (6b+64nf) | 480p | 720p | 1080p
 ------------  | ---  | ---- | ------
 3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=2) | ? | 1.7 | 0.75
-V100 (Colab High RAM) (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=1+no tiling) | 6.82 | 3.15 | OOM (OpenCL) 
+V100 (Colab High RAM) (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=1+no tiling) | 6.82 | 3.15 | OOM (OpenCL)
 V100 (Colab High RAM) (vs+TensorRT8.2GA+x264+C++ TRT+num_streams=1+no tiling) | ? | ? | 1.39
 A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 | 6.74 | 2.76
 3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 11 | 4.8 | 2.3
@@ -631,9 +635,9 @@ A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 
 
 Rife v2 refers to a custom implementation made by [WolframRhodium](https://github.com/WolframRhodium). I would recommend to avoid `int8` for 1080p, the warping looks a bit broken. `int8` seems usable with 720p and looks closer to `bf16`/`fp16`. TRT10 is slower than 9.3 and thus not recommended. Windows seems slower than Linux by quite a margin. Not all show major improvement with above 3 streams.
 
-Rife4+vs (ensemble False) | 480p | 720p | 1080p 
--------  | -------  | ------- | ------- 
-Rife 4.6  | -------  | ------- | ------- 
+Rife4+vs (ensemble False) | 480p | 720p | 1080p
+-------  | -------  | ------- | -------
+Rife 4.6  | -------  | ------- | -------
 4090 rife4.6 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 134.3*
 4090 rife4.6 (Arch Gnome vs-rife+TRT8.6+num_streams=3+RGBH) | ? | ? | ? / 287.9*
 4090 rife4.6 (Win11 mlrt+TRT9.2+num_streams=3+RGBH) | ? | ? | ? / 294.5*
@@ -643,7 +647,7 @@ Rife 4.6  | -------  | ------- | -------
 4090 rife4.6 v2 (Win11 mlrt+TRT9.2+num_streams=8+RGBH) | ?  | ? | ? / 480.2*
 4090 rife4.6 v2 (Arch KDE VSGAN+TRT9.3+num_streams=3+RGBH+op16 (fp16 converted mlrt onnx)) | ?  | ? / 1228.4* | ? / 511*
 Steam Deck rife4.6 (ncnn+RGBS) | ? | ? / 19.2* | ? / 8.8*
-Rife 4.15  | -------  | ------- | ------- 
+Rife 4.15  | -------  | ------- | -------
 4090 rife4.15 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 115.2*
 4090 rife4.15 (Win11 mlrt+TRT9.2+num_streams=3+RGBH) | ? | ? | ? / 237.7*
 4090 rife4.15 (Win11 VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 205*
@@ -653,9 +657,9 @@ Rife 4.15  | -------  | ------- | -------
 4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3+num_streams=3+(int8+fp16+bf16)+RGBH+op20) | ? | ? / 995.3* | ? / 424*
 4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3+num_streams=8+(int8+fp16+bf16)+RGBH+op20) | ? | ? / 1117.6* | ? / 444.5*
 
-Rife4+vs (ensemble True) | 480p | 720p | 1080p 
--------  | -------  | ------- | ------- 
-Rife 4.6  | -------  | ------- | ------- 
+Rife4+vs (ensemble True) | 480p | 720p | 1080p
+-------  | -------  | ------- | -------
+Rife 4.6  | -------  | ------- | -------
 4090 rife4.6 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 89.5*
 4090 rife4.6 (Arch Gnome vs-rife+TRT8.6+num_streams=3+RGBH) | ? | ? | ? / 220.4*
 4090 rife4.6 (Win11 mlrt+TRT9.3+num_streams=3) | ? | ? | ? / 226.7*
@@ -663,7 +667,7 @@ Rife 4.6  | -------  | ------- | -------
 4090 rife4.6 (Manjaro Gnome VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? / 671.4* | ? / 303.8*
 4090 rife4.6 v2 (Win11 mlrt+TRT9.3+num_streams=3) | ? | ? | ? / 251.8*
 4090 rife4.6 v2 (Arch KDE VSGAN+TRT9.3+num_streams=3+RGBH+op16 (fp16 converted mlrt onnx)) | ?  | ? / 843.8* | ? / 346.2*
-Rife 4.15  | -------  | ------- | ------- 
+Rife 4.15  | -------  | ------- | -------
 4090 rife4.15 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 67*
 4090 rife4.15 (Win11 mlrt+TRT9.2+num_streams=3+RGBH) | ? | ? | ? / 133.4*
 4090 rife4.15 (Win11 VSGAN+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 139.8*
@@ -674,16 +678,16 @@ Rife 4.15  | -------  | ------- | -------
 
 * Benchmarks made with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union) with threading and partial TensorRT and without setting `tactic` to `JIT_CONVOLUTIONS` and `EDGE_MASK_CONVOLUTIONS` due to performance penalty. I added [a modified version](https://github.com/styler00dollar/vs-gmfss_union) as a plugin to VSGAN, but I need to add enhancements to my own repo later.
 
-GMFSS_union | 480p | 720p | 1080p 
+GMFSS_union | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
 4090 (num_threads=8, num_streams=3, RGBH, TRT8.6, matmul_precision=medium) | ? | ? / 44.6* | ? / 15.5*
 
-GMFSS_fortuna_union | 480p | 720p | 1080p 
+GMFSS_fortuna_union | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
 4090 (num_threads=8, num_streams=2, RGBH, TRT8.6.1, matmul_precision=medium) | ? | ? / 50.4* | ? / 16.9*
 4090 (num_threads=8, num_streams=2, RGBH, TRT8.6.1, matmul_precision=medium, @torch.compile(mode="default", fullgraph=True)) | ? | ? / 50.6* | ? / 17*
 
-DPIR | 480p | 720p | 1080p 
+DPIR | 480p | 720p | 1080p
 -------- | ---- | ---- | ----
 4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 54* | ? / 24.4*
 
