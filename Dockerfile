@@ -686,6 +686,11 @@ RUN git clone https://github.com/dubhater/vapoursynth-awarpsharp2 && cd vapoursy
 RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS && cd VapourSynth-CAS && meson build && \
   ninja -C build && ninja -C build install 
 
+# imwri
+RUN apt-get update && apt-get install -y --no-install-recommends imagemagick libmagick++-dev
+RUN git clone https://github.com/vapoursynth/vs-imwri && cd vs-imwri && meson build && \
+  ninja -C build && ninja -C build install 
+
 ########################
 # av1an
 RUN apt install curl libssl-dev mkvtoolnix mkvtoolnix-gui clang-12 nasm libavutil-dev libavformat-dev libavfilter-dev -y && apt-get autoremove -y && apt-get clean
@@ -820,6 +825,8 @@ COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/libffms2.so* /usr/local/li
 
 COPY --from=base /usr/local/lib/vapoursynth/libvmaf.so /usr/local/lib/vapoursynth/libdescale.so /usr/local/lib/vapoursynth/libakarin.so \
   /usr/local/lib/vapoursynth/libmiscfilters.so /usr/local/lib/vapoursynth/libcas.so /usr/local/lib/vapoursynth/
+
+COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/imwri.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/
 
 COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so \
   /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/
