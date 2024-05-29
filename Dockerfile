@@ -687,8 +687,10 @@ RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS && c
   ninja -C build && ninja -C build install 
 
 # imwri
-RUN apt-get update && apt-get install -y --no-install-recommends curl
-RUN curl -LSso build-magick.sh https://imagick.optimizethis.net && bash build-magick.sh
+#RUN apt-get update && apt-get install -y --no-install-recommends curl
+#RUN curl -LSso build-magick.sh https://imagick.optimizethis.net && bash build-magick.sh
+
+RUN git clone https://github.com/rawhide-kobayashi/imagemagick-build-script.git && cd imagemagick-build-script && bash build-magick.sh
 
 #RUN apt-get update && apt-get install -y --no-install-recommends imagemagick libmagick++-dev
 RUN git clone https://github.com/vapoursynth/vs-imwri && cd vs-imwri && meson build && \
