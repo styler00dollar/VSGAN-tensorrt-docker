@@ -155,7 +155,7 @@ RUN git clone https://github.com/FFmpeg/nv-codec-headers && cd nv-codec-headers 
 
 # https://github.com/shadowsocks/shadowsocks-libev/issues/623
 RUN mkdir -p "/home/makepkg/ssl"
-RUN git clone git://git.openssl.org/openssl.git && cd openssl && LIBS="-ldl -lz" LDFLAGS="-Wl,-static -static -static-libgcc -s" \
+RUN git clone https://github.com/openssl/openssl.git && cd openssl && LIBS="-ldl -lz" LDFLAGS="-Wl,-static -static -static-libgcc -s" \
   ./config no-shared -static --prefix="/home/makepkg/ssl" --openssldir="/home/makepkg/ssl" && \
   sed -i 's/^LDFLAGS = /LDFLAGS = -all-static -s/g' Makefile && make -j$(nproc) && make install_sw && make install
 
