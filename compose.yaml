@@ -4,9 +4,10 @@ services:
   vsgan_tensorrt:
     stdin_open: true # docker run -i
     tty: true        # docker run -t
-    image: styler00dollar/vsgan_tensorrt:latest
+    image: styler00dollar/vsgan_tensorrt:latest_no_avx512
     volumes:
       - ./:/workspace/tensorrt
+      - /mnt/fastscratch:/workspace/tensorrt/fastscratch
     privileged: true
     deploy:
       resources:
