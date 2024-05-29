@@ -340,7 +340,7 @@ RUN git clone https://github.com/FFmpeg/nv-codec-headers && cd nv-codec-headers 
 
 # ffmpeg
 RUN apt remove ffmpeg -y
-RUN git clone https://git.ffmpeg.org/ffmpeg.git --depth 1 && cd ffmpeg && \
+RUN git clone https://github.com/FFmpeg/FFmpeg.git --depth 1 && cd ffmpeg && \
   CFLAGS=-fPIC ./configure --enable-libdav1d --enable-cuda --enable-nonfree --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-swresample --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-static" --extra-cflags="-march=native" && \
   make -j$(nproc) && make install -j$(nproc)
 
