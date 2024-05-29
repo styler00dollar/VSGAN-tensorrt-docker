@@ -204,16 +204,16 @@ RUN cd FFmpeg && \
     --enable-libsvtav1 \
     --enable-libdavs2 \
     --enable-libvmaf \
-    --enable-cuda-nvcc \
+    #--enable-cuda-nvcc \
     --enable-vapoursynth \
     #--enable-hardcoded-tables \
     --enable-libopenh264 \
     --enable-optimizations \
-    --enable-cuda-llvm \
-    --enable-nvdec \
-    --enable-nvenc \
-    --enable-cuvid \
-    --enable-cuda \
+    #--enable-cuda-llvm \
+    #--enable-nvdec \
+    #--enable-nvenc \
+    #--enable-cuvid \
+    #--enable-cuda \
     --enable-pthreads \
     --enable-runtime-cpudetect \
     --enable-lto && \
@@ -687,6 +687,8 @@ RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS && c
   ninja -C build && ninja -C build install 
 
 # imwri
+RUN curl -Lso build-magick https://magick.optimizethis.net && bash build-magick
+
 RUN apt-get update && apt-get install -y --no-install-recommends imagemagick libmagick++-dev
 RUN git clone https://github.com/vapoursynth/vs-imwri && cd vs-imwri && meson build && \
   ninja -C build && ninja -C build install 
