@@ -831,7 +831,7 @@ COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/libffms2.so* /usr/local/li
 COPY --from=base /usr/local/lib/vapoursynth/libvmaf.so /usr/local/lib/vapoursynth/libdescale.so /usr/local/lib/vapoursynth/libakarin.so \
   /usr/local/lib/vapoursynth/libmiscfilters.so /usr/local/lib/vapoursynth/libcas.so /usr/local/lib/vapoursynth/
 
-COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/imwri.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/
+COPY --from=base /usr/local/lib/vapoursynth/libimwri.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/
 
 COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so \
   /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/
