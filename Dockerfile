@@ -262,8 +262,8 @@ RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMa
 WORKDIR /
 
 RUN cd pytorch && pip3 install -r requirements.txt \
-    && MAX_JOBS=4 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" USE_NCCL=OFF python3.11 setup.py build \
-    && MAX_JOBS=4 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" python3.11 setup.py bdist_wheel
+    && MAX_JOBS=$(nproc) USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" USE_NCCL=OFF python3.11 setup.py build \
+    && MAX_JOBS=$(nproc) USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" python3.11 setup.py bdist_wheel
 
 ############################
 # cupy
