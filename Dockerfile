@@ -820,10 +820,10 @@ RUN apt update -y && apt install liblzma-dev libbz2-dev ca-certificates openssl 
   make -j$(nproc) && make altinstall && make install
 # todo: update-alternatives may not be required
 RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.11 1 && \
-  update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.11 1 && \
-  cp /usr/local/bin/python3.11 /usr/local/bin/python && \
-  cp /usr/local/bin/pip3.11 /usr/local/bin/pip && \
-  cp /usr/local/bin/pip3.11 /usr/local/bin/pip3
+  #update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.11 1 && \
+  cp /usr/local/bin/python3.11 /usr/local/bin/python #&& \
+  #cp /usr/local/bin/pip3.11 /usr/local/bin/pip && \
+  #cp /usr/local/bin/pip3.11 /usr/local/bin/pip3
 RUN git clone https://github.com/rawhide-kobayashi/imagemagick-build-script.git && cd imagemagick-build-script && bash build-magick.sh
 
 COPY --from=base /usr/local/lib/vapoursynth /usr/local/lib/vapoursynth
