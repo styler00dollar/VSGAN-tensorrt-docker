@@ -811,7 +811,7 @@ COPY --from=base /workspace/Python-3.11.9/libpython3.11.so* /workspace/Python-3.
 COPY --from=base /workspace/zimg/zimg_0.0-1_amd64.deb zimg_0.0-1_amd64.deb
 RUN apt install ./zimg_0.0-1_amd64.deb -y && rm -rf zimg_0.0-1_amd64.deb
 #RUN apt update && apt install libjemalloc2 liblcms2-2 liblqr-1-0 libltdl7 git curl -y
-RUN apt update && apt install git curl wget python3 -y --no-install-recommends
+RUN apt update && apt install git curl wget python3.11 -y --no-install-recommends
 RUN git clone https://github.com/rawhide-kobayashi/imagemagick-build-script.git && cd imagemagick-build-script && bash build-magick.sh
 
 COPY --from=base /usr/local/lib/vapoursynth /usr/local/lib/vapoursynth
