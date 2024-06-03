@@ -850,8 +850,8 @@ COPY --from=base /usr/local/lib/vapoursynth/libimwri.so /usr/local/lib/x86_64-li
 COPY --from=base /usr/lib/x86_64-linux-gnu/libffms2.so /usr/lib/x86_64-linux-gnu/
 COPY --from=base /usr/local/lib/libMagick++-7.Q16HDRI.so.* /usr/local/lib/libMagickCore-7.Q16HDRI.so.* /usr/local/lib/libMagickWand-7.Q16HDRI.so.* \
   /usr/local/lib/
-COPY --from=base /usr/lib/ImageMagick-7.1.1 /usr/lib/ImageMagick-7.1.1
-COPY --from=base /usr/include/ImageMagick-7 /usr/include/ImageMagick-7
+COPY --from=base /usr/lib/ImageMagick-7* /usr/lib/
+#COPY --from=base /usr/include/ImageMagick-7 /usr/include/ImageMagick-7
 
 COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so \
   /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/
