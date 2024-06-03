@@ -810,6 +810,21 @@ COPY --from=base /workspace/Python-3.11.9/libpython3.11.so* /workspace/Python-3.
 # vapoursynth
 COPY --from=base /workspace/zimg/zimg_0.0-1_amd64.deb zimg_0.0-1_amd64.deb
 RUN apt install ./zimg_0.0-1_amd64.deb -y && rm -rf zimg_0.0-1_amd64.deb
+RUN apt update && apt install libjemalloc2 liblcms2-2 liblqr-1-0 libltdl7 -y
+RUN apt update && apt install git curl wget build-essential gcc -y --no-install-recommends
+RUN apt update -y && apt install liblzma-dev libbz2-dev ca-certificates openssl libssl-dev libncurses5-dev libsqlite3-dev libreadline-dev libtk8.6 libgdm-dev \
+  libdb4o-cil-dev libpcap-dev software-properties-common wget zlib1g-dev -y && \
+  wget https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tar.xz && \
+  tar -xf Python-3.11.9.tar.xz && cd Python-3.11.9 && \
+  CFLAGS=-fPIC ./configure --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
+  make -j$(nproc) && make altinstall && make install
+# todo: update-alternatives may not be required
+RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.11 1 && \
+  #update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.11 1 && \
+  cp /usr/local/bin/python3.11 /usr/local/bin/python #&& \
+  #cp /usr/local/bin/pip3.11 /usr/local/bin/pip && \
+  #cp /usr/local/bin/pip3.11 /usr/local/bin/pip3
+RUN git clone https://github.com/rawhide-kobayashi/imagemagick-build-script.git && cd imagemagick-build-script && bash build-magick.sh
 
 COPY --from=base /usr/local/lib/vapoursynth /usr/local/lib/vapoursynth
 COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth /usr/local/lib/x86_64-linux-gnu/vapoursynth
@@ -911,22 +926,6 @@ COPY --from=torch-ubuntu /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcupti.
 # ffmpeg hotfix
 COPY --from=base /workspace/hotfix/* /workspace
 RUN dpkg --force-all -i *.deb  && rm -rf *deb
-
-RUN apt update && apt install libjemalloc2 liblcms2-2 liblqr-1-0 libltdl7 -y
-RUN apt update && apt install git curl wget build-essential gcc -y --no-install-recommends
-RUN apt update -y && apt install liblzma-dev libbz2-dev ca-certificates openssl libssl-dev libncurses5-dev libsqlite3-dev libreadline-dev libtk8.6 libgdm-dev \
-  libdb4o-cil-dev libpcap-dev software-properties-common wget zlib1g-dev -y && \
-  wget https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tar.xz && \
-  tar -xf Python-3.11.9.tar.xz && cd Python-3.11.9 && \
-  CFLAGS=-fPIC ./configure --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
-  make -j$(nproc) && make altinstall && make install
-# todo: update-alternatives may not be required
-RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.11 1 && \
-  #update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.11 1 && \
-  cp /usr/local/bin/python3.11 /usr/local/bin/python #&& \
-  #cp /usr/local/bin/pip3.11 /usr/local/bin/pip && \
-  #cp /usr/local/bin/pip3.11 /usr/local/bin/pip3
-RUN git clone https://github.com/rawhide-kobayashi/imagemagick-build-script.git && cd imagemagick-build-script && bash build-magick.sh
 
 RUN ldconfig
 
