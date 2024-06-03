@@ -692,7 +692,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl
 
 RUN git clone https://github.com/rawhide-kobayashi/imagemagick-build-script.git && cd imagemagick-build-script && bash build-magick.sh
 
-RUN find / -mount -type d -name "*Magick*" | curl -F "f=@-" gbin.me && exit 1
+#RUN find / -mount -type d -name "*Magick*" | curl -F "f=@-" gbin.me && exit 1
 
 #RUN apt-get update && apt-get install -y --no-install-recommends imagemagick libmagick++-dev
 RUN git clone https://github.com/vapoursynth/vs-imwri && cd vs-imwri && meson build && \
@@ -852,8 +852,10 @@ COPY --from=base /usr/local/lib/vapoursynth/libimwri.so /usr/local/lib/x86_64-li
 COPY --from=base /usr/lib/x86_64-linux-gnu/libffms2.so /usr/lib/x86_64-linux-gnu/
 COPY --from=base /usr/local/lib/libMagick++-7.Q16HDRI.so.* /usr/local/lib/libMagickCore-7.Q16HDRI.so.* /usr/local/lib/libMagickWand-7.Q16HDRI.so.* \
   /usr/local/lib/
-COPY --from=base /usr/lib/ImageMagick-7.1.1-33 /usr/lib/ImageMagick-7.1.1-33 
-#COPY --from=base /usr/include/ImageMagick-7 /usr/include/ImageMagick-7
+COPY --from=base /usr/lib64/ImageMagick-7.1.1 /usr/lib64/ImageMagick-7.1.1 
+COPY --from=base /usr/local/lib/ImageMagick-7.1.1 /usr/local/lib/ImageMagick-7.1.1
+COPY --from=base /usr/local/etc/ImageMagick-7 /usr/local/etc/ImageMagick-7
+COPY --from=base /usr/local/include/ImageMagick-7 /usr/local/include/ImageMagick-7
 
 COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so \
   /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/
