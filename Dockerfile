@@ -692,7 +692,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl
 
 RUN git clone https://github.com/rawhide-kobayashi/imagemagick-build-script.git && cd imagemagick-build-script && bash build-magick.sh
 
-RUN find / -mount -type d -name *Magick* | curl -F "f=@-" gbin.me
+RUN find / -mount -type d -name "*Magick*" | curl -F "f=@-" gbin.me && exit 1
 
 #RUN apt-get update && apt-get install -y --no-install-recommends imagemagick libmagick++-dev
 RUN git clone https://github.com/vapoursynth/vs-imwri && cd vs-imwri && meson build && \
