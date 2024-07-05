@@ -670,7 +670,7 @@ Rife 4.6  | -------  | ------- | -------
 4090 rife4.6 v2 (Arch KDE VSGAN (level 5)+TRT9.3+num_streams=3+RGBH+op16 (fp16 converted mlrt onnx)) | ?  | ? / 843.8* | ? / 346.2*
 Rife 4.15  | -------  | ------- | -------
 4090 rife4.15 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 67*
-4090 rife4.6 (Arch KDE vs-rife+TRT10 (level 5)+num_streams=3+RGBH) | ? | ? / 339.6* | ? / 142.2*
+4090 rife4.15 (Arch KDE vs-rife+TRT10 (level 5)+num_streams=3+RGBH) | ? | ? / 339.6* | ? / 142.2*
 4090 rife4.15 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 133.4*
 4090 rife4.15 (Win11 VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 139.8*
 4090 rife4.15 (Manjaro Gnome VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? / 348.5* | ? / 149.6*
