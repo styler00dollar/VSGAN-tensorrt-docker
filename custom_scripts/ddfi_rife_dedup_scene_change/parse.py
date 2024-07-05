@@ -52,9 +52,9 @@ clip = core.bs.VideoSource(source=globals()["source"])
 
 clip = scene_detect(
     clip,
-    thresh=0.98,
-    onnx_path="/workspace/tensorrt/sc_efficientnetv2b0+rife46_flow_1362_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx",
-    resolution=256,
+    fp16=True,
+    thresh=0.85,
+    model=12,
 )
 
 offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]

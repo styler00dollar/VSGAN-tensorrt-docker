@@ -32,8 +32,8 @@ def inference_clip(video_path="", clip=None):
     clip_sc = scene_detect(
         clip,
         fp16=True,
-        thresh=0.5,
-        model=3,
+        thresh=0.85,
+        model=12,
     )
 
     # adjusting clip length
