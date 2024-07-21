@@ -19,7 +19,7 @@ def process_file(file_path):
         output_dir, os.path.splitext(os.path.basename(fixed_file_path))[0] + "_mux.mkv"
     )
     os.system(
-        f"ffmpeg -i '{f}' -map 0 -c:a copy -c:s copy -fps_mode cfr -crf 5 '{out_path}' -y"
+        f"ffmpeg -i '{file_path}' -map 0 -c:a copy -c:s copy -fps_mode cfr -crf 5 '{out_path}' -y"
     )
 
 
