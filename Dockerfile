@@ -51,8 +51,8 @@ RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.5.tar.
   ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
 ENV PATH /usr/local/bin:$PATH
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R68.tar.gz && \
-  tar -zxvf R68.tar.gz && cd vapoursynth-R68 && ./autogen.sh && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R69.tar.gz && \
+  tar -zxvf R69.tar.gz && cd vapoursynth-R69 && ./autogen.sh && \
   PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/local/lib/pkgconfig" ./configure --enable-static --disable-shared && \
   make && make install && cd .. && ldconfig
 
@@ -131,13 +131,7 @@ RUN git clone https://github.com/Haivision/srt/ && \
   make -j$(nproc) && make install
 
 RUN git clone https://gitlab.com/AOMediaCodec/SVT-AV1/ && \
-  cd SVT-AV1 && \
-  sed -i 's/picture_copy(/svt_av1_picture_copy(/g' \
-    Source/Lib/Common/Codec/EbPictureOperators.c \
-    Source/Lib/Common/Codec/EbPictureOperators.h \
-    Source/Lib/Encoder/Codec/EbFullLoop.c \
-    Source/Lib/Encoder/Codec/EbProductCodingLoop.c && \
-  cd Build && \
+  cd SVT-AV1/Build && \
   cmake .. -G"Unix Makefiles" -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && \
   make -j$(nproc) install
 
@@ -155,11 +149,16 @@ RUN git clone https://github.com/FFmpeg/nv-codec-headers && cd nv-codec-headers 
 
 # https://github.com/shadowsocks/shadowsocks-libev/issues/623
 RUN mkdir -p "/home/makepkg/ssl"
-RUN git clone git://git.openssl.org/openssl.git && cd openssl && LIBS="-ldl -lz" LDFLAGS="-Wl,-static -static -static-libgcc -s" \
+RUN git clone https://github.com/openssl/openssl && cd openssl && LIBS="-ldl -lz" LDFLAGS="-Wl,-static -static -static-libgcc -s" \
   ./config no-shared -static --prefix="/home/makepkg/ssl" --openssldir="/home/makepkg/ssl" && \
   sed -i 's/^LDFLAGS = /LDFLAGS = -all-static -s/g' Makefile && make -j$(nproc) && make install_sw && make install
 
+# todo: can't figure out "ERROR: failed checking for nvcc", may be gcc version mismatch
+# https://stackoverflow.com/questions/6622454/cuda-incompatible-with-my-gcc-version
+# https://github.com/NVIDIA/cuda-samples/issues/46#issuecomment-2030697518
+# openssl static
 # https://stackoverflow.com/questions/18185618/how-to-use-static-linking-with-openssl-in-c-c
+
 RUN git clone https://github.com/FFmpeg/FFmpeg
 RUN cd FFmpeg && \
   PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/:/home/makepkg/ssl/lib64/pkgconfig/ ./configure \
@@ -204,12 +203,12 @@ RUN cd FFmpeg && \
     --enable-libsvtav1 \
     --enable-libdavs2 \
     --enable-libvmaf \
-    --enable-cuda-nvcc \
+    #--enable-cuda-nvcc \ # ERROR: failed checking for nvcc
     --enable-vapoursynth \
     #--enable-hardcoded-tables \
     --enable-libopenh264 \
     --enable-optimizations \
-    --enable-cuda-llvm \
+    #--enable-cuda-llvm \ # ERROR: cuda_llvm requested but not found
     --enable-nvdec \
     --enable-nvenc \
     --enable-cuvid \
@@ -224,7 +223,7 @@ RUN cd FFmpeg && \
 # compiling own torch since the official whl is bloated
 # could be smaller in terms of dependencies and whl size, but for now, -500mb smaller docker size
 ############################
-FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as torch-ubuntu
+FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 as torch-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -268,7 +267,7 @@ RUN cd pytorch && pip3 install -r requirements.txt \
 ############################
 # cupy
 ############################
-FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as cupy-ubuntu
+FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 as cupy-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -298,7 +297,7 @@ RUN git clone https://github.com/cupy/cupy --recursive && cd cupy && git submodu
 # bestsource / lsmash / ffms2
 # todo: check if CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" --extra-ldflags="-static" is required
 ############################
-FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as bestsource-lsmash-ffms2-vs
+FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 as bestsource-lsmash-ffms2-vs
 
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR workspace
@@ -323,8 +322,8 @@ RUN git clone https://github.com/sekrit-twc/zimg --recursive && cd zimg && \
   apt install /workspace/zimg/zimg_0.0-1_amd64.deb -y
 
 # vapoursynth
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R68.tar.gz && \
-  tar -zxvf R68.tar.gz && mv vapoursynth-R68 vapoursynth && cd vapoursynth && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R69.tar.gz && \
+  tar -zxvf R69.tar.gz && mv vapoursynth-R69 vapoursynth && cd vapoursynth && \
   ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install && ldconfig
 
 # dav1d
@@ -352,8 +351,8 @@ RUN git clone https://github.com/akheron/jansson && cd jansson && autoreconf -fi
 RUN git clone https://github.com/libarchive/bzip2 && cd bzip2 && \
   mkdir build && cd build && cmake .. -DBUILD_SHARED_LIBS=OFF && make -j$(nproc) && make install
 
-# bestsource
-RUN apt-get install libxxhash-dev -y && git clone https://github.com/vapoursynth/bestsource.git --depth 1 --recurse-submodules --shallow-submodules && cd bestsource && \
+# bestsource (custom bestsource to add back _AbsoluteTime)
+RUN apt-get install libxxhash-dev -y && git clone https://github.com/styler00dollar/bestsource --depth 1 --recurse-submodules --shallow-submodules && cd bestsource && \
   CFLAGS=-fPIC meson setup -Denable_plugin=true build && CFLAGS=-fPIC ninja -C build && ninja -C build install
 
 # ffmpeg (HomeOfAviSynthPlusEvolution version with sws)
@@ -380,7 +379,7 @@ RUN git clone https://github.com/FFMS/ffms2 && cd ffms2 && ./autogen.sh && CFLAG
 ############################
 # OpenCV
 ############################
-FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04 as opencv-ubuntu
+FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 as opencv-ubuntu
 ARG DEBIAN_FRONTEND=noninteractive
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES all
@@ -453,11 +452,10 @@ RUN python3.11 -m pip install --upgrade pip setuptools wheel && python3.11 -m pi
   ENABLE_ROLLING=1 ENABLE_CONTRIB=1 MAKEFLAGS="-j$(nproc)" \
   python3.11 -m pip wheel . --verbose
 
-
 ############################
 # TensorRT + ORT
 ############################
-FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as TensorRT-ubuntu
+FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 as TensorRT-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -509,7 +507,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cudnn
 # onnxruntime requires working tensorrt installation and thus can't be easily seperated into a seperate instance
 # https://github.com/microsoft/onnxruntime/blob/main/dockerfiles/Dockerfile.tensorrt
 ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
-ARG ONNXRUNTIME_BRANCH=rel-1.17.3
+ARG ONNXRUNTIME_BRANCH=rel-1.18.1
 ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;53;60;61;62;70;72;75;80;89
 
 RUN apt-get update &&\
@@ -555,9 +553,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   apt-get purge --autoremove -y curl && \
   rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  cuda-12-1 \
-  cuda-cudart-12-1 \
-  cuda-compat-12-1 && \
+  cuda-12-4 \
+  cuda-cudart-12-4 \
+  cuda-compat-12-4 && \
   rm -rf /var/lib/apt/lists/*
 RUN echo "/usr/local/nvidia/lib" >>/etc/ld.so.conf.d/nvidia.conf && \
   echo "/usr/local/nvidia/lib64" >>/etc/ld.so.conf.d/nvidia.conf
@@ -574,7 +572,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
   libegl1-mesa-dev && \
   rm -rf /var/lib/apt/lists/*
 # may not be required
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-12.0/lib64:/usr/local/cuda-12.0/lib
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-12.4/lib64:/usr/local/cuda-12.4/lib
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
 ENV NVIDIA_DRIVER_CAPABILITIES all
 
@@ -626,11 +624,8 @@ RUN pip install --upgrade pip && pip install cython && git clone https://github.
   cd vapoursynth && python setup.py bdist_wheel
 
 #################################################################
-# pycuda
-RUN pip install numpy && git clone https://github.com/inducer/pycuda --recursive && cd pycuda && python setup.py bdist_wheel
-
 # color transfer
-RUN pip install docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
+RUN pip install numpy docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
 
 # vs-mlrt
 # trt9.3 with tar since apt still only has 8.6
@@ -706,13 +701,7 @@ RUN git clone https://github.com/xiph/rav1e && \
   mv ./target/release/rav1e /usr/local/bin 
 
 RUN git clone https://gitlab.com/AOMediaCodec/SVT-AV1/ && \
-  cd SVT-AV1 && \
-  sed -i 's/picture_copy(/svt_av1_picture_copy(/g' \
-    Source/Lib/Common/Codec/EbPictureOperators.c \
-    Source/Lib/Common/Codec/EbPictureOperators.h \
-    Source/Lib/Encoder/Codec/EbFullLoop.c \
-    Source/Lib/Encoder/Codec/EbProductCodingLoop.c && \
-  cd Build && \
+  cd SVT-AV1/Build && \
   cmake .. -G"Unix Makefiles" -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && \
   make -j$(nproc) && make install 
 
@@ -734,8 +723,8 @@ RUN pip install tensorrt==9.3.0.post12.dev1 --pre tensorrt --extra-index-url htt
   rm -rf /root/.cache/ /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer.so.* /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.* \
     /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_plugin.so.* /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvonnxparser.so.*
 
-COPY --from=TensorRT-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.17.3-cp311-cp311-linux_x86_64.whl /workspace
-RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.17.3-cp311-cp311-linux_x86_64.whl
+COPY --from=TensorRT-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.18.1-cp311-cp311-linux_x86_64.whl /workspace
+RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.18.1-cp311-cp311-linux_x86_64.whl
 
 # holywu plugins
 # currently does not work with trt 9.x because fp16 throws AssertionError: Dtype mismatch for 0th input(getitem_118). Expect torch.float16, got torch.float32
@@ -750,14 +739,6 @@ COPY --from=torch-ubuntu /pytorch/dist/ /workspace
 RUN pip uninstall -y cupy* $(pip freeze | grep '^opencv' | cut -d = -f 1) && \
   find . -name "*whl" ! -path "./Python-3.11.9/*" -exec pip install {} \;
 
-# installing onnx tensorrt with a workaround, error with import otherwise
-# https://github.com/onnx/onnx-tensorrt/issues/643
-# also disables pip cache purge
-RUN git clone https://github.com/onnx/onnx-tensorrt.git && \
-  cd onnx-tensorrt && \
-  cp -r onnx_tensorrt /usr/local/lib/python3.11/dist-packages && \
-  cd .. && rm -rf onnx-tensorrt
-
 # ddfi csv
 RUN pip install pandas
 
@@ -771,18 +752,18 @@ RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1
     http://mirrors.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb \
     http://mirrors.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-3build3_amd64.deb \
     http://mirrors.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb \
-    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.39-0ubuntu8.1_amd64.deb \
-    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.39-0ubuntu8.1_amd64.deb \
-    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc-bin_2.39-0ubuntu8.1_amd64.deb \
-    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.39-0ubuntu8.1_amd64.deb \
-    http://mirrors.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-31.31_amd64.deb \
+    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.39-0ubuntu8.2_amd64.deb \
+    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.39-0ubuntu8.2_amd64.deb \
+    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc-bin_2.39-0ubuntu8.2_amd64.deb \
+    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.39-0ubuntu8.2_amd64.deb \
+    http://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-38.38_amd64.deb \
     http://mirrors.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
     http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4+ds-1.1build1_amd64.deb
 
 ############################
 # final
 ############################
-FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04 as final
+FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 as final
 # maybe official tensorrt image is better, but it uses 20.04
 #FROM nvcr.io/nvidia/tensorrt:23.04-py3 as final
 ARG DEBIAN_FRONTEND=noninteractive
@@ -826,7 +807,7 @@ COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr
 
 # av1an / rav1e / svt / aom
 COPY --from=base /usr/bin/av1an /usr/local/bin/rav1e /usr/bin/
-COPY --from=base /usr/local/bin/SvtAv1EncApp /usr/local/bin/SvtAv1DecApp /usr/local/bin/aomenc /usr/local/bin/
+COPY --from=base /usr/local/bin/SvtAv1EncApp /usr/local/bin/aomenc /usr/local/bin/
 # ffmpeg
 COPY --from=ffmpeg-arch /home/makepkg/FFmpeg/ffmpeg /usr/local/bin/ffmpeg
 
@@ -891,7 +872,7 @@ COPY --from=TensorRT-ubuntu /usr/local/tensorrt/bin/trtexec /usr/bin
 # torch
 COPY --from=torch-ubuntu /usr/lib/x86_64-linux-gnu/libopenblas.so* /usr/lib/x86_64-linux-gnu/libgfortran.so* \
   /usr/lib/x86_64-linux-gnu/libquadmath.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=torch-ubuntu /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcupti.so /usr/lib/x86_64-linux-gnu/
+COPY --from=torch-ubuntu /usr/local/cuda-12.4/targets/x86_64-linux/lib/libcupti.so /usr/lib/x86_64-linux-gnu/
 
 # ffmpeg hotfix
 COPY --from=base /workspace/hotfix/* /workspace
