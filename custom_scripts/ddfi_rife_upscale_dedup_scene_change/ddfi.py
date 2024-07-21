@@ -113,7 +113,7 @@ clip = CsvToProp(clip, "tmp/infos_running.txt")
 
 clip = core.std.DeleteFrames(clip, dels)
 
-clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
+clip = vs.core.resize.Bicubic(clip, format=vs.RGBS)
 clip_orig = vs.core.std.Interleave([clip] * 8)
 
 clip = rife_trt(
@@ -164,7 +164,7 @@ clip = core.std.FrameEval(
     ),
 )
 
-clip = vs.core.resize.Bicubic(clip, format=vs.RGBH, matrix_in_s="709")
+clip = vs.core.resize.Bicubic(clip, format=vs.RGBH)
 
 clip = core.trt.Model(
     clip,
