@@ -13,7 +13,6 @@ core = vs.core
 
 core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so")
 core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
-core.std.LoadPlugin(path="/usr/lib/x86_64-linux-gnu/libffms2.so")
 
 
 ssimt = 0.999
@@ -114,7 +113,7 @@ clip = CsvToProp(clip, "tmp/infos_running.txt")
 
 clip = core.std.DeleteFrames(clip, dels)
 
-clip = vs.core.resize.Bicubic(clip, format=vs.RGBH, matrix_in_s="709")
+clip = vs.core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
 clip_orig = vs.core.std.Interleave([clip] * 8)
 
 clip = rife_trt(
@@ -123,12 +122,11 @@ clip = rife_trt(
     scale=1.0,
     device_id=0,
     num_streams=2,
-    engine_path="/workspace/tensorrt/rife414_ensembleTrue_op18_fp16_clamp_sim_trt93.engine",
+    engine_path="/workspace/tensorrt/rife418_v2_ensembleFalse_op20_clamp_onnxslim.engine",
 )
 clip = core.akarin.Select([clip, clip_orig], clip, "x._SceneChangeNext 1 0 ?")
 clip = core.akarin.Select([clip, clip_orig], clip, "x.float_ssim 0.999 >")
 
-clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
 
 clip = core.vfrtocfr.VFRToCFR(
     clip, os.path.join(tmp_dir, "tsv2nX8.txt"), 192000, 1001, True
@@ -148,7 +146,7 @@ def frame_adjuster(n, clip, target_fps_num, target_fps_den):
     return one_frame_clip
 
 
-attribute_clip = core.std.BlankClip(
+clip = core.std.BlankClip(
     clip,
     length=math.floor(
         len(clip) * target_fps_num / target_fps_den * clip.fps_den / clip.fps_num
@@ -156,8 +154,8 @@ attribute_clip = core.std.BlankClip(
     fpsnum=target_fps_num,
     fpsden=target_fps_den,
 )
-adjusted_clip = core.std.FrameEval(
-    attribute_clip,
+clip = core.std.FrameEval(
+    clip,
     functools.partial(
         frame_adjuster,
         clip=clip,
@@ -166,4 +164,13 @@ adjusted_clip = core.std.FrameEval(
     ),
 )
 
-adjusted_clip.set_output()
+clip = vs.core.resize.Bicubic(clip, format=vs.RGBH, matrix_in_s="709")
+
+clip = core.trt.Model(
+    clip,
+    engine_path="/workspace/tensorrt/2x_AnimeJaNai_V2.1_SmoothRC12_Compact_34k_clamp_fp16_op20.engine",
+    num_streams=2,
+)
+clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+
+clip.set_output()
