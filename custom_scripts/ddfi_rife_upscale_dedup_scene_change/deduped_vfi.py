@@ -23,5 +23,5 @@ for f in files:
 
     # render
     os.system(
-        f"vspipe -c y4m ddfi.py --arg source='{f}' -  | ffmpeg -y -i '{f}' -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -vcodec libsvtav1 -svtav1-params tune=0,enable-overlays=1,enable-qm=1 -preset 8 -crf 10 '{mux_path}'"
+        f"vspipe -c y4m ddfi.py --arg source='{f}' -  | ffmpeg -y -i '{f}' -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -vcodec libsvtav1 -svtav1-params tune=0,enable-overlays=1,enable-qm=1 -preset 6 -crf 10 '{mux_path}'"
     )
