@@ -26,10 +26,6 @@ tmp_dir = "tmp/"
 import sys
 
 
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
-
 def metrics_func(clip):
     offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
     offs1 = core.std.CopyFrameProps(offs1, clip)
@@ -113,7 +109,7 @@ clip = CsvToProp(clip, "tmp/infos_running.txt")
 
 clip = core.std.DeleteFrames(clip, dels)
 
-clip = vs.core.resize.Bicubic(clip, format=vs.RGBS)
+clip = vs.core.resize.Bicubic(clip, format=vs.RGBH, matrix_in_s="709")
 clip_orig = vs.core.std.Interleave([clip] * 8)
 
 clip = rife_trt(
@@ -122,7 +118,7 @@ clip = rife_trt(
     scale=1.0,
     device_id=0,
     num_streams=2,
-    engine_path="/workspace/tensorrt/rife418_v2_ensembleFalse_op20_clamp_onnxslim.engine",
+    engine_path="/workspace/tensorrt/rife418_v2_ensembleFalse_op20_fp16_clamp_onnxslim.engine",
 )
 clip = core.akarin.Select([clip, clip_orig], clip, "x._SceneChangeNext 1 0 ?")
 clip = core.akarin.Select([clip, clip_orig], clip, "x.float_ssim 0.999 >")
@@ -163,8 +159,6 @@ clip = core.std.FrameEval(
         target_fps_den=target_fps_den,
     ),
 )
-
-clip = vs.core.resize.Bicubic(clip, format=vs.RGBH)
 
 clip = core.trt.Model(
     clip,
