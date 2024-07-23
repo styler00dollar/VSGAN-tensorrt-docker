@@ -142,7 +142,7 @@ def frame_adjuster(n, clip, target_fps_num, target_fps_den):
     return one_frame_clip
 
 
-clip = core.std.BlankClip(
+attribute_clip = core.std.BlankClip(
     clip,
     length=math.floor(
         len(clip) * target_fps_num / target_fps_den * clip.fps_den / clip.fps_num
@@ -150,8 +150,8 @@ clip = core.std.BlankClip(
     fpsnum=target_fps_num,
     fpsden=target_fps_den,
 )
-clip = core.std.FrameEval(
-    clip,
+adjusted_clip = core.std.FrameEval(
+    attribute_clip,
     functools.partial(
         frame_adjuster,
         clip=clip,
@@ -160,11 +160,13 @@ clip = core.std.FrameEval(
     ),
 )
 
-clip = core.trt.Model(
-    clip,
+adjusted_clip = core.trt.Model(
+    adjusted_clip,
     engine_path="/workspace/tensorrt/2x_AnimeJaNai_V2.1_SmoothRC12_Compact_34k_clamp_fp16_op20.engine",
     num_streams=2,
 )
-clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+adjusted_clip = vs.core.resize.Bicubic(
+    adjusted_clip, format=vs.YUV420P8, matrix_s="709"
+)
 
-clip.set_output()
+adjusted_clip.set_output()
