@@ -8,6 +8,7 @@ import os
 core = vs.core
 ort.set_default_logger_severity(3)
 
+
 # only autoshot is an official paper model, other models are my own attempts at having useful vfi frame blocking
 # try the maxxvitv2 models if you are unsure what to use
 def scene_detect(
@@ -20,7 +21,9 @@ def scene_detect(
     ssim_thresh: float = 0.98,
 ) -> vs.VideoNode:
     if model == 0:
-        onnx_path = "sc_efficientformerv2_s0_12263_224_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx"
+        onnx_path = (
+            "sc_efficientformerv2_s0_12263_224_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx"
+        )
         resolution = [224, 224]
         onnx_type = "2img"
     elif model == 1:
@@ -28,7 +31,9 @@ def scene_detect(
         resolution = [224, 224]
         onnx_type = "2img"
     elif model == 2:
-        onnx_path = "sc_efficientnetv2b0_17957_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx"
+        onnx_path = (
+            "sc_efficientnetv2b0_17957_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx"
+        )
         resolution = [256, 256]
         onnx_type = "2img"
     elif model == 3:
@@ -36,7 +41,9 @@ def scene_detect(
         resolution = [256, 256]
         onnx_type = "2img"
     elif model == 4:
-        onnx_path = "sc_swinv2_small_window16_10412_256_CHW_6ch_clamp_softmax_op17_fp16.onnx"
+        onnx_path = (
+            "sc_swinv2_small_window16_10412_256_CHW_6ch_clamp_softmax_op17_fp16.onnx"
+        )
         resolution = [256, 256]
         onnx_type = "2img"
     elif model == 5:
@@ -71,7 +78,7 @@ def scene_detect(
         onnx_path = "maxxvitv2_rmlp_base_rw_224.sw_in12k_b80_224px_20k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
         resolution = [224, 224]
         onnx_type = "2img"
-        
+
     onnx_path = os.path.join("/workspace/tensorrt/models/", onnx_path)
     check_and_download(onnx_path)
 

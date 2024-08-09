@@ -22,8 +22,7 @@ def get_model_variables(model_path):
     with runner:
         input_metadata = runner.get_input_metadata()
         input_precision = input_metadata["input"].dtype
-        num_channels_in = engine.get_binding_shape(0)[1]
-
+        num_channels_in = input_metadata["input"].shape[1]
         return input_precision, num_channels_in
 
 
@@ -35,6 +34,7 @@ def rife_trt(
     num_streams: int = 1,
     engine_path: str = "",
 ):
+
     model_precision, model_in_channels = get_model_variables(engine_path)
     if model_precision == "float32":
         grayPrecision = vs.GRAYS

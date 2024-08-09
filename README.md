@@ -90,10 +90,11 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 
 | docker image  | compressed download | extracted container | short description |
 | ------------- | ------------------- | ------------------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest | 8gb | 15gb | default latest trt9.3
-| styler00dollar/vsgan_tensorrt:latest_no_avx512 | 8gb | 15gb | default latest trt9.3 without avx512
+| styler00dollar/vsgan_tensorrt:latest | 9gb | 17gb | default latest with trt10.3
+| styler00dollar/vsgan_tensorrt:latest_no_avx512 (placeholder, need to build and upload later) | ? | ? | trt10.3 without avx512
+| styler00dollar/vsgan_tensorrt:trt9.3 | 8gb | 15gb | trt9.3 [use `bfdb96a` with this docker](https://github.com/styler00dollar/VSGAN-tensorrt-docker/commit/bfdb96a329682af19d093ecb990f67e823ea2e89)
+| styler00dollar/vsgan_tensorrt:trt9.3_no_avx512 | 8gb | 15gb | trt9.3 without avx512 [use `bfdb96a` with this docker](https://github.com/styler00dollar/VSGAN-tensorrt-docker/commit/bfdb96a329682af19d093ecb990f67e823ea2e89)
 | styler00dollar/vsgan_tensorrt:minimal | 4gb | 8gb | trt8.6 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
-| styler00dollar/vsgan_tensorrt:trt10.0 | 8gb | 15gb | trt10.0 (not recommended, rife broken)
 
 Piping usage:
 ```
@@ -444,9 +445,9 @@ DPIR (color) needs 4 channels.
 ```
 trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
 ```
-Rife v1 needs 8 channels. Setting `fasterDynamicShapes0805` since trtexec recommends it.
+Rife v1 needs 8 channels.
 ```
-trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x8x64x64 --optShapes=input:1x8x720x1280 --maxShapes=input:1x8x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --preview=+fasterDynamicShapes0805
+trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x8x64x64 --optShapes=input:1x8x720x1280 --maxShapes=input:1x8x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
 ```
 Rife v2 needs 7 channels. Set the same shape everywhere to avoid build errors.
 ```
@@ -698,3 +699,4 @@ DPIR | 480p | 720p | 1080p
 ## License
 
 This code uses code from other repositories, but the code I wrote myself is under BSD3.
+

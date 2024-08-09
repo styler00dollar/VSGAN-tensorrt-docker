@@ -161,7 +161,7 @@ RUN git clone https://github.com/openssl/openssl && cd openssl && LIBS="-ldl -lz
 
 RUN git clone https://github.com/FFmpeg/FFmpeg
 RUN cd FFmpeg && \
-  PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/:/home/makepkg/ssl/lib64/pkgconfig/ ./configure \
+CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declaration" PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/:/home/makepkg/ssl/lib64/pkgconfig/ ./configure \
     --extra-cflags="-fopenmp -lcrypto -lz -ldl -static-libgcc -I/opt/cuda/include" \
     --extra-cxxflags="-fopenmp -lcrypto -lz -ldl -static-libgcc" \
     --extra-ldflags="-fopenmp -lcrypto -lz -ldl -static-libgcc -L/opt/cuda/lib64" \
@@ -490,11 +490,11 @@ RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-rei
 
 # https://github.com/NVIDIA/TensorRT-LLM/blob/main/docker/common/install_tensorrt.sh
 # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=tensorrt
-RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/9.3.0/TensorRT-9.3.0.1.Linux.x86_64-gnu.cuda-12.2.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.3.0/tars/TensorRT-10.3.0.26.Linux.x86_64-gnu.cuda-12.5.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-9.3.0.1 /usr/local/tensorrt
+RUN mv /usr/local/TensorRT-10.3.0.26 /usr/local/tensorrt
 RUN pip3 install /usr/local/tensorrt/python/tensorrt-*-cp311-*.whl
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/tensorrt/lib
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/tensorrt/targets/x86_64-linux-gnu/lib/
 
 # cudnn
 # https://gitlab.archlinux.org/archlinux/packaging/packages/cudnn/-/blob/main/PKGBUILD?ref_type=heads
@@ -629,10 +629,10 @@ RUN pip install numpy docutils pygments && git clone https://github.com/hahnec/c
 
 # vs-mlrt
 # trt9.3 with tar since apt still only has 8.6
-RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/9.3.0/TensorRT-9.3.0.1.Linux.x86_64-gnu.cuda-12.2.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.3.0/tars/TensorRT-10.3.0.26.Linux.x86_64-gnu.cuda-12.5.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-9.3.0.1/lib/* /usr/lib/x86_64-linux-gnu
-RUN mv /usr/local/TensorRT-9.3.0.1/include/* /usr/include/x86_64-linux-gnu/
+RUN mv /usr/local/TensorRT-10.3.0.26/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
+RUN mv /usr/local/TensorRT-10.3.0.26/include/* /usr/include/x86_64-linux-gnu/
 RUN cd /usr/lib/x86_64-linux-gnu \
   && ldconfig
 ENV CPLUS_INCLUDE_PATH="/usr/include/x86_64-linux-gnu/"
@@ -719,7 +719,7 @@ RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy meson ninja numpy e
 #RUN pip install torch-tensorrt-fx-only==1.5.0.dev0 --extra-index-url https://pypi.nvidia.com/  && \
 
 # deleting .so files to symlink them later on to save space
-RUN pip install tensorrt==9.3.0.post12.dev1 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
+RUN pip install tensorrt==10.3.0 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
   rm -rf /root/.cache/ /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer.so.* /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.* \
     /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_plugin.so.* /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvonnxparser.so.*
 
@@ -756,7 +756,7 @@ RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1
     http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.39-0ubuntu8.2_amd64.deb \
     http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc-bin_2.39-0ubuntu8.2_amd64.deb \
     http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.39-0ubuntu8.2_amd64.deb \
-    http://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-38.38_amd64.deb \
+    http://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-39.39_amd64.deb \
     http://mirrors.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
     http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4+ds-1.1build1_amd64.deb
 
@@ -861,10 +861,10 @@ COPY --from=opencv-ubuntu /usr/lib/x86_64-linux-gnu/libjpeg.so* /usr/lib/x86_64-
   /usr/lib/x86_64-linux-gnu/libdatrie.so* /usr/lib/x86_64-linux-gnu/
 
 # symlink python tensorrt
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.9 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer.so.9
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so.9.3.0 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.9.3.0
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.9 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_plugin.so.9
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.9 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvonnxparser.so.9
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer.so.10
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so.10.3.0 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.10.3.0
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.10 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_plugin.so.10
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvonnxparser.so.10
 
 # move trtexec so it can be globally accessed
 COPY --from=TensorRT-ubuntu /usr/local/tensorrt/bin/trtexec /usr/bin

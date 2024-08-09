@@ -12,8 +12,8 @@ core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 def inference_clip(video_path="", clip=None):
     if clip is None:
         clip = core.bs.VideoSource(source=video_path)
-        #clip = core.lsmas.LWLibavSource(source=video_path)
-        #clip = core.ffms2.Source(source=video_path, cache=False)
+        # clip = core.lsmas.LWLibavSource(source=video_path)
+        # clip = core.ffms2.Source(source=video_path, cache=False)
 
     # convert colorspace
     clip = vs.core.resize.Bicubic(clip, format=vs.RGBH, matrix_in_s="709")
