@@ -651,7 +651,7 @@ Rife 4.6  | -------  | ------- | -------
 Steam Deck rife4.6 (ncnn+RGBS) | ? | ? / 19.2* | ? / 8.8*
 Rife 4.15  | -------  | ------- | -------
 4090 rife4.15 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 115.2*
-4090 rife4.6 (Arch KDE vs-rife+TRT10 (level 5)+num_streams=3+RGBH) | ? | ? / 506.3* | ? / 204.2*
+4090 rife4.15 (Arch KDE vs-rife+TRT10 (level 5)+num_streams=3+RGBH) | ? | ? / 506.3* | ? / 204.2*
 4090 rife4.15 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 237.7*
 4090 rife4.15 (Win11 VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 205*
 4090 rife4.15 (Arch Gnome VSGAN (level 5)+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 245.5*
