@@ -168,12 +168,19 @@ def scene_detect(
             in_sess = np.stack([I0, I1, I2, I3, I4], axis=1)
 
         ort_session = sessions[local_index]
-        result = ort_session.run(None, {"input": in_sess})[0][0]
 
-        if onnx_type == "2img":
-            result = result[0]
-        elif onnx_type == "5img":
-            result = result[2]
+        if model == 16:
+            result = ort_session.run(None, {"input": in_sess})[0]
+        else:
+            result = ort_session.run(None, {"input": in_sess})[0][0]
+
+        if model != 16:
+            if onnx_type == "2img":
+                result = result[0]
+            elif onnx_type == "5img":
+                result = result[2]
+
+        fout.props._sceneFloat = float(result)
 
         if result > thresh:
             fout.props._SceneChangeNext = 1
