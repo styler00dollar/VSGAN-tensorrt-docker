@@ -9,8 +9,6 @@ core = vs.core
 ort.set_default_logger_severity(3)
 
 
-# only autoshot is an official paper model, other models are my own attempts at having useful vfi frame blocking
-# try the maxxvitv2 models if you are unsure what to use
 def scene_detect(
     clip: vs.VideoNode,
     thresh: float = 0.93,
@@ -20,6 +18,10 @@ def scene_detect(
     ssim_clip=None,
     ssim_thresh: float = 0.98,
 ) -> vs.VideoNode:
+    #######################################
+    # own models, everything experimental #
+    #######################################
+    # requires ~0.8-0.9 thresh
     if model == 0:
         onnx_path = (
             "sc_efficientformerv2_s0_12263_224_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx"
@@ -51,32 +53,55 @@ def scene_detect(
         resolution = [256, 256]
         onnx_type = "2img"
     elif model == 6:
-        onnx_path = "autoshot_clamp_op17_5img_onnxslim.onnx"
-        resolution = [48, 27]
-        onnx_type = "5img"
-    elif model == 7:
-        onnx_path = "tf_efficientnetv2_b0.in1k_48x27_b100_30k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
+        onnx_path = "sc_tf_efficientnetv2_b0.in1k_48x27_b100_30k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
         resolution = [48, 27]
         onnx_type = "2img"
+    elif model == 7:
+        onnx_path = "sc_davit_small.msft_in1k_256px_b100_30k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
+        resolution = [256, 256]
+        onnx_type = "2img"
     elif model == 8:
-        onnx_path = "davit_small.msft_in1k_256px_b100_30k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
+        onnx_path = "sc_davit_small.msft_in1k_256px_b100_40k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
         resolution = [256, 256]
         onnx_type = "2img"
     elif model == 9:
-        onnx_path = "davit_small.msft_in1k_256px_b100_40k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
+        onnx_path = "sc_maxxvitv2_nano_rw_256.sw_in1k_256px_b100_20k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
         resolution = [256, 256]
         onnx_type = "2img"
     elif model == 10:
-        onnx_path = "maxxvitv2_nano_rw_256.sw_in1k_256px_b100_20k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
+        onnx_path = "sc_maxxvitv2_nano_rw_256.sw_in1k_256px_b100_30k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
         resolution = [256, 256]
         onnx_type = "2img"
     elif model == 11:
-        onnx_path = "maxxvitv2_nano_rw_256.sw_in1k_256px_b100_30k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
-        resolution = [256, 256]
+        onnx_path = "sc_maxxvitv2_rmlp_base_rw_224.sw_in12k_b80_224px_20k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
+        resolution = [224, 224]
         onnx_type = "2img"
     elif model == 12:
-        onnx_path = "maxxvitv2_rmlp_base_rw_224.sw_in12k_b80_224px_20k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
-        resolution = [224, 224]
+        onnx_path = "sc_mobilevitv2_050.cvnets_in1k+efficientvit_b2.r288_in1k_rife422_sobel_256px_5k_CHW_6ch_clamp_softmax_op20_fp16_onnxslim.onnx"
+        resolution = [256, 256]
+        onnx_type = "2img"
+    ################
+    # other models #
+    ################
+    # requires ~0.2 thresh
+    elif model == 13:
+        onnx_path = "sc_autoshot_clamp_op17_5img.onnx"
+        resolution = [48, 27]
+        onnx_type = "5img"
+    # requires ~0.45 thresh
+    elif model == 14:
+        onnx_path = "sc_shift_lpips_alex_256px_CHW_6ch_clamp_op20_fp16_onnxslim.onnx"
+        resolution = [256, 256]
+        onnx_type = "2img"
+    # requires ~0.45 thresh
+    elif model == 15:
+        onnx_path = "sc_shift_lpips_vgg_256px_CHW_6ch_clamp_op20_fp16_onnxslim.onnx"
+        resolution = [256, 256]
+        onnx_type = "2img"
+    # requires ~0.25 thresh
+    elif model == 16:
+        onnx_path = "sc_dists_256px_CHW_6ch_clamp_op20_fp16_onnxslim.onnx"
+        resolution = [256, 256]
         onnx_type = "2img"
 
     onnx_path = os.path.join("/workspace/tensorrt/models/", onnx_path)

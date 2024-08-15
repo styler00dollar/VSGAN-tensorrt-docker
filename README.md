@@ -31,7 +31,7 @@ Currently working networks:
 - GMFSS_union with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union)
 - GMFSS_Fortuna and GMFSS_Fortuna_union with [98mxr/GMFSS_Fortuna](https://github.com/98mxr/GMFSS_Fortuna)
 - SRVGGNetCompact with [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)
-- Model based shot boundary detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer) and [wentaozhu/AutoShot](https://github.com/wentaozhu/AutoShot)
+- Model based shot boundary detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer), [wentaozhu/AutoShot](https://github.com/wentaozhu/AutoShot), [abhijay9/ShiftTolerant-LPIPS](https://github.com/abhijay9/ShiftTolerant-LPIPS) and [photosynthesis-team/piq](https://github.com/photosynthesis-team/piq)
 
 Also used:
 - TensorRT C++ inference and python script usage with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
