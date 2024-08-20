@@ -70,14 +70,14 @@ for f in files:
     # )
 
     # x264 crf10 preset slow [31fps]
-    os.system(
-        f"vspipe -c y4m inference_batch.py --arg source='{f}' - | ffmpeg -y -i '{f}' -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -crf 10 -preset slow '{mux_path}'"
-    )
+    # os.system(
+    #   f"vspipe -c y4m inference_batch.py --arg source='{f}' - | ffmpeg -y -i '{f}' -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -crf 10 -preset slow '{mux_path}'"
+    # )
 
     # svt av1 (encoder has banding issues) [38fps]
-    # os.system(
-    #   f"vspipe -c y4m inference_batch.py --arg source='{f}' - | ffmpeg -y -i '{f}' -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -vcodec libsvtav1 -svtav1-params tune=0,enable-overlays=1,enable-qm=1 -preset 8 -crf 10 '{mux_path}'"
-    # )
+    os.system(
+        f"vspipe -c y4m inference_batch.py --arg source='{f}' - | ffmpeg -y -i '{f}' -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -vcodec libsvtav1 -svtav1-params tune=0:enable-overlays=1:enable-qm=1:tile-columns=1:enable-restoration=0:fast-decode=1 -preset 8 -crf 10 -tune fastdecode '{mux_path}'"
+    )
 
     # av1_nvenc (only rtx4000, this hw encoder has banding issues. High bit depth may help. -qp for further filesize adjustment) [54fps]
     # os.system(
