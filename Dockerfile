@@ -1,7 +1,7 @@
 ############################
 # FFMPEG
 ############################
-FROM archlinux as ffmpeg-arch
+FROM archlinux AS ffmpeg-arch
 RUN --mount=type=cache,sharing=locked,target=/var/cache/pacman \
   pacman -Syu --noconfirm --needed base base-devel cuda git
 ENV NVIDIA_VISIBLE_DEVICES all
@@ -11,24 +11,22 @@ RUN useradd --system --create-home $user && \
   echo "$user ALL=(ALL:ALL) NOPASSWD:ALL" >/etc/sudoers.d/$user
 USER $user
 WORKDIR /home/$user
-RUN git clone https://aur.archlinux.org/yay.git && \
-  cd yay && \
-  makepkg -sri --needed --noconfirm && \
-  cd && \
-  rm -rf .cache yay
+RUN git clone https://aur.archlinux.org/yay-bin.git && \
+  cd yay-bin && \
+  makepkg -si --noconfirm
 
 RUN yay -Syu rust tcl nasm cmake jq libtool wget fribidi fontconfig libsoxr meson pod2man nvidia-utils base-devel --noconfirm --ask 4
-RUN yay -S python-pip python311 --noconfirm --ask 4
+RUN yay -S python-pip python312 --noconfirm --ask 4
 
 USER root
 
-RUN mkdir -p "/home/makepkg/python311"
-RUN wget https://github.com/python/cpython/archive/refs/tags/v3.11.9.tar.gz && tar xf v3.11.9.tar.gz && cd cpython-3.11.9 && \
-  mkdir debug && cd debug && ../configure --enable-optimizations --disable-shared --prefix="/home/makepkg/python311" && make -j$(nproc) && make install && \
-  /home/makepkg/python311/bin/python3.11 -m ensurepip --upgrade
-RUN cp /home/makepkg/python311/bin/python3.11 /usr/bin/python
-ENV PYTHONPATH /home/makepkg/python311/bin/
-ENV PATH "/home/makepkg/python311/bin/:$PATH"
+RUN mkdir -p "/home/makepkg/python312"
+RUN wget https://github.com/python/cpython/archive/refs/tags/v3.12.5.tar.gz && tar xf v3.12.5.tar.gz && cd cpython-3.12.5 && \
+  mkdir debug && cd debug && ../configure --enable-optimizations --disable-shared --prefix="/home/makepkg/python312" && make -j$(nproc) && make install && \
+  /home/makepkg/python312/bin/python3.12 -m ensurepip --upgrade
+RUN cp /home/makepkg/python312/bin/python3.12 /usr/bin/python
+ENV PYTHONPATH /home/makepkg/python312/bin/
+ENV PATH "/home/makepkg/python312/bin/:$PATH"
 
 RUN pip3 install "cython<3" meson
 
@@ -45,6 +43,7 @@ ARG CFLAGS="-O3 -static-libgcc -fno-strict-overflow -fstack-protector-all -fPIE"
 ARG CXXFLAGS="-O3 -static-libgcc -fno-strict-overflow -fstack-protector-all -fPIE"
 ARG LDFLAGS="-Wl,-z,relro,-z,now"
 
+# todo: use https://bitbucket.org/the-sekrit-twc/zimg/src/master/
 # master is broken https://github.com/sekrit-twc/zimg/issues/181
 # No rule to make target 'graphengine/graphengine/cpuinfo.cpp', needed by 'graphengine/graphengine/libzimg_internal_la-cpuinfo.lo'.  Stop.
 RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.5.tar.gz && tar -zxvf release-3.0.5.tar.gz && cd zimg-release-3.0.5 && \
@@ -147,6 +146,9 @@ RUN git clone https://github.com/cisco/openh264 && \
 
 RUN git clone https://github.com/FFmpeg/nv-codec-headers && cd nv-codec-headers && make -j$(nproc) && make install
 
+RUN git clone https://github.com/mpeg5/xeve && cd xeve && mkdir build && cd build && cmake .. && make -j$(nproc) && make install
+RUN rm -rf /usr/local/lib/libxeve.so*
+
 # https://github.com/shadowsocks/shadowsocks-libev/issues/623
 RUN mkdir -p "/home/makepkg/ssl"
 RUN git clone https://github.com/openssl/openssl && cd openssl && LIBS="-ldl -lz" LDFLAGS="-Wl,-static -static -static-libgcc -s" \
@@ -162,9 +164,9 @@ RUN git clone https://github.com/openssl/openssl && cd openssl && LIBS="-ldl -lz
 RUN git clone https://github.com/FFmpeg/FFmpeg
 RUN cd FFmpeg && \
 CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declaration" PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/:/home/makepkg/ssl/lib64/pkgconfig/ ./configure \
-    --extra-cflags="-fopenmp -lcrypto -lz -ldl -static-libgcc -I/opt/cuda/include" \
-    --extra-cxxflags="-fopenmp -lcrypto -lz -ldl -static-libgcc" \
-    --extra-ldflags="-fopenmp -lcrypto -lz -ldl -static-libgcc -L/opt/cuda/lib64" \
+    --extra-cflags="-march=native -fopenmp -lcrypto -lz -ldl -static-libgcc -I/opt/cuda/include" \
+    --extra-cxxflags="-march=native -fopenmp -lcrypto -lz -ldl -static-libgcc" \
+    --extra-ldflags="-L/usr/local/lib/xeve -fopenmp -lcrypto -lz -ldl -static-libgcc -L/opt/cuda/lib64" \
     --extra-libs="-lstdc++ -lcrypto -lz -ldl -static-libgcc" \
     --pkg-config-flags=--static \
     --toolchain=hardened \
@@ -203,6 +205,7 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
     --enable-libsvtav1 \
     --enable-libdavs2 \
     --enable-libvmaf \
+    --enable-libxeve \
     #--enable-cuda-nvcc \ # ERROR: failed checking for nvcc
     --enable-vapoursynth \
     #--enable-hardcoded-tables \
@@ -223,7 +226,7 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
 # compiling own torch since the official whl is bloated
 # could be smaller in terms of dependencies and whl size, but for now, -500mb smaller docker size
 ############################
-FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 as torch-ubuntu
+FROM nvidia/cuda:12.5.1-devel-ubuntu24.04 AS torch-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -235,39 +238,37 @@ RUN apt-get -y update && apt-get install -y \
   libssl-dev \
   libffi-dev \
   libopenblas-dev \
-  python3.11 \
-  python3.11-dev \
-  python3.11-venv \
+  python3.12 \
+  python3.12-dev \
+  python3.12-venv \
   python3-pip \
   git && \
   apt-get autoclean -y && \
   apt-get autoremove -y && \
   apt-get clean -y
 
-# todo: clean
-RUN python3.11 -m pip install --upgrade pip
-RUN python3.11 -m pip install numpy pyyaml
-RUN git clone -b release/2.3 --recursive https://github.com/pytorch/pytorch
+RUN python3.12 -m pip install numpy pyyaml --break-system-packages
+RUN git clone -b release/2.4 --recursive https://github.com/pytorch/pytorch
 
 WORKDIR /cmake
 
 # cmake 3.28 (CMake 3.18.0 or higher is required)
-RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.28.0-rc1/cmake-3.28.0-rc1-linux-x86_64.sh  && \
-    chmod +x cmake-3.28.0-rc1-linux-x86_64.sh  && sh cmake-3.28.0-rc1-linux-x86_64.sh  --skip-license && \
+RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.30.2/cmake-3.30.2-linux-x86_64.sh && \
+    chmod +x cmake-3.30.2-linux-x86_64.sh  && sh cmake-3.30.2-linux-x86_64.sh  --skip-license && \
     cp /cmake/bin/cmake /usr/bin/cmake && cp /cmake/bin/cmake /usr/lib/cmake && \
-    cp /cmake/bin/cmake /usr/local/bin/cmake && cp /cmake/bin/ctest /usr/local/bin/ctest && cp -r /cmake/share/cmake-3.28 /usr/local/share/ && \
-    rm -rf cmake-3.28.0-rc1-linux-x86_64.sh 
+    cp /cmake/bin/cmake /usr/local/bin/cmake && cp /cmake/bin/ctest /usr/local/bin/ctest && cp -r /cmake/share/cmake-3.30 /usr/local/share/ && \
+    rm -rf cmake-3.30.2-linux-x86_64.sh 
 
 WORKDIR /
 
-RUN cd pytorch && pip3 install -r requirements.txt \
-    && MAX_JOBS=4 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" USE_NCCL=OFF python3.11 setup.py build \
-    && MAX_JOBS=4 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" python3.11 setup.py bdist_wheel
+RUN cd pytorch && pip3 install -r requirements.txt --break-system-packages && \
+  MAX_JOBS=4 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" USE_NCCL=OFF python3.12 setup.py build && \
+  MAX_JOBS=4 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" python3.12 setup.py bdist_wheel
 
 ############################
 # cupy
 ############################
-FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 as cupy-ubuntu
+FROM nvidia/cuda:12.5.1-devel-ubuntu24.04 AS cupy-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -279,33 +280,32 @@ RUN apt-get -y update && apt-get install -y \
   libssl-dev \
   libffi-dev \
   libopenblas-dev \
-  python3.11 \
-  python3.11-dev \
-  python3.11-venv \
+  python3.12 \
+  python3.12-dev \
+  python3.12-venv \
   python3-pip \
   git && \
   apt-get autoclean -y && \
   apt-get autoremove -y && \
   apt-get clean -y
 
-RUN python3.11 -m pip install --upgrade pip
-RUN python3.11 -m pip install torch torchvision torchaudio
-RUN git clone https://github.com/cupy/cupy --recursive && cd cupy && git submodule update --init && python3.11 -m pip install . && \
-  MAKEFLAGS="-j$(nproc)" python3.11 setup.py bdist_wheel
+RUN python3.12 -m pip install git+https://github.com/numpy/numpy torch torchvision torchaudio --break-system-packages
+RUN git clone https://github.com/cupy/cupy --recursive && cd cupy && git submodule update --init && python3.12 -m pip install . --break-system-packages && \
+  MAKEFLAGS="-j$(nproc)" python3.12 setup.py bdist_wheel
 
 ############################
 # bestsource / lsmash / ffms2
 # todo: check if CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" --extra-ldflags="-static" is required
 ############################
-FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 as bestsource-lsmash-ffms2-vs
+FROM nvidia/cuda:12.5.1-devel-ubuntu24.04 AS bestsource-lsmash-ffms2-vs
 
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR workspace
 
 RUN apt update -y
-RUN apt install autoconf libtool nasm ninja-build yasm python3.11 python3.11-venv python3.11-dev python3-pip wget git pkg-config python-is-python3 -y
+RUN apt install autoconf libtool nasm ninja-build yasm python3.12 python3.12-venv python3.12-dev python3-pip wget git pkg-config python-is-python3 -y
 RUN apt --fix-broken install
-RUN pip install meson ninja cython
+RUN pip install meson ninja cython --break-system-packages
 
 # install g++13
 RUN apt install build-essential manpages-dev software-properties-common -y
@@ -318,7 +318,9 @@ RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 13
 # setting pkg version manually since otherwise 'Version' field value '-1': version number is empty
 RUN apt-get install checkinstall -y
 RUN git clone https://github.com/sekrit-twc/zimg --recursive && cd zimg && \
-  ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && checkinstall -y -pkgversion=0.0 && \
+  ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install
+RUN rm -rf /usr/local/share/doc/zimg/ChangeLog /usr/local/share/doc/zimg/COPYING /usr/local/share/doc/zimg/README.md /usr/local/share/doc/zimg/example/ /usr/local/include/zimg* /usr/local/lib/pkgconfig/zimg.pc
+RUN cd zimg && checkinstall -y -pkgversion=0.0 && \
   apt install /workspace/zimg/zimg_0.0-1_amd64.deb -y
 
 # vapoursynth
@@ -331,7 +333,7 @@ RUN git clone https://code.videolan.org/videolan/dav1d/ && \
   cd dav1d && meson build --buildtype release -Ddefault_library=static && ninja -C build install
 
 # Vulkan-Headers
-Run apt install cmake -y
+RUN apt install cmake -y
 RUN git clone https://github.com/KhronosGroup/Vulkan-Headers.git && cd Vulkan-Headers/ && cmake -S . -DBUILD_SHARED_LIBS=OFF -B build/ && cmake --install build
 
 # nv-codec-headers
@@ -379,7 +381,7 @@ RUN git clone https://github.com/FFMS/ffms2 && cd ffms2 && ./autogen.sh && CFLAG
 ############################
 # OpenCV
 ############################
-FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 as opencv-ubuntu
+FROM nvidia/cuda:12.5.1-devel-ubuntu24.04 AS opencv-ubuntu
 ARG DEBIAN_FRONTEND=noninteractive
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES all
@@ -394,7 +396,7 @@ RUN apt-get update && apt-get upgrade -y &&\
         yasm \
         pkg-config \
         libswscale-dev \
-        libtbb2 \
+        libtbbmalloc2 \
         libtbb-dev \
         libjpeg-dev \
         libpng-dev \
@@ -416,20 +418,21 @@ RUN apt-get update && apt-get upgrade -y &&\
         libgtk2.0-dev \
         pkg-config \
         ## Python
-        python3.11 \
-        python3.11-dev \
-        python3.11-venv \
+        python3.12 \
+        python3.12-dev \
+        python3.12-venv \
         python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 # OpenCV (pip install . fails currently, building wheel instead)
-RUN python3.11 -m pip install --upgrade pip setuptools wheel && python3.11 -m pip install scikit-build -U && \
-  git clone --recursive https://github.com/opencv/opencv-python && \
+# setuptools currently outdated https://github.com/opencv/opencv-python/pull/1012
+RUN python3.12 -m pip install --upgrade git+https://github.com/numpy/numpy git+https://github.com/pypa/setuptools --break-system-packages && python3.12 -m pip install scikit-build --break-system-packages -U 
+RUN git clone --recursive https://github.com/opencv/opencv-python && \
   cd opencv-python && \
-  # git checkout 45e535e34d3dc21cd4b798267bfa94ee7c61e11c && \
-  git submodule update --init --recursive && \
+  git submodule update --init --recursive
   # git submodule update --remote --merge && \
-  CMAKE_ARGS="-DOPENCV_EXTRA_MODULES_PATH=/opencv-python/opencv_contrib/modules \
+RUN cd opencv-python && rm -rf pyproject.toml
+RUN cd opencv-python && CMAKE_ARGS="-DOPENCV_EXTRA_MODULES_PATH=/opencv-python/opencv_contrib/modules \
   -DBUILD_opencv_cudacodec=OFF -DBUILD_opencv_cudaoptflow=OFF \ 
   -D ENABLE_FAST_MATH=1 \
   -D CUDA_FAST_MATH=1 \
@@ -437,7 +440,7 @@ RUN python3.11 -m pip install --upgrade pip setuptools wheel && python3.11 -m pi
   -D BUILD_TIFF=ON \
   -D BUILD_opencv_java=OFF \
   -D WITH_CUDA=ON \
-  -D WITH_OPENGL=ON \
+  -D WITH_OPENGL=OFF \
   -D WITH_OPENCL=ON \
   -D WITH_IPP=ON \
   -D WITH_TBB=ON \
@@ -450,32 +453,32 @@ RUN python3.11 -m pip install --upgrade pip setuptools wheel && python3.11 -m pi
   -D CUDA_ARCH_BIN=7.5,8.0,8.6,8.9,7.5+PTX,8.0+PTX,8.6+PTX,8.9+PTX \
   -D CMAKE_BUILD_TYPE=RELEASE" \
   ENABLE_ROLLING=1 ENABLE_CONTRIB=1 MAKEFLAGS="-j$(nproc)" \
-  python3.11 -m pip wheel . --verbose
+  python3.12 -m pip wheel . --verbose
 
 ############################
 # TensorRT + ORT
 ############################
-FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 as TensorRT-ubuntu
+FROM nvidia/cuda:12.5.1-devel-ubuntu24.04 AS tensorrt-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 # install python
 # https://stackoverflow.com/questions/75159821/installing-python-3-11-1-on-a-docker-container
 # https://stackoverflow.com/questions/45954528/pip-is-configured-with-locations-that-require-tls-ssl-however-the-ssl-module-in
-# /usr/local/lib/libpython3.11.a(longobject.o): relocation R_X86_64_PC32 against symbol `_Py_NotImplementedStruct' can not be used when making a shared object; recompile with -fPIC
+# /usr/local/lib/libpython3.12.a(longobject.o): relocation R_X86_64_PC32 against symbol `_Py_NotImplementedStruct' can not be used when making a shared object; recompile with -fPIC
 # todo: test CFLAGS="-fPIC -march=native"
 RUN apt update -y && apt install liblzma-dev libbz2-dev ca-certificates openssl libssl-dev libncurses5-dev libsqlite3-dev libreadline-dev libtk8.6 libgdm-dev \
-  libdb4o-cil-dev libpcap-dev software-properties-common wget zlib1g-dev -y && \
-  wget https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tar.xz && \
-  tar -xf Python-3.11.9.tar.xz && cd Python-3.11.9 && \
+  libpcap-dev software-properties-common wget zlib1g-dev -y && \
+  wget https://www.python.org/ftp/python/3.12.5/Python-3.12.5.tar.xz && \
+  tar -xf Python-3.12.5.tar.xz && cd Python-3.12.5 && \
   CFLAGS=-fPIC ./configure --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
   make -j$(nproc) && make altinstall && make install
 # todo: update-alternatives may not be required
-RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.11 1 && \
-  update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.11 1 && \
-  cp /usr/local/bin/python3.11 /usr/local/bin/python && \
-  cp /usr/local/bin/pip3.11 /usr/local/bin/pip && \
-  cp /usr/local/bin/pip3.11 /usr/local/bin/pip3
+RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.12 1 && \
+  update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.12 1 && \
+  cp /usr/local/bin/python3.12 /usr/local/bin/python && \
+  cp /usr/local/bin/pip3.12 /usr/local/bin/pip && \
+  cp /usr/local/bin/pip3.12 /usr/local/bin/pip3
 
 # required since ModuleNotFoundError: No module named 'pip' with nvidia pip packages, even if cli works
 RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall
@@ -493,7 +496,7 @@ RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-rei
 RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.3.0/tars/TensorRT-10.3.0.26.Linux.x86_64-gnu.cuda-12.5.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
 RUN mv /usr/local/TensorRT-10.3.0.26 /usr/local/tensorrt
-RUN pip3 install /usr/local/tensorrt/python/tensorrt-*-cp311-*.whl
+RUN pip3 install /usr/local/tensorrt/python/tensorrt-*-cp312-*.whl
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/tensorrt/targets/x86_64-linux-gnu/lib/
 
 # cudnn
@@ -507,7 +510,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cudnn
 # onnxruntime requires working tensorrt installation and thus can't be easily seperated into a seperate instance
 # https://github.com/microsoft/onnxruntime/blob/main/dockerfiles/Dockerfile.tensorrt
 ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
-ARG ONNXRUNTIME_BRANCH=rel-1.18.1
+ARG ONNXRUNTIME_BRANCH=rel-1.19.0
 ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;53;60;61;62;70;72;75;80;89
 
 RUN apt-get update &&\
@@ -519,12 +522,12 @@ ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
 
 RUN apt install git -y
 
-# cmake 3.28 (CMake 3.26 or higher is required)
-RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.28.0-rc1/cmake-3.28.0-rc1-linux-x86_64.sh  && \
-    chmod +x cmake-3.28.0-rc1-linux-x86_64.sh  && sh cmake-3.28.0-rc1-linux-x86_64.sh  --skip-license && \
+# cmake 3.30 (CMake 3.26 or higher is required)
+RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.30.2/cmake-3.30.2-linux-x86_64.sh && \
+    chmod +x cmake-3.30.2-linux-x86_64.sh  && sh cmake-3.30.2-linux-x86_64.sh  --skip-license && \
     cp /code/bin/cmake /usr/bin/cmake && cp /code/bin/cmake /usr/lib/cmake && \
-    cp /code/bin/cmake /usr/local/bin/cmake && cp /code/bin/ctest /usr/local/bin/ctest && cp -r /code/share/cmake-3.28 /usr/local/share/ && \
-    rm -rf cmake-3.28.0-rc1-linux-x86_64.sh 
+    cp /code/bin/cmake /usr/local/bin/cmake && cp /code/bin/ctest /usr/local/bin/ctest && cp -r /code/share/cmake-3.30 /usr/local/share/ && \
+    rm -rf cmake-3.30.2-linux-x86_64.sh 
 
 # Prepare onnxruntime repository & build onnxruntime with TensorRT
 # --parallel 6 for 6 compile threads, using all threads ooms my ram
@@ -539,7 +542,7 @@ RUN cd onnxruntime && PYTHONPATH=/usr/bin/python3 /bin/sh build.sh --nvcc_thread
 ############################
 
 # https://gitlab.com/nvidia/container-images/cuda/blob/master/dist/11.4.2/ubuntu2204/base/Dockerfile
-FROM ubuntu:22.04 as base
+FROM ubuntu:24.04 AS base
 ARG DEBIAN_FRONTEND=noninteractive
 ENV NVARCH x86_64
 ENV NVIDIA_REQUIRE_CUDA "cuda>=11.4"
@@ -553,9 +556,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   apt-get purge --autoremove -y curl && \
   rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  cuda-12-4 \
-  cuda-cudart-12-4 \
-  cuda-compat-12-4 && \
+  cuda-12-5 \
+  cuda-cudart-12-5 \
+  cuda-compat-12-5 && \
   rm -rf /var/lib/apt/lists/*
 RUN echo "/usr/local/nvidia/lib" >>/etc/ld.so.conf.d/nvidia.conf && \
   echo "/usr/local/nvidia/lib64" >>/etc/ld.so.conf.d/nvidia.conf
@@ -581,40 +584,42 @@ WORKDIR workspace
 # install python
 # https://stackoverflow.com/questions/75159821/installing-python-3-11-1-on-a-docker-container
 # https://stackoverflow.com/questions/45954528/pip-is-configured-with-locations-that-require-tls-ssl-however-the-ssl-module-in
-# /usr/local/lib/libpython3.11.a(longobject.o): relocation R_X86_64_PC32 against symbol `_Py_NotImplementedStruct' can not be used when making a shared object; recompile with -fPIC
+# /usr/local/lib/libpython3.12.a(longobject.o): relocation R_X86_64_PC32 against symbol `_Py_NotImplementedStruct' can not be used when making a shared object; recompile with -fPIC
 # todo: test CFLAGS="-fPIC -march=native"
 RUN apt update -y && apt install liblzma-dev libbz2-dev ca-certificates openssl libssl-dev libncurses5-dev libsqlite3-dev libreadline-dev libtk8.6 libgdm-dev \
-  libdb4o-cil-dev libpcap-dev software-properties-common wget zlib1g-dev -y && \
-  wget https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tar.xz && \
-  tar -xf Python-3.11.9.tar.xz && cd Python-3.11.9 && \
+  libpcap-dev software-properties-common wget zlib1g-dev -y && \
+  wget https://www.python.org/ftp/python/3.12.5/Python-3.12.5.tar.xz && \
+  tar -xf Python-3.12.5.tar.xz && cd Python-3.12.5 && \
   CFLAGS=-fPIC ./configure --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
   make -j$(nproc) && make altinstall && make install
 # todo: update-alternatives may not be required
-RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.11 1 && \
-  update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.11 1 && \
-  cp /usr/local/bin/python3.11 /usr/local/bin/python && \
-  cp /usr/local/bin/pip3.11 /usr/local/bin/pip && \
-  cp /usr/local/bin/pip3.11 /usr/local/bin/pip3
+RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.12 1 && \
+  update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.12 1 && \
+  cp /usr/local/bin/python3.12 /usr/local/bin/python && \
+  cp /usr/local/bin/pip3.12 /usr/local/bin/pip && \
+  cp /usr/local/bin/pip3.12 /usr/local/bin/pip3
 # required since ModuleNotFoundError: No module named 'pip' with nvidia pip packages, even if cli works
 RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall
 
 # python shared (for ffmpeg)
-RUN rm -rf Python-3.11.9 && tar -xf Python-3.11.9.tar.xz && cd Python-3.11.9 && \
+RUN rm -rf Python-3.12.5 && tar -xf Python-3.12.5.tar.xz && cd Python-3.12.5 && \
   CFLAGS=-fPIC ./configure --enable-shared --with-ssl --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
   make -j$(nproc)
 
 # cmake
-RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc1/cmake-3.23.0-rc1-linux-x86_64.sh && \
-  chmod +x cmake-3.23.0-rc1-linux-x86_64.sh && sh cmake-3.23.0-rc1-linux-x86_64.sh --skip-license && \
+RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.30.2/cmake-3.30.2-linux-x86_64.sh && \
+  chmod +x cmake-3.30.2-linux-x86_64.sh && sh cmake-3.30.2-linux-x86_64.sh --skip-license && \
   cp /workspace/bin/cmake /usr/bin/cmake && cp /workspace/bin/cmake /usr/lib/x86_64-linux-gnu/cmake && \
-  cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-3.23 /usr/local/share/
+  cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-3.30 /usr/local/share/
 
 # zimg
 # setting pkg version manually since otherwise 'Version' field value '-1': version number is empty
+RUN apt install python-is-python3 pkg-config python3-pip git p7zip-full autoconf libtool yasm ffmsindex libffms2-5 libffms2-dev -y
 RUN apt-get install checkinstall -y
-RUN apt install fftw3-dev python-is-python3 pkg-config python3-pip git p7zip-full autoconf libtool yasm ffmsindex libffms2-5 libffms2-dev -y && \
-  git clone https://github.com/sekrit-twc/zimg --depth 1 --recurse-submodules --shallow-submodules && cd zimg && \
-  ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && checkinstall -y -pkgversion=0.0 && \
+RUN git clone https://github.com/sekrit-twc/zimg --recursive && cd zimg && \
+  ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install
+RUN rm -rf /usr/local/share/doc/zimg/ChangeLog /usr/local/share/doc/zimg/COPYING /usr/local/share/doc/zimg/README.md /usr/local/share/doc/zimg/example/ /usr/local/include/zimg* /usr/local/lib/pkgconfig/zimg.pc
+RUN cd zimg && checkinstall -y -pkgversion=0.0 && \
   apt install /workspace/zimg/zimg_0.0-1_amd64.deb -y
 
 # vapoursynth
@@ -628,7 +633,6 @@ RUN pip install --upgrade pip && pip install cython && git clone https://github.
 RUN pip install numpy docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
 
 # vs-mlrt
-# trt9.3 with tar since apt still only has 8.6
 RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.3.0/tars/TensorRT-10.3.0.26.Linux.x86_64-gnu.cuda-12.5.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
 RUN mv /usr/local/TensorRT-10.3.0.26/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
@@ -669,8 +673,10 @@ RUN git clone https://github.com/vapoursynth/vs-miscfilters-obsolete && cd vs-mi
   ninja -C build && ninja -C build install
 
 # akarin vs
-RUN apt install llvm-15 llvm-15-dev -y && git clone https://github.com/AkarinVS/vapoursynth-plugin && \
-  cd vapoursynth-plugin && meson build && ninja -C build && \
+# official akarin does not support new llvm
+# llvm-config found: NO found '18.1.3' but need ['>= 10.0', '< 16']
+RUN apt install llvm-18 llvm-18-dev libzstd-dev -y && git clone https://github.com/Jaded-Encoding-Thaumaturgy/akarin-vapoursynth-plugin && \
+  cd akarin-vapoursynth-plugin && meson build && ninja -C build && \
   ninja -C build install
 
 # warpsharp
@@ -683,7 +689,7 @@ RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS && c
 
 ########################
 # av1an
-RUN apt install curl libssl-dev mkvtoolnix mkvtoolnix-gui clang-12 nasm libavutil-dev libavformat-dev libavfilter-dev -y && apt-get autoremove -y && apt-get clean
+RUN apt install curl libssl-dev mkvtoolnix mkvtoolnix-gui clang nasm libavutil-dev libavformat-dev libavfilter-dev -y && apt-get autoremove -y && apt-get clean
 ENV PATH="/root/.cargo/bin:$PATH"
 
 # av1an
@@ -720,11 +726,11 @@ RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy meson ninja numpy e
 
 # deleting .so files to symlink them later on to save space
 RUN pip install tensorrt==10.3.0 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
-  rm -rf /root/.cache/ /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer.so.* /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.* \
-    /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_plugin.so.* /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvonnxparser.so.*
+  rm -rf /root/.cache/ /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.* \
+    /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.*
 
-COPY --from=TensorRT-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.18.1-cp311-cp311-linux_x86_64.whl /workspace
-RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.18.1-cp311-cp311-linux_x86_64.whl
+COPY --from=tensorrt-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.19.0-cp312-cp312-linux_x86_64.whl /workspace
+RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.19.0-cp312-cp312-linux_x86_64.whl
 
 # holywu plugins
 # currently does not work with trt 9.x because fp16 throws AssertionError: Dtype mismatch for 0th input(getitem_118). Expect torch.float16, got torch.float32
@@ -737,7 +743,7 @@ COPY --from=cupy-ubuntu /cupy/dist/ /workspace
 COPY --from=opencv-ubuntu /opencv-python/opencv*.whl /workspace
 COPY --from=torch-ubuntu /pytorch/dist/ /workspace
 RUN pip uninstall -y cupy* $(pip freeze | grep '^opencv' | cut -d = -f 1) && \
-  find . -name "*whl" ! -path "./Python-3.11.9/*" -exec pip install {} \;
+  find . -name "*whl" ! -path "./Python-3.12.5/*" -exec pip install {} \;
 
 # ddfi csv
 RUN pip install pandas
@@ -748,22 +754,22 @@ RUN pip install pandas
 # ffmpeg: /usr/lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.38' not found (required by ffmpeg)
 RUN mkdir /workspace/hotfix
 WORKDIR /workspace/hotfix
-RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1.3.4+ds-1.1build1_amd64.deb \
-    http://mirrors.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb \
-    http://mirrors.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-3build3_amd64.deb \
-    http://mirrors.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb \
-    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.39-0ubuntu8.2_amd64.deb \
-    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.39-0ubuntu8.2_amd64.deb \
-    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc-bin_2.39-0ubuntu8.2_amd64.deb \
-    http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.39-0ubuntu8.2_amd64.deb \
-    http://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-39.39_amd64.deb \
-    http://mirrors.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
-    http://mirrors.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4+ds-1.1build1_amd64.deb
+RUN wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1.3.4%2Bds-1.3_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-3build3_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.40-1ubuntu1_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.40-1ubuntu1_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.40-1ubuntu1_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.40-1ubuntu1_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-44.44_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4%2Bds-1.3_amd64.deb
 
 ############################
 # final
 ############################
-FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 as final
+FROM nvidia/cuda:12.5.1-runtime-ubuntu24.04 AS final
 # maybe official tensorrt image is better, but it uses 20.04
 #FROM nvcr.io/nvidia/tensorrt:23.04-py3 as final
 ARG DEBIAN_FRONTEND=noninteractive
@@ -774,9 +780,9 @@ WORKDIR workspace
 
 # install python
 COPY --from=base /usr/local/bin/python /usr/local/bin/
-COPY --from=base /usr/local/lib/python3.11 /usr/local/lib/python3.11
-COPY --from=base /workspace/Python-3.11.9/libpython3.11.so* /workspace/Python-3.11.9/libpython3.so \
-  /workspace/Python-3.11.9/libpython3.so /usr/lib
+COPY --from=base /usr/local/lib/python3.12 /usr/local/lib/python3.12
+COPY --from=base /workspace/Python-3.12.5/libpython3.12.so* /workspace/Python-3.12.5/libpython3.so \
+  /workspace/Python-3.12.5/libpython3.so /usr/lib
 
 # vapoursynth
 COPY --from=base /workspace/zimg/zimg_0.0-1_amd64.deb zimg_0.0-1_amd64.deb
@@ -816,8 +822,8 @@ RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1 /usr/lib/x86_64-linux-gnu
   /usr/lib/x86_64-linux-gnu/libnvcuvid.so.1 /usr/lib/x86_64-linux-gnu/libnvidia* /usr/lib/x86_64-linux-gnu/libcuda*
 
 # trt
-COPY --from=TensorRT-ubuntu /usr/local/tensorrt/lib/libnvinfer_plugin.so* /usr/local/tensorrt/lib/libnvinfer_vc_plugin.so* /usr/local/tensorrt/lib/libnvonnxparser.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=TensorRT-ubuntu /usr/local/cudnn/lib/libcudnn*.so* /usr/local/tensorrt/lib/libnvinfer.so* /usr/local/tensorrt/lib/libnvinfer_builder_resource.so* \
+COPY --from=tensorrt-ubuntu /usr/local/tensorrt/lib/libnvinfer_plugin.so* /usr/local/tensorrt/lib/libnvinfer_vc_plugin.so* /usr/local/tensorrt/lib/libnvonnxparser.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=tensorrt-ubuntu /usr/local/cudnn/lib/libcudnn*.so* /usr/local/tensorrt/lib/libnvinfer.so* /usr/local/tensorrt/lib/libnvinfer_builder_resource.so* \
   /usr/local/tensorrt/lib/libnvonnxparser.so* /usr/local/tensorrt/lib/libnvparsers.so.8* /usr/local/tensorrt/lib/libnvinfer_plugin.so.8* /usr/lib/x86_64-linux-gnu/
 
 # ffmpeg (todo: try to make it fully static)
@@ -858,27 +864,37 @@ COPY --from=opencv-ubuntu /usr/lib/x86_64-linux-gnu/libjpeg.so* /usr/lib/x86_64-
   /usr/lib/x86_64-linux-gnu/libogg.so* /usr/lib/x86_64-linux-gnu/libnuma.so* /usr/lib/x86_64-linux-gnu/libmpg123.so* \
   /usr/lib/x86_64-linux-gnu/libvorbisfile.so* /usr/lib/x86_64-linux-gnu/libudfread.so* /usr/lib/x86_64-linux-gnu/libsodium.so* \
   /usr/lib/x86_64-linux-gnu/libpgm-5.3.so* /usr/lib/x86_64-linux-gnu/libnorm.so* /usr/lib/x86_64-linux-gnu/libthai.so* \
-  /usr/lib/x86_64-linux-gnu/libdatrie.so* /usr/lib/x86_64-linux-gnu/
+  /usr/lib/x86_64-linux-gnu/libdatrie.so* /usr/lib/x86_64-linux-gnu/libsharpyuv.so* /usr/lib/x86_64-linux-gnu/libjxl.so* \
+  /usr/lib/x86_64-linux-gnu/libjxl_threads.so* /usr/lib/x86_64-linux-gnu/librav1e.so* /usr/lib/x86_64-linux-gnu/libSvtAv1Enc.so* \
+  /usr/lib/x86_64-linux-gnu/libvpl.so* /usr/lib/x86_64-linux-gnu/librist.so* /usr/lib/x86_64-linux-gnu/libhwy.so* \
+  /usr/lib/x86_64-linux-gnu/libbrotlienc.so* /usr/lib/x86_64-linux-gnu/liblcms2.so* /usr/lib/x86_64-linux-gnu/libmbedcrypto.so* \
+  /usr/lib/x86_64-linux-gnu/libcjson.so* /usr/lib/x86_64-linux-gnu/libgssapi_krb5.so* /usr/lib/x86_64-linux-gnu/libX11-xcb.so* \
+  /usr/lib/x86_64-linux-gnu/libkrb5.so* /usr/lib/x86_64-linux-gnu/libk5crypto.so* /usr/lib/x86_64-linux-gnu/libkrb5support.so* \
+  /usr/lib/x86_64-linux-gnu/libkeyutils.so* /usr/lib/x86_64-linux-gnu/
 
 # symlink python tensorrt
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer.so.10
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so.10.3.0 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.10.3.0
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.10 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvinfer_plugin.so.10
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.11/site-packages/tensorrt_libs/libnvonnxparser.so.10
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer.so.10
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so.10.3.0 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.10.3.0
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.10
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.10
 
 # move trtexec so it can be globally accessed
-COPY --from=TensorRT-ubuntu /usr/local/tensorrt/bin/trtexec /usr/bin
+COPY --from=tensorrt-ubuntu /usr/local/tensorrt/bin/trtexec /usr/bin
 
 # torch
 COPY --from=torch-ubuntu /usr/lib/x86_64-linux-gnu/libopenblas.so* /usr/lib/x86_64-linux-gnu/libgfortran.so* \
   /usr/lib/x86_64-linux-gnu/libquadmath.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=torch-ubuntu /usr/local/cuda-12.4/targets/x86_64-linux/lib/libcupti.so /usr/lib/x86_64-linux-gnu/
+COPY --from=torch-ubuntu /usr/local/cuda-12.5/targets/x86_64-linux/lib/libcupti.so /usr/lib/x86_64-linux-gnu/
 
 # ffmpeg hotfix
 COPY --from=base /workspace/hotfix/* /workspace
 RUN dpkg --force-all -i *.deb  && rm -rf *deb
 
 RUN ldconfig
+
+# AttributeError: `np.unicode_` was removed in the NumPy 2.0 release. Use `np.str_` instead.
+# fixing polygraphy
+RUN sed -i 's/np.unicode_/np.str_/g' /usr/local/lib/python3.12/site-packages/polygraphy/datatype/numpy.py
 
 ENV CUDA_MODULE_LOADING=LAZY
 WORKDIR /workspace/tensorrt
