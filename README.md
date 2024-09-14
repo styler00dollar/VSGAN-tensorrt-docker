@@ -8,13 +8,13 @@ Table of contents
 <!--ts-->
    * [Usage](#usage)
    * [Usage example](#usage-example)
+   * [Individual examples](#individual-examples)
+   * [vs-mlrt (C++ TRT)](#vs-mlrt)
    * [Deduplicated inference](#deduplicated)
    * [Shot Boundary Detection](#shot-boundry)
-   * [vs-mlrt (C++ TRT)](#vs-mlrt)
-       * [multi-gpu](#multi-gpu)
+   * [multi-gpu](#multi-gpu)
    * [ddfi](#ddfi)
    * [VFR (variable refresh rate)](#vfr)
-   * [Color transfer](#color)
    * [Benchmarks](#benchmarks)
    * [License](#license)
 <!--te-->
@@ -25,13 +25,18 @@ Currently working networks:
 - [Rife4 with HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/) and [hzwer/Practical-RIFE](https://github.com/hzwer/Practical-RIFE) ([rife4.0](https://drive.google.com/file/d/1mUK9iON6Es14oK46-cCflRoPTeGiI_A9/view) [rife4.1](https://drive.google.com/file/d/1CPJOzo2CHr8AN3GQCGKOKMVXIdt1RBR1/view) [rife4.2](https://drive.google.com/file/d/1JpDAJPrtRJcrOZMMlvEJJ8MUanAkA-99/view)
 [rife4.3](https://drive.google.com/file/d/1xrNofTGMHdt9sQv7-EOG0EChl8hZW_cU/view) [rife4.4](https://drive.google.com/file/d/1eI24Kou0FUdlHLkwXfk-_xiZqKaZZFZX/view) [rife4.5](https://drive.google.com/file/d/17Bl_IhTBexogI9BV817kTjf7eTuJEDc0/view) [rife4.6](https://drive.google.com/file/d/1EAbsfY7mjnXNa6RAsATj2ImAEqmHTjbE/view) [rife4.7.1](https://drive.google.com/file/d/1s2zMMIJrUAFLexktm1rWNhlIyOYJ3_ju/view) [rife4.8.1](https://drive.google.com/file/d/1wZa3SyegLPUwBQWmoDLM0MumWd2-ii63/view)
 [rife4.9.2](https://drive.google.com/file/d/1UssCvbL8N-ty0xIKM5G5ZTEgp9o4w3hp/view) [rife4.10.1](https://drive.google.com/file/d/1WNot1qYBt05LUyY1O9Uwwv5_K8U6t8_x/view) [rife4.11.1](https://drive.google.com/file/d/1Dwbp4qAeDVONPz2a10aC2a7-awD6TZvL/view) [rife4.12.2](https://drive.google.com/file/d/1ZHrOBL217ItwdpUBcBtRE3XBD-yy-g2S/view) [rife4.12 lite](https://drive.google.com/file/d/1KoEJ5x6aisxOpkhdNptsGUrL3yf4iy8b/view) [rife4.13.2](https://drive.google.com/file/d/1mj9lH6Be7ztYtHAr1xUUGT3hRtWJBy_5/view) [rife4.13 lite](https://drive.google.com/file/d/1l3lH9QxQQeZVWtBpdB22jgJ-0kmGvXra/view) [rife4.14](https://drive.google.com/file/d/1BjuEY7CHZv1wzmwXSQP9ZTj0mLWu_4xy/view) [rife4.14 lite](https://drive.google.com/file/d/1eULia_onOtRXHMAW9VeDL8N2_7z8J1ba/view) [rife4.15](https://drive.google.com/file/d/1xlem7cfKoMaiLzjoeum8KIQTYO-9iqG5/view) [rife4.17](https://drive.google.com/file/d/1962p_lEWo_kLTEynarNaRYRNVdaiQG2k/view) [rife4.18](https://drive.google.com/file/d/1octn-UVuEjXa_HlsIUbNeLTTvYCKbC_s/view) [rife4.19-beta](https://drive.google.com/file/d/1Wf09iMyTrvVdG7oG3blVAEHDdLU2dhW2/view) [rife4.20](https://drive.google.com/file/d/11n3YR7-qCRZm9RDdwtqOTsgCJUHPuexA/view) [rife4.21](https://drive.google.com/file/d/1l5u6G8vEkPAT7cYYWwzB6OG8vwBYrxiS/view) [rife4.22](https://drive.google.com/file/d/1qh2DSA9a1eZUTtZG9U9RQKO7N7OaUJ0_/view)) and v2 with [WolframRhodium](https://github.com/WolframRhodium)
-
-- RealCUGAN with [bilibili/ailab](https://github.com/bilibili/ailab/blob/main/Real-CUGAN/README_EN.md)
-- GMFupSS with [98mxr/GMFupSS](https://github.com/98mxr/GMFupSS)
-- GMFSS_union with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union)
-- GMFSS_Fortuna and GMFSS_Fortuna_union with [98mxr/GMFSS_Fortuna](https://github.com/98mxr/GMFSS_Fortuna)
-- SRVGGNetCompact with [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)
 - Model based shot boundary detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer), [wentaozhu/AutoShot](https://github.com/wentaozhu/AutoShot), [abhijay9/ShiftTolerant-LPIPS](https://github.com/abhijay9/ShiftTolerant-LPIPS) and [photosynthesis-team/piq](https://github.com/photosynthesis-team/piq)
+- [Real-ESRGAN / SRVGGNetCompact](https://github.com/xinntao/Real-ESRGAN)
+- [SAFMN](https://github.com/sunny2109/SAFMN)
+- [DPIR](https://github.com/cszn/DPIR)
+- [Waifu2x](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/waifu2x_v3.7z)
+- [real-cugan](https://drive.google.com/drive/folders/1jAJyBf2qKe2povySwsGXsVMnzVyQzqDD)
+- [apisr](https://github.com/kiteretsu77/apisr)
+- [AnimeJaNai](https://github.com/the-database/mpv-upscale-2x_animejanai)
+- [ModernSpanimation](https://github.com/TNTwise/Models/releases/tag/2x_ModernSpanimationV1)
+- [AniScale](https://github.com/Sirosky/Upscale-Hub)
+
+Onnx files can be found [here](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models).
 
 Also used:
 - TensorRT C++ inference and python script usage with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
@@ -40,20 +45,8 @@ Also used:
 - lsmash with [AkarinVS/L-SMASH-Works](https://github.com/AkarinVS/L-SMASH-Works)
 - bestsource with [vapoursynth/bestsource](https://github.com/vapoursynth/bestsource)
 - trt precision check and upscale frame skip with [mafiosnik777/enhancr](https://github.com/mafiosnik777/enhancr)
-
-Model | Rife | GMFupSS | GMFSS_union | GMFSS_Fortuna / GMFSS_Fortuna_union
------ | ---- | ------- | ----------- | -----------------------------------
-CUDA | yes (4.0-4.12) | [yes](https://github.com/98mxr/GMFupSS/tree/main/train_log) | yes ([vanilla](https://drive.google.com/file/d/1AsA7a4HNR4RjCeEmNUJWy5kY3dBC-mru/view) / [wgan](https://drive.google.com/file/d/1GAp9DljP1RCQXz0uu_GNn751NBMEQOUB/view)) | yes ([base](https://drive.google.com/file/d/1BKz8UDAPEt713IVUSZSpzpfz_Fi2Tfd_/view) / [union](https://drive.google.com/file/d/1Mvd1GxkWf-DpfE9OPOtqRM9KNk20kLP3/view))
-TensorRT | yes (4.0-4.22, skipped some lite models) | - | - | -
-
-Further stuff that can use TensorRT via [mlrt](https://github.com/AmusementClub/vs-mlrt) with onnx is for example [Real-ESRGAN / SRVGGNetCompact](https://github.com/xinntao/Real-ESRGAN), [SAFMN](https://github.com/sunny2109/SAFMN), [DPIR](https://github.com/cszn/DPIR), [Waifu2x](https://github.com/AmusementClub/vs-mlrt/releases/download/model-20211209/waifu2x_v3.7z), [real-cugan](https://drive.google.com/drive/folders/1jAJyBf2qKe2povySwsGXsVMnzVyQzqDD), [apisr](https://github.com/kiteretsu77/apisr), [AnimeJaNai](https://github.com/the-database/mpv-upscale-2x_animejanai), [ModernSpanimation](https://github.com/TNTwise/Models/releases/tag/2x_ModernSpanimationV1) and [AniScale](https://github.com/Sirosky/Upscale-Hub). Onnx files can be found [here](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models).
-
-Some important things:
-- If you are on Windows, install all the latest updates first, otherwise wsl won't work properly. 21H2 minimum.
-- Do not use `webm` video, webm is often broken. It can work, but don't complain about broken output afterwards. I would suggest to render webm into mp4 or mkv.
-- Only use ffmpeg to determine if video is variable framerate (vfr) or not. Other programs do not seem reliable.
-- Processing vfr video is dangerous, but you can try to use fpsnum and fpsden. Either use these params or render the input video into constant framerate (crf).
-- Colabs have a weak cpu, you should try `x264` with `--opencl`. (A100 does not support NVENC and such)
+- temporal fix with [pifroggi/vs_temporalfix](https://github.com/pifroggi/vs_temporalfix)
+- color fix with [pifroggi/vs_colorfix](https://github.com/pifroggi/vs_colorfix)
 
 <div id='usage'/>
 
@@ -90,30 +83,19 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 
 | docker image  | compressed download | extracted container | short description |
 | ------------- | ------------------- | ------------------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest | 9gb | 17gb | default latest with trt10.3
-| styler00dollar/vsgan_tensorrt:latest_no_avx512 | 9gb | 17gb | trt10.3 without avx512
+| styler00dollar/vsgan_tensorrt:latest | 9gb | 17gb | default latest with trt10.4
+| styler00dollar/vsgan_tensorrt:latest_no_avx512 | 9gb | 17gb | trt10.3 without avx512 (needs update, some plugins not included)
 | styler00dollar/vsgan_tensorrt:trt9.3 | 8gb | 15gb | trt9.3 [use `bfdb96a` with this docker](https://github.com/styler00dollar/VSGAN-tensorrt-docker/commit/bfdb96a329682af19d093ecb990f67e823ea2e89)
 | styler00dollar/vsgan_tensorrt:trt9.3_no_avx512 | 8gb | 15gb | trt9.3 without avx512 [use `bfdb96a` with this docker](https://github.com/styler00dollar/VSGAN-tensorrt-docker/commit/bfdb96a329682af19d093ecb990f67e823ea2e89)
 | styler00dollar/vsgan_tensorrt:minimal | 5gb | 10gb | trt10.3 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
 
 Piping usage:
 ```
-# you can use it in various ways, ffmpeg example
 vspipe -c y4m inference.py - | ffmpeg -i pipe: example.mkv -y
-
-# example without vspipe
-ffmpeg -f vapoursynth -i inference.py example.mkv -y
-
-# example with ffmpeg trt plugin + nvenc
-ffmpeg -hwaccel cuda -hwaccel_output_format cuda -i input.mp4 -vf scale_npp=1280:720,format_cuda=rgbpf32le,tensorrt=my_engine.engine,format_cuda=nv12 -c:v hevc_nvenc -preset lossless output.mkv -y
-# example with ffmpeg trt plugin + hwdownload (cpu encoding)
-ffmpeg -hwaccel cuda -hwaccel_output_format cuda -i input.mp4 -vf format_cuda=rgbpf32le,tensorrt=my_engine.engine,format_cuda=nv12,hwdownload,format=nv12 -vcodec ffv1 output.mkv -y
 ```
 If docker does not want to start, try this before you use docker:
 ```bash
-# fixing docker errors
 sudo systemctl start docker
-sudo chmod 666 /var/run/docker.sock
 ```
 Linux docker autostart:
 ```
@@ -137,9 +119,9 @@ Manually building docker image from scratch:
 # This step is not needed if you already downloaded the docker and is only needed if yo
 # want to build it from scratch. Keep in mind that you need to set env variables in windows differently and
 # this command will only work in linux. Run that inside that directory
-DOCKER_BUILDKIT=1 docker build -t styler00dollar/vsgan_tensorrt:latest .
+DOCKER_BUILDKIT=1 sudo docker build -t styler00dollar/vsgan_tensorrt:latest .
 # If you want to rebuild from scratch or have errors, try to build without cache
-DOCKER_BUILDKIT=1 docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest .
+DOCKER_BUILDKIT=1 sudo docker build --no-cache -t styler00dollar/vsgan_tensorrt:latest .
 ```
 Manually run docker:
 ```
@@ -147,7 +129,7 @@ Manually run docker:
 # the folderpath before ":" will be mounted in the path which follows afterwards
 # contents of the vsgan folder should appear inside /workspace/tensorrt
 
-docker run --privileged --gpus all -it --rm -v /home/vsgan_path/:/workspace/tensorrt styler00dollar/vsgan_tensorrt:latest
+sudo docker run --privileged --gpus all -it --rm -v /home/vsgan_path/:/workspace/tensorrt styler00dollar/vsgan_tensorrt:latest
 
 # Windows is mostly similar, but the path needs to be changed slightly:
 Example for C://path
@@ -199,8 +181,7 @@ Small example for rife interpolation with TensorRT without scene change detectio
 ```python
 import sys
 import vapoursynth as vs
-from src.rife import RIFE
-from src.vfi_inference import vfi_inference
+from src.rife_trt import rife_trt
 
 sys.path.append("/workspace/tensorrt/")
 core = vs.core
@@ -230,34 +211,6 @@ def inference_clip(video_path):
     return clip
 ```
 
-Small example for PyTorch interpolation with rife without scene change detection:
-```python
-import sys
-import vapoursynth as vs
-from src.rife import RIFE
-from src.vfi_inference import vfi_inference
-
-sys.path.append("/workspace/tensorrt/")
-core = vs.core
-core.num_threads = 4
-
-def inference_clip(video_path):
-    clip = core.bs.VideoSource(source=video_path)
-
-    clip = core.resize.Bicubic(
-        clip, format=vs.RGBS, matrix_in_s="709"
-    )  # RGBS means fp32, RGBH means fp16
-
-    # interpolation
-    model_inference = RIFE(
-        scale=1, fastmode=False, ensemble=True, model_version="rife46", fp16=True
-    )
-    clip = vfi_inference(model_inference=model_inference, clip=clip, multi=2)
-
-    clip = core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
-    return clip
-```
-
 More examples in `custom_scripts/`.
 
 Then use the commands above to render. For example:
@@ -277,6 +230,146 @@ and configure `inference_config.py` like wanted. Afterwards just run
 ```
 python main.py
 ```
+
+<div id='individual-examples'/>
+
+## Individual examples
+
+More parameter documentation can be found in the plugin repositories.
+
+- Video Reader: [ffms2](https://github.com/FFMS/ffms2/blob/master/doc/ffms2-vapoursynth.md) [lsmash](https://github.com/HomeOfAviSynthPlusEvolution/L-SMASH-Works/blob/master/VapourSynth/README.md) [bestsource](https://github.com/vapoursynth/bestsource)
+```python
+core.std.LoadPlugin(path="/usr/lib/x86_64-linux-gnu/libffms2.so")
+clip = core.ffms2.Source(source=video_path)
+clip = core.lsmas.LWLibavSource(source=video_path)
+clip = core.bs.VideoSource(source=video_path) # recommended
+```
+
+- Convert colorspace: [descale](https://github.com/Irrational-Encoding-Wizardry/descale) [vs](http://www.vapoursynth.com/doc/functions/video/resize.html)
+```python
+clip = core.descale.Debilinear(clip, 1280, 720)
+clip = core.resize.Bicubic(clip, format=vs.RGBS, matrix_in_s="709")
+clip = core.resize.Bicubic(clip, width=1280, height=720,, format=vs.RGBS, matrix_in_s="709")
+```
+
+- Clamp 0-1
+```python
+clip = core.akarin.Expr(clip, "x 0 1 clamp")
+clip = clip.std.Expr("x 0 max 1 min")
+clip = core.std.Limiter(clip, max=1, planes=[0,1,2])
+```
+
+- Metrics: [vmaf](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF)
+```python
+clip = core.vmaf.Metric(clip, offs1, feature=2)
+```
+
+- Scene Detect
+```python
+clip = core.misc.SCDetect(clip=clip, threshold=0.100)
+
+from src.scene_detect import scene_detect
+clip = scene_detect(clip, fp16=True, thresh=0.85, model=12)
+```
+
+- TensorRT inference: [vstrt](https://github.com/AmusementClub/vs-mlrt/tree/master/vstrt)
+```python
+core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
+clip = core.trt.Model(
+    clip,
+    engine_path="/workspace/tensorrt/cugan.engine",
+    tilesize=[854, 480],
+    overlap=[0, 0],
+    num_streams=4,
+)
+```
+
+- dpir inference: [vstrt](https://github.com/AmusementClub/vs-mlrt/tree/master/vstrt)
+```python
+core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
+strength = 10.0
+noise_level = clip.std.BlankClip(format=vs.GRAYS, color=strength / 100)
+clip = core.trt.Model(
+    [clip, noise_level],
+    engine_path="dpir.engine",
+    tilesize=[1280, 720],
+    num_streams=2,
+)
+```
+
+- Rife (TensorRT)
+```python
+from src.rife_trt import rife_trt
+clip = rife_trt(clip, multi=2, scale=1.0, device_id=0, num_streams=2, engine_path="/workspace/tensorrt/rife46.engine")
+```
+
+- Sharpening: [awarpsharp2](https://github.com/dubhater/vapoursynth-awarpsharp2) [cas](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS)
+```python
+core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so")
+clip = core.warp.AWarpSharp2(clip, thresh=128, blur=2, type=0, depth=[16, 8, 8], chroma=0, opt=True, planes=[0,1,2], cplace="mpeg1")
+clip = core.cas.CAS(clip, sharpness=0.5)
+```
+
+- Color fix: [colorfix](https://github.com/pifroggi/vs_colorfix)
+```python
+import vs_colorfix
+clip = vs_colorfix.average(clip, ref, radius=10, planes=[0, 1, 2], fast=False)
+```
+
+- Temporal fix: [temporalfix](https://github.com/pifroggi/vs_temporalfix) (very slow)
+```python
+core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libmvtools.so")
+core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libfillborders.so")
+core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libmotionmask.so")
+core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libtemporalmedian.so")
+from vs_temporalfix import vs_temporalfix
+clip = vs_temporalfix(clip, strength=400, tr=6, exclude="[10 20]", debug=False)
+```
+
+- Line darken: [linedarken](https://github.com/Selur/VapoursynthScriptsInHybrid/blob/550cc72221848732fa36a5dfb9ad5f98a308dd6e/havsfunc.py#L5217)
+```python
+from src.utils import FastLineDarkenMOD
+clip = FastLineDarkenMOD(clip)
+```
+
+<div id='vs-mlrt'/>
+  
+## vs-mlrt (C++ TRT)
+You need to convert onnx models into engines. You need to do that on the same system where you want to do inference. Download onnx models from [here]( https://github.com/AmusementClub/vs-mlrt/releases/download/v7/models.v7.7z) or from [my Github page](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models). Inside the docker, you do one of the following commands:
+  
+Good default choice:
+```
+trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
+```
+If you have the vram to fit the model multiple times, add `--infStreams`.
+```
+trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --infStreams=4
+```
+DPIR (color) needs 4 channels.
+```
+trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
+```
+Rife v1 needs 8 channels.
+```
+trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x8x64x64 --optShapes=input:1x8x720x1280 --maxShapes=input:1x8x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
+```
+Rife v2 needs 7 channels. Set the same shape everywhere to avoid build errors.
+```
+trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x7x1080x1920 --optShapes=input:1x7x1080x1920 --maxShapes=input:1x7x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
+```
+
+Put that engine path into `inference_config.py`.
+
+**Warnings**:
+- Only add `--bf16` if your GPU supports it, otherwise remove it. If model looks broken, remove `--fp16`.
+- Cugan with 3x scale requires same MIN/OPT/MAX shapes.
+- rvpV2 needs 6 channels, but does not support variable shapes.
+- If you use the FP16 onnx you need to use `RGBH` colorspace, if you use FP32 onnx you need to use `RGBS` colorspace in `inference_config.py` .
+- Engines are system specific, don't use across multiple systems.
+- Don't use reuse engines for different GPUs.
+- If you run out of memory, then you need to adjust the resolutions in that command. If your video is bigger than what you can input in the command, use tiling.
+- If you get segfault, reduce `builderOptimizationLevel`. Change can change it down to 1 to speed up the engine building, but may result in worse speeds.
+- If you set min, opt and max to the same resolution, it might result in a faster engine.
 
 <div id='deduplicated'/>
 
@@ -427,46 +520,6 @@ clip_orig = core.std.Interleave([clip_orig] * 2)  # 2 means interpolation factor
 clip = core.akarin.Select([clip, clip_orig], clip_sc, "x._SceneChangeNext 1 0 ?")
 ```
 
-<div id='vs-mlrt'/>
-
-## vs-mlrt (C++ TRT)
-You need to convert onnx models into engines. You need to do that on the same system where you want to do inference. Download onnx models from [here]( https://github.com/AmusementClub/vs-mlrt/releases/download/v7/models.v7.7z) or from [my Github page](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models). You can technically just use any ONNX model you want or convert a pth into onnx with for example [convert_compact_to_onnx.py](https://github.com/styler00dollar/VSGAN-tensorrt-docker/blob/main/convert_compact_to_onnx.py). Inside the docker, you do one of the following commands:
-
-
-Good default choice:
-```
-trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
-```
-If you have the vram to fit the model multiple times, add `--infStreams`.
-```
-trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --infStreams=4
-```
-DPIR (color) needs 4 channels.
-```
-trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
-```
-Rife v1 needs 8 channels.
-```
-trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x8x64x64 --optShapes=input:1x8x720x1280 --maxShapes=input:1x8x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
-```
-Rife v2 needs 7 channels. Set the same shape everywhere to avoid build errors.
-```
-trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x7x1080x1920 --optShapes=input:1x7x1080x1920 --maxShapes=input:1x7x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
-```
-
-Put that engine path into `inference_config.py`.
-
-**Warnings**:
-- Only add `--bf16` if your GPU supports it, otherwise remove it. If model looks broken, remove `--fp16`.
-- Cugan with 3x scale requires same MIN/OPT/MAX shapes.
-- rvpV2 needs 6 channels, but does not support variable shapes.
-- If you use the FP16 onnx you need to use `RGBH` colorspace, if you use FP32 onnx you need to use `RGBS` colorspace in `inference_config.py` .
-- Engines are system specific, don't use across multiple systems.
-- Don't use reuse engines for different GPUs.
-- If you run out of memory, then you need to adjust the resolutions in that command. If your video is bigger than what you can input in the command, use tiling.
-- If you get segfault, reduce `builderOptimizationLevel`. Change can change it down to 1 to speed up the engine building, but may result in worse speeds.
-- If you set min, opt and max to the same resolution, it might result in a faster engine.
-
 <div id='multi-gpu'/>
 
 ### multi-gpu
@@ -512,23 +565,6 @@ or convert everything to constant framerate with ffmpeg.
 ffmpeg -i video_input.mkv -fps_mode cfr -crf 10 -c:a copy video_out.mkv
 ```
 or use my `vfr_to_cfr.py` to process a folder.
-
-<div id='color'/>
-
-## Color transfer (experimental)
-A small script for color transfer is available. Currently it can only be used outside of VapourSynth. Since it uses `color-matcher` as a dependency, you need to install it first.
-I only tested it on a single image for now, but it may be usable for video sequences.
-```bash
-pip install docutils
-git clone https://github.com/hahnec/color-matcher
-cd color-matcher
-python setup.py install
-```
-
-You can choose between `rgb`, `lab`, `ycbcr`, `lum`, `pdf`, `sot`, `hm`, `reinhard`, `mvgd`, `mkl`, `hm-mvgd-hm` and `hm-mkl-hm`. Specify folders.
-```bash
-python color_transfer.py -s input -t target -o output -algo mkl -threads 8
-```
 
 <div id='benchmarks'/>
 
@@ -703,4 +739,3 @@ DPIR | 480p | 720p | 1080p
 ## License
 
 This code uses code from other repositories, but the code I wrote myself is under BSD3.
-
