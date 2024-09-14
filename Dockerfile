@@ -379,83 +379,6 @@ RUN apt install autoconf -y
 RUN git clone https://github.com/FFMS/ffms2 && cd ffms2 && ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" ./configure --enable-shared && make -j$(nproc) && make install
 
 ############################
-# OpenCV
-############################
-FROM nvidia/cuda:12.5.1-devel-ubuntu24.04 AS opencv-ubuntu
-ARG DEBIAN_FRONTEND=noninteractive
-ENV NVIDIA_VISIBLE_DEVICES all
-ENV NVIDIA_DRIVER_CAPABILITIES all
-
-RUN apt-get update && apt-get upgrade -y &&\
-    apt-get install -y \
-        build-essential \
-        cmake \
-        git \
-        wget \
-        unzip \
-        yasm \
-        pkg-config \
-        libswscale-dev \
-        libtbbmalloc2 \
-        libtbb-dev \
-        libjpeg-dev \
-        libpng-dev \
-        libtiff-dev \
-        libavformat-dev \
-        libpq-dev \
-        libxine2-dev \
-        libglew-dev \
-        libtiff5-dev \
-        zlib1g-dev \
-        libjpeg-dev \
-        libavcodec-dev \
-        libavformat-dev \
-        libavutil-dev \
-        libpostproc-dev \
-        libswscale-dev \
-        libeigen3-dev \
-        libtbb-dev \
-        libgtk2.0-dev \
-        pkg-config \
-        ## Python
-        python3.12 \
-        python3.12-dev \
-        python3.12-venv \
-        python3-pip \
-    && rm -rf /var/lib/apt/lists/*
-
-# OpenCV (pip install . fails currently, building wheel instead)
-# setuptools currently outdated https://github.com/opencv/opencv-python/pull/1012
-RUN python3.12 -m pip install --upgrade git+https://github.com/numpy/numpy git+https://github.com/pypa/setuptools --break-system-packages && python3.12 -m pip install scikit-build --break-system-packages -U 
-RUN git clone --recursive https://github.com/opencv/opencv-python && \
-  cd opencv-python && \
-  git submodule update --init --recursive
-  # git submodule update --remote --merge && \
-RUN cd opencv-python && rm -rf pyproject.toml
-RUN cd opencv-python && CMAKE_ARGS="-DOPENCV_EXTRA_MODULES_PATH=/opencv-python/opencv_contrib/modules \
-  -DBUILD_opencv_cudacodec=OFF -DBUILD_opencv_cudaoptflow=OFF \ 
-  -D ENABLE_FAST_MATH=1 \
-  -D CUDA_FAST_MATH=1 \
-  -D WITH_CUBLAS=1 \
-  -D BUILD_TIFF=ON \
-  -D BUILD_opencv_java=OFF \
-  -D WITH_CUDA=ON \
-  -D WITH_OPENGL=OFF \
-  -D WITH_OPENCL=ON \
-  -D WITH_IPP=ON \
-  -D WITH_TBB=ON \
-  -D WITH_EIGEN=ON \
-  -D WITH_V4L=OFF  \
-  -D BUILD_TESTS=OFF \
-  -D BUILD_PERF_TESTS=OFF \
-  -D OPENCV_FFMPEG_USE_FIND_PACKAGE=OFF \
-  -D BUILD_SHARED_LIBS=OFF \
-  -D CUDA_ARCH_BIN=7.5,8.0,8.6,8.9,7.5+PTX,8.0+PTX,8.6+PTX,8.9+PTX \
-  -D CMAKE_BUILD_TYPE=RELEASE" \
-  ENABLE_ROLLING=1 ENABLE_CONTRIB=1 MAKEFLAGS="-j$(nproc)" \
-  python3.12 -m pip wheel . --verbose
-
-############################
 # TensorRT + ORT
 ############################
 FROM nvidia/cuda:12.5.1-devel-ubuntu24.04 AS tensorrt-ubuntu
@@ -493,9 +416,9 @@ RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-rei
 
 # https://github.com/NVIDIA/TensorRT-LLM/blob/main/docker/common/install_tensorrt.sh
 # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=tensorrt
-RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.3.0/tars/TensorRT-10.3.0.26.Linux.x86_64-gnu.cuda-12.5.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.4.0/tars/TensorRT-10.4.0.26.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-10.3.0.26 /usr/local/tensorrt
+RUN mv /usr/local/TensorRT-10.4.0.26 /usr/local/tensorrt
 RUN pip3 install /usr/local/tensorrt/python/tensorrt-*-cp312-*.whl
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/tensorrt/targets/x86_64-linux-gnu/lib/
 
@@ -510,7 +433,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cudnn
 # onnxruntime requires working tensorrt installation and thus can't be easily seperated into a seperate instance
 # https://github.com/microsoft/onnxruntime/blob/main/dockerfiles/Dockerfile.tensorrt
 ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
-ARG ONNXRUNTIME_BRANCH=rel-1.19.0
+ARG ONNXRUNTIME_BRANCH=rel-1.19.2
 ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;53;60;61;62;70;72;75;80;89
 
 RUN apt-get update &&\
@@ -623,7 +546,7 @@ RUN cd zimg && checkinstall -y -pkgversion=0.0 && \
   apt install /workspace/zimg/zimg_0.0-1_amd64.deb -y
 
 # vapoursynth
-RUN pip install --upgrade pip && pip install cython && git clone https://github.com/vapoursynth/vapoursynth && \
+RUN pip install --upgrade pip && pip install cython setuptools && git clone https://github.com/vapoursynth/vapoursynth && \
   cd vapoursynth && ./autogen.sh && \
   ./configure && make -j$(nproc) && make install && cd .. && ldconfig && \
   cd vapoursynth && python setup.py bdist_wheel
@@ -633,10 +556,10 @@ RUN pip install --upgrade pip && pip install cython && git clone https://github.
 RUN pip install numpy docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
 
 # vs-mlrt
-RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.3.0/tars/TensorRT-10.3.0.26.Linux.x86_64-gnu.cuda-12.5.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.4.0/tars/TensorRT-10.4.0.26.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-10.3.0.26/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
-RUN mv /usr/local/TensorRT-10.3.0.26/include/* /usr/include/x86_64-linux-gnu/
+RUN mv /usr/local/TensorRT-10.4.0.26/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
+RUN mv /usr/local/TensorRT-10.4.0.26/include/* /usr/include/x86_64-linux-gnu/
 RUN cd /usr/lib/x86_64-linux-gnu \
   && ldconfig
 ENV CPLUS_INCLUDE_PATH="/usr/include/x86_64-linux-gnu/"
@@ -719,30 +642,30 @@ RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
 # pip
 RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy meson ninja numpy einops kornia vsutil onnx
 
-# installing pip version due to
-# ModuleNotFoundError: No module named 'torch_tensorrt.fx.converters.impl'
-# holywu plugins currently only work with trt8.6, disabling holywu plugins for now due to broken fp16
-#RUN pip install torch-tensorrt-fx-only==1.5.0.dev0 --extra-index-url https://pypi.nvidia.com/  && \
-
 # deleting .so files to symlink them later on to save space
-RUN pip install tensorrt==10.3.0 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
+RUN pip install tensorrt==10.4.0 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
   rm -rf /root/.cache/ /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.* \
     /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.*
 
-COPY --from=tensorrt-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.19.0-cp312-cp312-linux_x86_64.whl /workspace
-RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.19.0-cp312-cp312-linux_x86_64.whl
+COPY --from=tensorrt-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.19.2-cp312-cp312-linux_x86_64.whl /workspace
+RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.19.2-cp312-cp312-linux_x86_64.whl
 
-# holywu plugins
-# currently does not work with trt 9.x because fp16 throws AssertionError: Dtype mismatch for 0th input(getitem_118). Expect torch.float16, got torch.float32
-#RUN git clone https://github.com/styler00dollar/vs-gmfss_union && cd vs-gmfss_union && pip install . && cd /workspace && rm -rf vs-gmfss_union
-#RUN git clone https://github.com/styler00dollar/vs-gmfss_fortuna && cd vs-gmfss_fortuna && pip install . && cd /workspace && rm -rf vs-gmfss_fortuna
-#RUN git clone https://github.com/styler00dollar/vs-dpir && cd vs-dpir && pip install . && cd .. && rm -rf vs-dpir
+# vs_temporalfix dependencies
+RUN apt install nasm libfftw3-dev -y && git clone https://github.com/dubhater/vapoursynth-mvtools && cd vapoursynth-mvtools && mkdir build && cd build && meson ../ && ninja && ninja install
+RUN git clone https://github.com/dubhater/vapoursynth-temporalmedian && cd vapoursynth-temporalmedian && mkdir build && cd build && meson ../ && ninja && ninja install
+RUN git clone https://github.com/dubhater/vapoursynth-motionmask && cd vapoursynth-motionmask && mkdir build && cd build && meson ../ && ninja && ninja install
+RUN git clone https://github.com/dubhater/vapoursynth-fillborders && cd vapoursynth-fillborders && mkdir build && cd build && meson ../ && ninja && ninja install
+RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-Retinex && cd VapourSynth-Retinex && mkdir build && cd build && meson ../ && ninja && ninja install
+RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny && cd VapourSynth-TCanny && mkdir build && cd build && meson ../ && ninja && ninja install
+RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CTMF && cd VapourSynth-CTMF && mkdir build && cd build && meson ../ && ninja && ninja install
+RUN git clone https://github.com/vapoursynth/vs-removegrain && cd vs-removegrain && mkdir build && cd build && meson ../ && ninja && ninja install
+# pifroggi plugins
+RUN pip install git+https://github.com/pifroggi/vs_colorfix git+https://github.com/pifroggi/vs_temporalfix
 
 # installing own versions
 COPY --from=cupy-ubuntu /cupy/dist/ /workspace
-COPY --from=opencv-ubuntu /opencv-python/opencv*.whl /workspace
 COPY --from=torch-ubuntu /pytorch/dist/ /workspace
-RUN pip uninstall -y cupy* $(pip freeze | grep '^opencv' | cut -d = -f 1) && \
+RUN pip uninstall -y cupy* && \
   find . -name "*whl" ! -path "./Python-3.12.5/*" -exec pip install {} \;
 
 # ddfi csv
@@ -803,13 +726,15 @@ COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/liblsmash.so* /usr/local/l
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/vapoursynth/libvslsmashsource.so* /usr/local/lib/vapoursynth/
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/vapoursynth/bestsource.so* /usr/local/lib/vapoursynth/bestsource.so
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/x86_64-linux-gnu/libbestsource.so* /usr/local/lib/x86_64-linux-gnu/libbestsource.so
-COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/libffms2.so* /usr/local/lib/
+COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/libffms2.so*  /usr/local/lib/
 
 COPY --from=base /usr/local/lib/vapoursynth/libvmaf.so /usr/local/lib/vapoursynth/libdescale.so /usr/local/lib/vapoursynth/libakarin.so \
-  /usr/local/lib/vapoursynth/libmiscfilters.so /usr/local/lib/vapoursynth/libcas.so /usr/local/lib/vapoursynth/
+  /usr/local/lib/vapoursynth/libmiscfilters.so /usr/local/lib/vapoursynth/libcas.so /usr/local/lib/vapoursynth/libremovegrain.so \
+  /usr/local/lib/vapoursynth/libretinex.so /usr/local/lib/vapoursynth/libtcanny.so /usr/local/lib/vapoursynth/
 
 COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so \
-  /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/
+  /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/libmvtools.so \
+  /usr/local/lib/x86_64-linux-gnu/libfillborders.so /usr/local/lib/x86_64-linux-gnu/libmotionmask.so /usr/local/lib/x86_64-linux-gnu/libtemporalmedian.so /usr/local/lib/x86_64-linux-gnu/
 
 # av1an / rav1e / svt / aom
 COPY --from=base /usr/bin/av1an /usr/local/bin/rav1e /usr/bin/
@@ -836,45 +761,9 @@ COPY --from=base /usr/lib/x86_64-linux-gnu/libxcb*.so* /usr/lib/x86_64-linux-gnu
   /usr/lib/x86_64-linux-gnu/
 COPY --from=ffmpeg-arch /usr/lib/libstdc++.so* /usr/lib/x86_64-linux-gnu/
 
-# opencv (uses ffmpeg dependencies? todo: check if it can be less)
-COPY --from=base /usr/lib/x86_64-linux-gnu/libGL.so* /usr/lib/x86_64-linux-gnu/libgthread-2.0.so* /usr/lib/x86_64-linux-gnu/libGLdispatch.so* \
-  /usr/lib/x86_64-linux-gnu/libGLX.so* /usr/lib/x86_64-linux-gnu/libX11.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=opencv-ubuntu /usr/lib/x86_64-linux-gnu/libjpeg.so* /usr/lib/x86_64-linux-gnu/libavcodec.so* \
-  /usr/lib/x86_64-linux-gnu/libavformat.so* /usr/lib/x86_64-linux-gnu/libavutil.so* /usr/lib/x86_64-linux-gnu/libswscale.so* \
-  /usr/lib/x86_64-linux-gnu/libgtk-x11-2.0.so* /usr/lib/x86_64-linux-gnu/libgdk-x11-2.0.so* /usr/lib/x86_64-linux-gnu/libcairo.so* \
-  /usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so* /usr/lib/x86_64-linux-gnu/libgobject-2.0.so* /usr/lib/x86_64-linux-gnu/libtbb.so* \
-  /usr/lib/x86_64-linux-gnu/libswresample.so* /usr/lib/x86_64-linux-gnu/libvpx.so* /usr/lib/x86_64-linux-gnu/libwebpmux.so* \
-  /usr/lib/x86_64-linux-gnu/libwebp.so* /usr/lib/x86_64-linux-gnu/libdav1d.so* /usr/lib/x86_64-linux-gnu/librsvg-2.so* \
-  /usr/lib/x86_64-linux-gnu/libzvbi.so* /usr/lib/x86_64-linux-gnu/libsnappy.so* /usr/lib/x86_64-linux-gnu/libaom.so* \
-  /usr/lib/x86_64-linux-gnu/libcodec2.so* /usr/lib/x86_64-linux-gnu/libgsm.so* /usr/lib/x86_64-linux-gnu/libmp3lame.so* \
-  /usr/lib/x86_64-linux-gnu/libopenjp2.so* /usr/lib/x86_64-linux-gnu/libopus.so* /usr/lib/x86_64-linux-gnu/libshine.so* \
-  /usr/lib/x86_64-linux-gnu/libspeex.so* /usr/lib/x86_64-linux-gnu/libtheoraenc.so* /usr/lib/x86_64-linux-gnu/libtheoradec.so* \
-  /usr/lib/x86_64-linux-gnu/libtwolame.so* /usr/lib/x86_64-linux-gnu/libvorbis.so* /usr/lib/x86_64-linux-gnu/libvorbisenc.so* \
-  /usr/lib/x86_64-linux-gnu/libx264.so* /usr/lib/x86_64-linux-gnu/libx265.so* /usr/lib/x86_64-linux-gnu/libxvidcore.so* \
-  /usr/lib/x86_64-linux-gnu/libva.so* /usr/lib/x86_64-linux-gnu/libmfx.so* /usr/lib/x86_64-linux-gnu/libgme.so* \
-  /usr/lib/x86_64-linux-gnu/libopenmpt.so* /usr/lib/x86_64-linux-gnu/libchromaprint.so* /usr/lib/x86_64-linux-gnu/libbluray.so* \
-  /usr/lib/x86_64-linux-gnu/librabbitmq.so* /usr/lib/x86_64-linux-gnu/libsrt-gnutls.so* /usr/lib/x86_64-linux-gnu/libssh-gcrypt.so* \
-  /usr/lib/x86_64-linux-gnu/libzmq.so* /usr/lib/x86_64-linux-gnu/libva-drm.so* /usr/lib/x86_64-linux-gnu/libva-x11.so* \
-  /usr/lib/x86_64-linux-gnu/libvdpau.so* /usr/lib/x86_64-linux-gnu/libgmodule-2.0.so* /usr/lib/x86_64-linux-gnu/libpangocairo-1.0.so* \
-  /usr/lib/x86_64-linux-gnu/libXfixes.so* /usr/lib/x86_64-linux-gnu/libatk-1.0.so* /usr/lib/x86_64-linux-gnu/libgio-2.0.so* \
-  /usr/lib/x86_64-linux-gnu/libpangoft2-1.0.so* /usr/lib/x86_64-linux-gnu/libpango-1.0.so* /usr/lib/x86_64-linux-gnu/libXrender.so* \
-  /usr/lib/x86_64-linux-gnu/libXinerama.so* /usr/lib/x86_64-linux-gnu/libXi.so* /usr/lib/x86_64-linux-gnu/libXrandr.so* \
-  /usr/lib/x86_64-linux-gnu/libXcursor.so* /usr/lib/x86_64-linux-gnu/libXcomposite.so* /usr/lib/x86_64-linux-gnu/libXdamage.so* \
-  /usr/lib/x86_64-linux-gnu/libXext.so* /usr/lib/x86_64-linux-gnu/libpixman-1.so* /usr/lib/x86_64-linux-gnu/libcairo-gobject.so* \
-  /usr/lib/x86_64-linux-gnu/libogg.so* /usr/lib/x86_64-linux-gnu/libnuma.so* /usr/lib/x86_64-linux-gnu/libmpg123.so* \
-  /usr/lib/x86_64-linux-gnu/libvorbisfile.so* /usr/lib/x86_64-linux-gnu/libudfread.so* /usr/lib/x86_64-linux-gnu/libsodium.so* \
-  /usr/lib/x86_64-linux-gnu/libpgm-5.3.so* /usr/lib/x86_64-linux-gnu/libnorm.so* /usr/lib/x86_64-linux-gnu/libthai.so* \
-  /usr/lib/x86_64-linux-gnu/libdatrie.so* /usr/lib/x86_64-linux-gnu/libsharpyuv.so* /usr/lib/x86_64-linux-gnu/libjxl.so* \
-  /usr/lib/x86_64-linux-gnu/libjxl_threads.so* /usr/lib/x86_64-linux-gnu/librav1e.so* /usr/lib/x86_64-linux-gnu/libSvtAv1Enc.so* \
-  /usr/lib/x86_64-linux-gnu/libvpl.so* /usr/lib/x86_64-linux-gnu/librist.so* /usr/lib/x86_64-linux-gnu/libhwy.so* \
-  /usr/lib/x86_64-linux-gnu/libbrotlienc.so* /usr/lib/x86_64-linux-gnu/liblcms2.so* /usr/lib/x86_64-linux-gnu/libmbedcrypto.so* \
-  /usr/lib/x86_64-linux-gnu/libcjson.so* /usr/lib/x86_64-linux-gnu/libgssapi_krb5.so* /usr/lib/x86_64-linux-gnu/libX11-xcb.so* \
-  /usr/lib/x86_64-linux-gnu/libkrb5.so* /usr/lib/x86_64-linux-gnu/libk5crypto.so* /usr/lib/x86_64-linux-gnu/libkrb5support.so* \
-  /usr/lib/x86_64-linux-gnu/libkeyutils.so* /usr/lib/x86_64-linux-gnu/
-
 # symlink python tensorrt
 RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer.so.10
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so.10.3.0 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.10.3.0
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so.10.3.0 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.10.4.0
 RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.10
 RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.10
 
