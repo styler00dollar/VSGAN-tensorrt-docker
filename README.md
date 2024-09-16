@@ -357,7 +357,10 @@ Rife v2 needs 7 channels. Set the same shape everywhere to avoid build errors.
 ```
 trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x7x1080x1920 --optShapes=input:1x7x1080x1920 --maxShapes=input:1x7x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
 ```
-
+My Shuffle Span has a static shape and needs dynamic conv to be in fp32 for lower precision to work.
+```
+trtexec --bf16 --fp16 --onnx=sudo_shuffle_span_op20_10.5m_1080p_onnxslim.onnx --saveEngine=sudo_shuffle_span_op20_10.5m_1080p_onnxslim.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --infStreams=4 --layerPrecisions=/dynamic/Conv:fp32 --precisionConstraints=obey
+```
 Put that engine path into `inference_config.py`.
 
 **Warnings**:
