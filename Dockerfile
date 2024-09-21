@@ -248,7 +248,7 @@ RUN apt-get -y update && apt-get install -y \
   apt-get clean -y
 
 RUN python3.12 -m pip install numpy pyyaml --break-system-packages
-RUN git clone -b release/2.4 --recursive https://github.com/pytorch/pytorch
+RUN git clone -b release/2.5 --recursive https://github.com/pytorch/pytorch
 
 WORKDIR /cmake
 
@@ -681,11 +681,11 @@ RUN wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-3build3_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.40-1ubuntu1_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.40-1ubuntu1_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.40-1ubuntu1_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.40-1ubuntu1_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-44.44_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.40-1ubuntu3_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.40-1ubuntu3_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.40-1ubuntu3_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.40-1ubuntu3_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-45.45_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4%2Bds-1.3_amd64.deb
 
