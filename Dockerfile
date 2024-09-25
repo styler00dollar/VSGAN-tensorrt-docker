@@ -662,6 +662,9 @@ RUN git clone https://github.com/vapoursynth/vs-removegrain && cd vs-removegrain
 # pifroggi plugins
 RUN pip install git+https://github.com/pifroggi/vs_colorfix git+https://github.com/pifroggi/vs_temporalfix
 
+# holywu
+RUN pip install git+https://github.com/styler00dollar/vs-rife --no-deps && python -m vsrife
+
 # installing own versions
 COPY --from=cupy-ubuntu /cupy/dist/ /workspace
 COPY --from=torch-ubuntu /pytorch/dist/ /workspace
