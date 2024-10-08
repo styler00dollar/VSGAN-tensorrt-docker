@@ -88,7 +88,7 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 | styler00dollar/vsgan_tensorrt:latest_no_avx512 | 9gb | 17gb | trt10.4 without avx512 (currently no vsrife, todo)
 | styler00dollar/vsgan_tensorrt:trt9.3 | 8gb | 15gb | trt9.3 [use `bfdb96a` with this docker](https://github.com/styler00dollar/VSGAN-tensorrt-docker/commit/bfdb96a329682af19d093ecb990f67e823ea2e89)
 | styler00dollar/vsgan_tensorrt:trt9.3_no_avx512 | 8gb | 15gb | trt9.3 without avx512 [use `bfdb96a` with this docker](https://github.com/styler00dollar/VSGAN-tensorrt-docker/commit/bfdb96a329682af19d093ecb990f67e823ea2e89)
-| styler00dollar/vsgan_tensorrt:minimal | 5gb | 10gb | trt10.3 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
+| styler00dollar/vsgan_tensorrt:minimal | 5gb | 10gb | trt10.4 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
 
 Piping usage:
 ```

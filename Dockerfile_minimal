@@ -50,8 +50,8 @@ RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.5.tar.
   ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
 ENV PATH /usr/local/bin:$PATH
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R69.tar.gz && \
-  tar -zxvf R69.tar.gz && cd vapoursynth-R69 && ./autogen.sh && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R70.tar.gz && \
+  tar -zxvf R70.tar.gz && cd vapoursynth-R70 && ./autogen.sh && \
   PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/local/lib/pkgconfig" ./configure --enable-static --disable-shared && \
   make && make install && cd .. && ldconfig
 
@@ -225,7 +225,7 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
 # bestsource / lsmash / ffms2
 # todo: check if CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" --extra-ldflags="-static" is required
 ############################
-FROM nvcr.io/nvidia/tensorrt:24.08-py3 as bestsource-lsmash-ffms2-vs
+FROM nvcr.io/nvidia/tensorrt:24.09-py3 as bestsource-lsmash-ffms2-vs
 
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR workspace
@@ -250,8 +250,8 @@ RUN git clone https://github.com/sekrit-twc/zimg --recursive && cd zimg && \
   apt install /workspace/workspace/zimg/zimg_0.0-1_amd64.deb -y
 
 # vapoursynth
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R68.tar.gz && \
-  tar -zxvf R68.tar.gz && mv vapoursynth-R68 vapoursynth && cd vapoursynth && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R70.tar.gz && \
+  tar -zxvf R70.tar.gz && mv vapoursynth-R70 vapoursynth && cd vapoursynth && \
   ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install && ldconfig
 
 # dav1d
@@ -305,7 +305,7 @@ RUN apt install autoconf -y
 RUN git clone https://github.com/FFMS/ffms2 && cd ffms2 && ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" ./configure --enable-shared && make -j$(nproc) && make install
 
 ############################
-FROM nvcr.io/nvidia/tensorrt:24.08-py3
+FROM nvcr.io/nvidia/tensorrt:24.09-py3
 ARG DEBIAN_FRONTEND=noninteractive
 
 # cmake
@@ -318,11 +318,11 @@ RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMa
 RUN apt update -y && apt install git autoconf libtool libglib2.0-dev -y && \
     wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.5.tar.gz && tar -zxvf release-3.0.5.tar.gz && \
     cd zimg-release-3.0.5 && ./autogen.sh && ./configure && make -j16 && make install && cd .. && rm -rf zimg-release-3.0.5 release-3.0.5.tar.gz && \
-    pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R68.tar.gz && \
-    tar -zxvf R68.tar.gz && cd vapoursynth-R68 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
+    pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R70.tar.gz && \
+    tar -zxvf R70.tar.gz && cd vapoursynth-R70 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.8/site-packages/vapoursynth.so /usr/lib/python3.10/lib-dynload/vapoursynth.so && \
-    # not deleting vapoursynth-R68 since vs-mlrt needs it
-    rm -rf R68.tar.gz && pip install vapoursynth && \
+    # not deleting vapoursynth-R70 since vs-mlrt needs it
+    rm -rf R70.tar.gz && pip install vapoursynth && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip cache purge
 
 # vs-mlrt
@@ -332,8 +332,8 @@ RUN apt install build-essential manpages-dev software-properties-common -y && ad
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12 && \
     # compiling
     git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt/vstrt && mkdir build && \
-    cd build && /workspace/bin/cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R68/include -D USE_NVINFER_PLUGIN=OFF -D USE_NVINFER_PLUGIN_STATIC=OFF && make -j$(nproc) && make install && \
-    cd /workspace && rm -rf /workspace/vs-mlrt /workspace/vapoursynth-R68
+    cd build && /workspace/bin/cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R70/include -D USE_NVINFER_PLUGIN=OFF -D USE_NVINFER_PLUGIN_STATIC=OFF && make -j$(nproc) && make install && \
+    cd /workspace && rm -rf /workspace/vs-mlrt /workspace/vapoursynth-R70
 
 # ffmpeg
 COPY --from=ffmpeg-arch /home/makepkg/FFmpeg/ffmpeg /usr/local/bin/ffmpeg
@@ -341,16 +341,16 @@ RUN apt install libxcb1 libxcb-shm0 libxcb-shape0 libxcb-xfixes0 fontconfig libf
 
 # ffmpeg hotfix
 RUN wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1.3.4%2Bds-1.3_amd64.deb \
-  https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb \
-  https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb \
-  https://mirrors.edge.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-3build3_amd64.deb \
-  https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.40-1ubuntu1_amd64.deb \
-  https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.40-1ubuntu1_amd64.deb \
-  https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.40-1ubuntu1_amd64.deb \
-  https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.40-1ubuntu1_amd64.deb \
-  https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-44.44_amd64.deb \
-  https://mirrors.edge.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
-  https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4%2Bds-1.3_amd64.deb && dpkg --force-all -i *.deb  && rm -rf *deb
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-3build3_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.40-1ubuntu3_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.40-1ubuntu3_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.40-1ubuntu3_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.40-1ubuntu3_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-45.45_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4%2Bds-1.3_amd64.deb&& dpkg --force-all -i *.deb  && rm -rf *deb
 COPY --from=ffmpeg-arch /usr/lib/libstdc++.so* /usr/lib/x86_64-linux-gnu/
 
 # copy video readers
