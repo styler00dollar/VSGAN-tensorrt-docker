@@ -21,7 +21,7 @@ RUN yay -S python-pip python312 --noconfirm --ask 4
 USER root
 
 RUN mkdir -p "/home/makepkg/python312"
-RUN wget https://github.com/python/cpython/archive/refs/tags/v3.12.5.tar.gz && tar xf v3.12.5.tar.gz && cd cpython-3.12.5 && \
+RUN wget https://github.com/python/cpython/archive/refs/tags/v3.12.7.tar.gz && tar xf v3.12.7.tar.gz && cd cpython-3.12.7 && \
   mkdir debug && cd debug && ../configure --enable-optimizations --disable-shared --prefix="/home/makepkg/python312" && make -j$(nproc) && make install && \
   /home/makepkg/python312/bin/python3.12 -m ensurepip --upgrade
 RUN cp /home/makepkg/python312/bin/python3.12 /usr/bin/python
@@ -50,8 +50,8 @@ RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.5.tar.
   ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
 ENV PATH /usr/local/bin:$PATH
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R69.tar.gz && \
-  tar -zxvf R69.tar.gz && cd vapoursynth-R69 && ./autogen.sh && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R70.tar.gz && \
+  tar -zxvf R70.tar.gz && cd vapoursynth-R70 && ./autogen.sh && \
   PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/local/lib/pkgconfig" ./configure --enable-static --disable-shared && \
   make && make install && cd .. && ldconfig
 
@@ -219,6 +219,7 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
     --enable-pthreads \
     --enable-runtime-cpudetect \
     --enable-lto && \
+    #--enable-vulkan && \ # currently can't get it working
     make -j$(nproc)
   
 ############################
@@ -262,8 +263,8 @@ RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMa
 WORKDIR /
 
 RUN cd pytorch && pip3 install -r requirements.txt --break-system-packages && \
-  MAX_JOBS=4 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" USE_NCCL=OFF python3.12 setup.py build && \
-  MAX_JOBS=4 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" python3.12 setup.py bdist_wheel
+  MAX_JOBS=6 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" USE_NCCL=OFF python3.12 setup.py build && \
+  MAX_JOBS=6 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" python3.12 setup.py bdist_wheel
 
 ############################
 # cupy
@@ -292,6 +293,87 @@ RUN apt-get -y update && apt-get install -y \
 RUN python3.12 -m pip install git+https://github.com/numpy/numpy torch torchvision torchaudio --break-system-packages
 RUN git clone https://github.com/cupy/cupy --recursive && cd cupy && git submodule update --init && python3.12 -m pip install . --break-system-packages && \
   MAKEFLAGS="-j$(nproc)" python3.12 setup.py bdist_wheel
+
+############################
+# mlrt ort
+############################
+# https://github.com/AmusementClub/vs-mlrt/blob/master/.github/workflows/linux-ort.yml
+FROM nvidia/cuda:12.5.1-devel-ubuntu24.04 AS vsort-ubuntu
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get -y update && apt-get install -y \
+  curl \
+  make \
+  gcc \
+  wget \
+  libssl-dev \
+  libffi-dev \
+  libopenblas-dev \
+  python3.12 \
+  python3.12-dev \
+  python3.12-venv \
+  python3-pip \
+  git && \
+  apt-get autoclean -y && \
+  apt-get autoremove -y && \
+  apt-get clean -y
+
+# cmake
+WORKDIR /cmake
+RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.30.2/cmake-3.30.2-linux-x86_64.sh && \
+  chmod +x cmake-3.30.2-linux-x86_64.sh  && sh cmake-3.30.2-linux-x86_64.sh  --skip-license && \
+  cp /cmake/bin/cmake /usr/bin/cmake && cp /cmake/bin/cmake /usr/lib/cmake && \
+  cp /cmake/bin/cmake /usr/local/bin/cmake && cp /cmake/bin/ctest /usr/local/bin/ctest && cp -r /cmake/share/cmake-3.30 /usr/local/share/ && \
+  rm -rf cmake-3.30.2-linux-x86_64.sh 
+
+WORKDIR /workdir
+# own fork with additional tensorrt backend
+RUN git clone https://github.com/styler00dollar/vs-mlrt
+WORKDIR /workdir/vs-mlrt
+
+# protobuf
+RUN git clone https://github.com/protocolbuffers/protobuf && cd protobuf && git submodule update --init --recursive
+RUN mkdir -p protobuf/build_rel
+RUN cd protobuf/build_rel && cmake .. -DCMAKE_CXX_STANDARD=17 \
+  -D CMAKE_BUILD_TYPE=Release \
+  -D CMAKE_POSITION_INDEPENDENT_CODE=ON \
+  -D protobuf_BUILD_SHARED_LIBS=OFF -D protobuf_BUILD_TESTS=OFF
+RUN cd protobuf/build_rel && cmake --build . --verbose -j$(nproc) --target install
+
+# onnx
+RUN git clone https://github.com/onnx/onnx --recursive
+RUN mkdir -p onnx/build
+RUN cd onnx/build && cmake .. \
+  -D CMAKE_BUILD_TYPE=Release \
+  -D CMAKE_POSITION_INDEPENDENT_CODE=ON \
+  -D ONNX_USE_LITE_PROTO=ON -D ONNX_USE_PROTOBUF_SHARED_LIBS=OFF \
+  -D ONNX_GEN_PB_TYPE_STUBS=OFF -D ONNX_ML=0
+RUN cd onnx/build && cmake --build . --verbose -j$(nproc) --target install
+
+# vapoursynth
+RUN apt install unzip -y
+RUN wget -q -O vs.zip https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R57.zip && \
+  unzip -q vs.zip && \
+  mv vapoursynth*/ vapoursynth
+
+# onnxruntime
+RUN wget -O ort.tgz https://github.com/microsoft/onnxruntime/releases/download/v1.18.0/onnxruntime-linux-x64-gpu-cuda12-1.18.0.tgz && \
+  tar -xf ort.tgz && \
+  mv onnxruntime-* onnxruntime -v
+
+RUN mkdir -p /workdir/vs-mlrt/vsort/build && cd /workdir/vs-mlrt/vsort/build && cmake .. \
+  -D CMAKE_BUILD_TYPE=Release \
+  -D CMAKE_CXX_FLAGS="-Wall -ffast-math -march=x86-64-v3" \
+  -D VAPOURSYNTH_INCLUDE_DIRECTORY="/workdir/vs-mlrt/vapoursynth/include" \
+  -D ONNX_RUNTIME_API_DIRECTORY=/workdir/vs-mlrt/onnxruntime/include \
+  -D ONNX_RUNTIME_LIB_DIRECTORY=/workdir/vs-mlrt/onnxruntime/lib \
+  -D ENABLE_CUDA=1 \
+  -D ENABLE_TENSORRT=1 \
+  -D CUDAToolkit_ROOT=/usr/local/cuda \
+  -D CMAKE_CXX_STANDARD=20
+
+RUN cd /workdir/vs-mlrt/vsort/build && cmake --build . --verbose -j$(nproc) --target install
 
 ############################
 # bestsource / lsmash / ffms2
@@ -324,8 +406,8 @@ RUN cd zimg && checkinstall -y -pkgversion=0.0 && \
   apt install /workspace/zimg/zimg_0.0-1_amd64.deb -y
 
 # vapoursynth
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R69.tar.gz && \
-  tar -zxvf R69.tar.gz && mv vapoursynth-R69 vapoursynth && cd vapoursynth && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R70.tar.gz && \
+  tar -zxvf R70.tar.gz && mv vapoursynth-R70 vapoursynth && cd vapoursynth && \
   ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install && ldconfig
 
 # dav1d
@@ -392,8 +474,8 @@ ARG DEBIAN_FRONTEND=noninteractive
 # todo: test CFLAGS="-fPIC -march=native"
 RUN apt update -y && apt install liblzma-dev libbz2-dev ca-certificates openssl libssl-dev libncurses5-dev libsqlite3-dev libreadline-dev libtk8.6 libgdm-dev \
   libpcap-dev software-properties-common wget zlib1g-dev -y && \
-  wget https://www.python.org/ftp/python/3.12.5/Python-3.12.5.tar.xz && \
-  tar -xf Python-3.12.5.tar.xz && cd Python-3.12.5 && \
+  wget https://www.python.org/ftp/python/3.12.7/Python-3.12.7.tar.xz && \
+  tar -xf Python-3.12.7.tar.xz && cd Python-3.12.7 && \
   CFLAGS=-fPIC ./configure --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
   make -j$(nproc) && make altinstall && make install
 # todo: update-alternatives may not be required
@@ -416,14 +498,16 @@ RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-rei
 
 # https://github.com/NVIDIA/TensorRT-LLM/blob/main/docker/common/install_tensorrt.sh
 # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=tensorrt
-RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.4.0/tars/TensorRT-10.4.0.26.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.5.0/tars/TensorRT-10.5.0.18.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-10.4.0.26 /usr/local/tensorrt
+RUN mv /usr/local/TensorRT-10.5.0.18 /usr/local/tensorrt
 RUN pip3 install /usr/local/tensorrt/python/tensorrt-*-cp312-*.whl
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/tensorrt/targets/x86_64-linux-gnu/lib/
 
 # cudnn
 # https://gitlab.archlinux.org/archlinux/packaging/packages/cudnn/-/blob/main/PKGBUILD?ref_type=heads
+# todo: not using 9 because of "Failed to load library libonnxruntime_providers_cuda.so with error: libcudnn.so.8", most likely 9 is usable with custom compiled onnxruntime
+#RUN wget "https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-9.2.1.18_cuda12-archive.tar.xz" -O /tmp/cudnn.tar
 RUN wget "https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.7.29_cuda12-archive.tar.xz" -O /tmp/cudnn.tar
 RUN tar -xf /tmp/cudnn.tar -C /usr/local/
 RUN mv /usr/local/cudnn-linux-x86_64-8.9.7.29_cuda12-archive /usr/local/cudnn
@@ -457,7 +541,7 @@ RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMa
 RUN git clone --single-branch --branch ${ONNXRUNTIME_BRANCH} --recursive ${ONNXRUNTIME_REPO} onnxruntime &&\
     /bin/sh onnxruntime/dockerfiles/scripts/install_common_deps.sh 
 RUN /usr/local/bin/pip3 install psutil numpy wheel setuptools packaging
-RUN cd onnxruntime && PYTHONPATH=/usr/bin/python3 /bin/sh build.sh --nvcc_threads 2 --parallel 3 --allow_running_as_root --build_shared_lib --cuda_home /usr/local/cuda \
+RUN cd onnxruntime && PYTHONPATH=/usr/bin/python3 /bin/sh build.sh --nvcc_threads 3 --parallel 4 --allow_running_as_root --build_shared_lib --cuda_home /usr/local/cuda \
       --cudnn_home /usr/local/cudnn --use_tensorrt --tensorrt_home /usr/local/tensorrt --config Release --build_wheel --skip_tests --skip_submodule_sync --cmake_extra_defines '"CMAKE_CUDA_ARCHITECTURES='${CMAKE_CUDA_ARCHITECTURES}'"'
 
 ############################
@@ -511,8 +595,8 @@ WORKDIR workspace
 # todo: test CFLAGS="-fPIC -march=native"
 RUN apt update -y && apt install liblzma-dev libbz2-dev ca-certificates openssl libssl-dev libncurses5-dev libsqlite3-dev libreadline-dev libtk8.6 libgdm-dev \
   libpcap-dev software-properties-common wget zlib1g-dev -y && \
-  wget https://www.python.org/ftp/python/3.12.5/Python-3.12.5.tar.xz && \
-  tar -xf Python-3.12.5.tar.xz && cd Python-3.12.5 && \
+  wget https://www.python.org/ftp/python/3.12.7/Python-3.12.7.tar.xz && \
+  tar -xf Python-3.12.7.tar.xz && cd Python-3.12.7 && \
   CFLAGS=-fPIC ./configure --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
   make -j$(nproc) && make altinstall && make install
 # todo: update-alternatives may not be required
@@ -525,7 +609,7 @@ RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.
 RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall
 
 # python shared (for ffmpeg)
-RUN rm -rf Python-3.12.5 && tar -xf Python-3.12.5.tar.xz && cd Python-3.12.5 && \
+RUN rm -rf Python-3.12.7 && tar -xf Python-3.12.7.tar.xz && cd Python-3.12.7 && \
   CFLAGS=-fPIC ./configure --enable-shared --with-ssl --with-openssl-rpath=auto --enable-optimizations CFLAGS=-fPIC && \
   make -j$(nproc)
 
@@ -556,10 +640,10 @@ RUN pip install --upgrade pip && pip install cython setuptools && git clone http
 RUN pip install numpy docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
 
 # vs-mlrt
-RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.4.0/tars/TensorRT-10.4.0.26.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.5.0/tars/TensorRT-10.5.0.18.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-10.4.0.26/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
-RUN mv /usr/local/TensorRT-10.4.0.26/include/* /usr/include/x86_64-linux-gnu/
+RUN mv /usr/local/TensorRT-10.5.0.18/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
+RUN mv /usr/local/TensorRT-10.5.0.18/include/* /usr/include/x86_64-linux-gnu/
 RUN cd /usr/lib/x86_64-linux-gnu \
   && ldconfig
 ENV CPLUS_INCLUDE_PATH="/usr/include/x86_64-linux-gnu/"
@@ -617,6 +701,7 @@ ENV PATH="/root/.cargo/bin:$PATH"
 
 # av1an
 # todo: use own custom av1an
+# todo: removing everything that isn't ffmpeg?
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
   . $HOME/.cargo/env && \
   git clone https://github.com/master-of-zen/Av1an && \
@@ -643,7 +728,7 @@ RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
 RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy meson ninja numpy einops kornia vsutil onnx
 
 # deleting .so files to symlink them later on to save space
-RUN pip install tensorrt==10.4.0 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
+RUN pip install tensorrt==10.5.0 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
   rm -rf /root/.cache/ /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.* \
     /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.*
 
@@ -663,13 +748,16 @@ RUN git clone https://github.com/vapoursynth/vs-removegrain && cd vs-removegrain
 RUN pip install git+https://github.com/pifroggi/vs_colorfix git+https://github.com/pifroggi/vs_temporalfix
 
 # holywu
-RUN pip install git+https://github.com/styler00dollar/vs-rife --no-deps && python -m vsrife
+# todo: for now using official torch since torch_tensorrt is not compatible with my torch, but official whl has a bigger filesize, failed to compile torch_tensorrt
+RUN pip install --pre -U torch torch_tensorrt --index-url https://download.pytorch.org/whl/nightly/cu124 --extra-index-url https://pypi.nvidia.com --no-deps && \
+  pip install git+https://github.com/HolyWu/vs-rife --no-deps && python -m vsrife
 
 # installing own versions
 COPY --from=cupy-ubuntu /cupy/dist/ /workspace
-COPY --from=torch-ubuntu /pytorch/dist/ /workspace
+# todo: for now using official torch since torch_tensorrt is not compatible with my torch, but official whl has a bigger filesize
+#COPY --from=torch-ubuntu /pytorch/dist/ /workspace
 RUN pip uninstall -y cupy* && \
-  find . -name "*whl" ! -path "./Python-3.12.5/*" -exec pip install {} \;
+  find . -name "*whl" ! -path "./Python-3.12.7/*" -exec pip install {} \;
 
 # ddfi csv
 RUN pip install pandas
@@ -692,11 +780,11 @@ RUN wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc
     https://mirrors.edge.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4%2Bds-1.3_amd64.deb
 
-############################
+###################
 # final
 ############################
 FROM nvidia/cuda:12.5.1-runtime-ubuntu24.04 AS final
-# maybe official tensorrt image is better, but it uses 20.04
+# maybe official tensorrt image is better
 #FROM nvcr.io/nvidia/tensorrt:23.04-py3 as final
 ARG DEBIAN_FRONTEND=noninteractive
 ENV NVIDIA_VISIBLE_DEVICES all
@@ -707,8 +795,8 @@ WORKDIR workspace
 # install python
 COPY --from=base /usr/local/bin/python /usr/local/bin/
 COPY --from=base /usr/local/lib/python3.12 /usr/local/lib/python3.12
-COPY --from=base /workspace/Python-3.12.5/libpython3.12.so* /workspace/Python-3.12.5/libpython3.so \
-  /workspace/Python-3.12.5/libpython3.so /usr/lib
+COPY --from=base /workspace/Python-3.12.7/libpython3.12.so* /workspace/Python-3.12.7/libpython3.so \
+  /workspace/Python-3.12.7/libpython3.so /usr/lib
 
 # vapoursynth
 COPY --from=base /workspace/zimg/zimg_0.0-1_amd64.deb zimg_0.0-1_amd64.deb
@@ -738,6 +826,11 @@ COPY --from=base /usr/local/lib/vapoursynth/libvmaf.so /usr/local/lib/vapoursynt
 COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so \
   /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/libmvtools.so \
   /usr/local/lib/x86_64-linux-gnu/libfillborders.so /usr/local/lib/x86_64-linux-gnu/libmotionmask.so /usr/local/lib/x86_64-linux-gnu/libtemporalmedian.so /usr/local/lib/x86_64-linux-gnu/
+
+# vsort
+COPY --from=vsort-ubuntu /workdir/vs-mlrt/vsort/build/libvsort.so /usr/local/lib/
+COPY --from=vsort-ubuntu /workdir/vs-mlrt/onnxruntime/lib/libonnxruntime.so /workdir/vs-mlrt/onnxruntime/lib/libonnxruntime_providers_shared.so \
+  /workdir/vs-mlrt/onnxruntime/lib/libonnxruntime_providers_cuda.so /workdir/vs-mlrt/onnxruntime/lib/libonnxruntime_providers_tensorrt.so /usr/local/lib/
 
 # av1an / rav1e / svt / aom
 COPY --from=base /usr/bin/av1an /usr/local/bin/rav1e /usr/bin/
@@ -784,8 +877,8 @@ RUN dpkg --force-all -i *.deb  && rm -rf *deb
 
 RUN ldconfig
 
-# AttributeError: `np.unicode_` was removed in the NumPy 2.0 release. Use `np.str_` instead.
 # fixing polygraphy
+# AttributeError: `np.unicode_` was removed in the NumPy 2.0 release. Use `np.str_` instead.
 RUN sed -i 's/np.unicode_/np.str_/g' /usr/local/lib/python3.12/site-packages/polygraphy/datatype/numpy.py
 
 ENV CUDA_MODULE_LOADING=LAZY
