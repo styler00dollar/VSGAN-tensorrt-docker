@@ -84,7 +84,7 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 
 | docker image  | compressed download | extracted container | short description |
 | ------------- | ------------------- | ------------------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest | 9gb | 17gb | default latest with trt10.4
+| styler00dollar/vsgan_tensorrt:latest | 10gb | 18gb | default latest with trt10.5
 | styler00dollar/vsgan_tensorrt:latest_no_avx512 | 9gb | 17gb | trt10.4 without avx512 (currently no vsrife, todo)
 | styler00dollar/vsgan_tensorrt:trt9.3 | 8gb | 15gb | trt9.3 [use `bfdb96a` with this docker](https://github.com/styler00dollar/VSGAN-tensorrt-docker/commit/bfdb96a329682af19d093ecb990f67e823ea2e89)
 | styler00dollar/vsgan_tensorrt:trt9.3_no_avx512 | 8gb | 15gb | trt9.3 without avx512 [use `bfdb96a` with this docker](https://github.com/styler00dollar/VSGAN-tensorrt-docker/commit/bfdb96a329682af19d093ecb990f67e823ea2e89)
@@ -298,15 +298,21 @@ clip = core.trt.Model(
 )
 ```
 
+- ORT inference: [vs-mlrt](https://github.com/AmusementClub/vs-mlrt/tree/master/vsort)
+```python
+core.std.LoadPlugin(path="/usr/local/lib/libvsort.so")
+clip = core.ort.Model(clip, "/workspace/tensorrt/2x_ModernSpanimationV2_clamp_op20_fp16_onnxslim.onnx", provider="CUDA", fp16=True, num_streams=2)
+```
+
 - Rife: [vs-rife](https://github.com/styler00dollar/vs-rife)
 ```python
-# tensorrt
+# recommended for accuracy
+from vsrife import rife
+clip = rife(clip, trt=True, num_streams=2, model="4.22", sc=False)
+
+# recommended for maximum speed, but differs from original model and may have visible artefacts, more info below
 from src.rife_trt import rife_trt
 clip = rife_trt(clip, multi=2, scale=1.0, device_id=0, num_streams=2, engine_path="/workspace/tensorrt/rife46.engine")
-
-# cuda
-from vsrife import rife
-clip = rife(clip, num_streams=2, model="4.22", sc=False)
 ```
 
 - Sharpening: [awarpsharp2](https://github.com/dubhater/vapoursynth-awarpsharp2) [cas](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS)
@@ -356,7 +362,7 @@ DPIR (color) needs 4 channels.
 trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
 ```
 
-**Warning:** Rife with TensorRT seemingly has slight changes compared to cuda/cpu inference no matter the settings across multiple TensorRT versions and implementations. Even fp32 engines are not enough to match torch. If you want it fast use `core.trt` and build the engine with the commands below, but if you want to make sure the output is good, then use `vsrife` like the example above shows to use cuda inference with torch, which is slower but more accurate. The visible differences are rather small, which might not justify the performance decrease of using `vsrife`. Since this happens across different TensorRT API's (torch_tensorrt, onnxruntime trt,...), I don't think this will be fixed.
+**Warning:** Rife with TensorRT is broken without workarounds in every implementation (mlrt, torch_tensorrt, onnxruntime trt,...), even with fp32, and results in wobbly lines and artefacts during panning scenes. The amount of artefacts seem to depend on the rife version and it probably never worked properly once since I saw them with TensorRT 9 and 10. [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife) fixed it by running the warp (which mainly is just the grid sample operator) with torch while having the other parts of the network run with TensorRT and that ensures a correct image. Unless Nvidia fixes it, it will stay broken with `core.trt`. If small artefacts are not a dealbreaker, you can run engines built with `trtexec` and with `core.trt` like usual for maximum vapoursynth performance, but I would strongly recommend to use `vsrife` instead. `vsrife` is currently the only existing implementation that is able to correctly run rife with TensorRT, but is slower than using mlrt. A small example on how to use `vsrife` would be `clip = rife(clip, trt=True)`.
 
 Rife v1 needs 8 channels.
 ```
