@@ -35,6 +35,7 @@ Currently working networks:
 - [AnimeJaNai](https://github.com/the-database/mpv-upscale-2x_animejanai)
 - [ModernSpanimation](https://github.com/TNTwise/Models/releases/tag/2x_ModernSpanimationV1)
 - [AniScale](https://github.com/Sirosky/Upscale-Hub)
+- [Anime1080Fixer by zarxrax](https://mega.nz/file/EAs2XZwA#-YrO3QSP8Waz2l5JVtrSew2Dk4gbT0xE0uA5hc5CYRo)
 
 Onnx files can be found [here](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models).
 
