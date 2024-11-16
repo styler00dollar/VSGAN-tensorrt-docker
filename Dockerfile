@@ -129,8 +129,8 @@ RUN git clone https://github.com/Haivision/srt/ && \
   cd srt && ./configure --enable-shared=0 --cmake-install-libdir=lib --cmake-install-includedir=include --cmake-install-bindir=bin && \
   make -j$(nproc) && make install
 
-RUN git clone https://gitlab.com/AOMediaCodec/SVT-AV1/ && \
-  cd SVT-AV1/Build && \
+RUN git clone https://github.com/gianni-rosato/svt-av1-psy && \
+  cd svt-av1-psy/Build && \
   cmake .. -G"Unix Makefiles" -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && \
   make -j$(nproc) install
 
@@ -498,9 +498,9 @@ RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-rei
 
 # https://github.com/NVIDIA/TensorRT-LLM/blob/main/docker/common/install_tensorrt.sh
 # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=tensorrt
-RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.5.0/tars/TensorRT-10.5.0.18.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.6.0/tars/TensorRT-10.6.0.26.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-10.5.0.18 /usr/local/tensorrt
+RUN mv /usr/local/TensorRT-10.6.0.26 /usr/local/tensorrt
 RUN pip3 install /usr/local/tensorrt/python/tensorrt-*-cp312-*.whl
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/tensorrt/targets/x86_64-linux-gnu/lib/
 
@@ -517,7 +517,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cudnn
 # onnxruntime requires working tensorrt installation and thus can't be easily seperated into a seperate instance
 # https://github.com/microsoft/onnxruntime/blob/main/dockerfiles/Dockerfile.tensorrt
 ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
-ARG ONNXRUNTIME_BRANCH=rel-1.19.2
+ARG ONNXRUNTIME_BRANCH=rel-1.20.0
 ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;53;60;61;62;70;72;75;80;89
 
 RUN apt-get update &&\
@@ -640,10 +640,10 @@ RUN pip install --upgrade pip && pip install cython setuptools && git clone http
 RUN pip install numpy docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
 
 # vs-mlrt
-RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.5.0/tars/TensorRT-10.5.0.18.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.6.0/tars/TensorRT-10.6.0.26.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-10.5.0.18/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
-RUN mv /usr/local/TensorRT-10.5.0.18/include/* /usr/include/x86_64-linux-gnu/
+RUN mv /usr/local/TensorRT-10.6.0.26/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
+RUN mv /usr/local/TensorRT-10.6.0.26/include/* /usr/include/x86_64-linux-gnu/
 RUN cd /usr/lib/x86_64-linux-gnu \
   && ldconfig
 ENV CPLUS_INCLUDE_PATH="/usr/include/x86_64-linux-gnu/"
@@ -714,10 +714,10 @@ RUN git clone https://github.com/xiph/rav1e && \
   strip ./target/release/rav1e && \
   mv ./target/release/rav1e /usr/local/bin 
 
-RUN git clone https://gitlab.com/AOMediaCodec/SVT-AV1/ && \
-  cd SVT-AV1/Build && \
+RUN git clone https://github.com/gianni-rosato/svt-av1-psy && \
+  cd svt-av1-psy/Build && \
   cmake .. -G"Unix Makefiles" -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && \
-  make -j$(nproc) && make install 
+  make -j$(nproc) install
 
 RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
   cd aom && \
@@ -728,12 +728,12 @@ RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
 RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy meson ninja numpy einops kornia vsutil onnx
 
 # deleting .so files to symlink them later on to save space
-RUN pip install tensorrt==10.5.0 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
+RUN pip install tensorrt==10.6.0 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
   rm -rf /root/.cache/ /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.* \
     /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.*
 
-COPY --from=tensorrt-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.19.2-cp312-cp312-linux_x86_64.whl /workspace
-RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.19.2-cp312-cp312-linux_x86_64.whl
+COPY --from=tensorrt-ubuntu /code/onnxruntime/build/Linux/Release/dist/onnxruntime_gpu-1.20.0-cp312-cp312-linux_x86_64.whl /workspace
+RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime_gpu-1.20.0-cp312-cp312-linux_x86_64.whl
 
 # vs_temporalfix dependencies
 RUN apt install nasm libfftw3-dev -y && git clone https://github.com/dubhater/vapoursynth-mvtools && cd vapoursynth-mvtools && mkdir build && cd build && meson ../ && ninja && ninja install
@@ -750,7 +750,11 @@ RUN pip install git+https://github.com/pifroggi/vs_colorfix git+https://github.c
 # holywu
 # todo: for now using official torch since torch_tensorrt is not compatible with my torch, but official whl has a bigger filesize, failed to compile torch_tensorrt
 RUN pip install --pre -U torch torch_tensorrt --index-url https://download.pytorch.org/whl/nightly/cu124 --extra-index-url https://pypi.nvidia.com --no-deps && \
-  pip install git+https://github.com/HolyWu/vs-rife --no-deps && python -m vsrife
+  pip install git+https://github.com/HolyWu/vs-rife --no-deps
+# required for torch import
+RUN wget https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-x86_64/libcusparse_lt-linux-x86_64-0.6.3.2-archive.tar.xz && \
+  tar -xf libcusparse_lt-linux-x86_64-0.6.3.2-archive.tar.xz && cd libcusparse_lt-linux-x86_64-0.6.3.2-archive/lib && mv * /usr/local/lib && ldconfig
+RUN python -m vsrife
 
 # installing own versions
 COPY --from=cupy-ubuntu /cupy/dist/ /workspace
@@ -769,14 +773,14 @@ RUN pip install pandas
 RUN mkdir /workspace/hotfix
 WORKDIR /workspace/hotfix
 RUN wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1.3.4%2Bds-1.3_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-5_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-5_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-3build3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.40-1ubuntu3_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-45.45_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-48.48_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4%2Bds-1.3_amd64.deb
 
@@ -859,7 +863,7 @@ COPY --from=ffmpeg-arch /usr/lib/libstdc++.so* /usr/lib/x86_64-linux-gnu/
 
 # symlink python tensorrt
 RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer.so.10
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so.10.3.0 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.10.4.0
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so.10.6.0 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.10.6.0
 RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.10
 RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.10
 
@@ -880,6 +884,9 @@ RUN ldconfig
 # fixing polygraphy
 # AttributeError: `np.unicode_` was removed in the NumPy 2.0 release. Use `np.str_` instead.
 RUN sed -i 's/np.unicode_/np.str_/g' /usr/local/lib/python3.12/site-packages/polygraphy/datatype/numpy.py
+
+# pytorch import fix
+COPY --from=base /usr/local/lib/libcusparseLt.so /usr/local/lib/libcusparseLt.so.0 /usr/local/lib/libcusparseLt.so.0.6.3.2 /usr/local/lib/
 
 ENV CUDA_MODULE_LOADING=LAZY
 WORKDIR /workspace/tensorrt
