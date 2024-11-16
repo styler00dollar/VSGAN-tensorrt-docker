@@ -55,18 +55,13 @@ Also used:
 ## Usage
 The following docker requires the latest Nvidia driver (560+). After that, follow the following steps:
 
-**WARNING FOR WINDOWS USERS: Docker Desktop `4.17.1` is broken. I confirmed that [4.25.0](https://desktop.docker.com/win/main/amd64/126437/Docker%20Desktop%20Installer.exe) should work. Older tested versions are [4.16.3](https://desktop.docker.com/win/main/amd64/96739/Docker%20Desktop%20Installer.exe) or [4.17.0](https://desktop.docker.com/win/main/amd64/99724/Docker%20Desktop%20Installer.exe). I would recommend to use `4.25.0`. `4.17.1` results in Docker not starting which is mentioned in [this issue](https://github.com/styler00dollar/VSGAN-tensorrt-docker/issues/34).**
-
-**ANOTHER WARNING FOR PEOPLE WITHOUT `AVX512`: Instead of using `styler00dollar/vsgan_tensorrt:latest`, which I build with my 7950x and thus with all AVX, use `styler00dollar/vsgan_tensorrt:latest_no_avx512` in `compose.yaml` to avoid `Illegal instruction (core dumped)` which is mentioned in [this issue](https://github.com/styler00dollar/VSGAN-tensorrt-docker/issues/48).**
+**WARNING FOR PEOPLE WITHOUT `AVX512`: Instead of using `styler00dollar/vsgan_tensorrt:latest`, which I build with my 7950x and thus with all AVX, use `styler00dollar/vsgan_tensorrt:latest_no_avx512` in `compose.yaml` to avoid `Illegal instruction (core dumped)` which is mentioned in [this issue](https://github.com/styler00dollar/VSGAN-tensorrt-docker/issues/48).**
 
 **AND AS A FINAL INFO, `Error opening input file pipe:` IS NOT A REAL ERROR MESSAGE. That means invalid data got piped into ffmpeg and can be piped error messages for example. To see the actual error messages and what got piped, you can use `vspipe -c y4m inference.py -`.**
 
 Quickstart:
 ```bash
 # if you have Windows, install Docker Desktop https://www.docker.com/products/docker-desktop/
-# if you encounter issues, install one of the following versions:
-# 4.16.3: https://desktop.docker.com/win/main/amd64/96739/Docker%20Desktop%20Installer.exe
-# 4.17.0: https://desktop.docker.com/win/main/amd64/99724/Docker%20Desktop%20Installer.exe
 
 # if you have Arch, install the following dependencies
 yay -S docker nvidia-docker nvidia-container-toolkit docker-compose docker-buildx
@@ -85,7 +80,7 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 
 | docker image  | compressed download | extracted container | short description |
 | ------------- | ------------------- | ------------------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest | 10gb | 18gb | default latest with trt10.5
+| styler00dollar/vsgan_tensorrt:latest | 10gb | 19gb | default latest with trt10.6
 | styler00dollar/vsgan_tensorrt:latest_no_avx512 | 10gb | 18gb | trt10.5 without avx512
 | styler00dollar/vsgan_tensorrt:trt9.3 | 8gb | 15gb | trt9.3 [use `bfdb96a` with this docker](https://github.com/styler00dollar/VSGAN-tensorrt-docker/commit/bfdb96a329682af19d093ecb990f67e823ea2e89)
 | styler00dollar/vsgan_tensorrt:trt9.3_no_avx512 | 8gb | 15gb | trt9.3 without avx512 [use `bfdb96a` with this docker](https://github.com/styler00dollar/VSGAN-tensorrt-docker/commit/bfdb96a329682af19d093ecb990f67e823ea2e89)
