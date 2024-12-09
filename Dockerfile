@@ -262,9 +262,9 @@ RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMa
 
 WORKDIR /
 
-RUN cd pytorch && pip3 install -r requirements.txt --break-system-packages && \
-  MAX_JOBS=6 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" USE_NCCL=OFF python3.12 setup.py build && \
-  MAX_JOBS=6 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" python3.12 setup.py bdist_wheel
+#RUN cd pytorch && pip3 install -r requirements.txt --break-system-packages && \
+#  MAX_JOBS=6 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" USE_NCCL=OFF python3.12 setup.py build && \
+#  MAX_JOBS=6 USE_CUDA=1 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.9" python3.12 setup.py bdist_wheel
 
 ############################
 # cupy
@@ -488,19 +488,12 @@ RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.
 # required since ModuleNotFoundError: No module named 'pip' with nvidia pip packages, even if cli works
 RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-reinstall
 
-# TensorRT9
-# trt9.3 with tar.gz since apt still only has 8.6
-
-# TensorRT-9.3.0.1/bin/trtexec
-# TensorRT-9.3.0.1/python/tensorrt-*-cp311-*.whl
-# TensorRT-9.3.0.1/onnx_graphsurgeon/onnx_graphsurgeon-0.4.0-py2.py3-none-any.whl
-# TensorRT-9.3.0.1/lib/*.so
-
+# TensorRT10
 # https://github.com/NVIDIA/TensorRT-LLM/blob/main/docker/common/install_tensorrt.sh
 # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=tensorrt
-RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.6.0/tars/TensorRT-10.6.0.26.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/10.7.0/tars/TensorRT-10.7.0.23.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-10.6.0.26 /usr/local/tensorrt
+RUN mv /usr/local/TensorRT-10.7.0.23 /usr/local/tensorrt
 RUN pip3 install /usr/local/tensorrt/python/tensorrt-*-cp312-*.whl
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/tensorrt/targets/x86_64-linux-gnu/lib/
 
@@ -640,10 +633,10 @@ RUN pip install --upgrade pip && pip install cython setuptools && git clone http
 RUN pip install numpy docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
 
 # vs-mlrt
-RUN wget "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.6.0/tars/TensorRT-10.6.0.26.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/10.7.0/tars/TensorRT-10.7.0.23.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-10.6.0.26/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
-RUN mv /usr/local/TensorRT-10.6.0.26/include/* /usr/include/x86_64-linux-gnu/
+RUN mv /usr/local/TensorRT-10.7.0.23/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
+RUN mv /usr/local/TensorRT-10.7.0.23/include/* /usr/include/x86_64-linux-gnu/
 RUN cd /usr/lib/x86_64-linux-gnu \
   && ldconfig
 ENV CPLUS_INCLUDE_PATH="/usr/include/x86_64-linux-gnu/"
@@ -728,7 +721,7 @@ RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
 RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy meson ninja numpy einops kornia vsutil onnx
 
 # deleting .so files to symlink them later on to save space
-RUN pip install tensorrt==10.6.0 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
+RUN pip install tensorrt==10.7.0 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
   rm -rf /root/.cache/ /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.* \
     /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.*
 
@@ -773,14 +766,14 @@ RUN pip install pandas
 RUN mkdir /workspace/hotfix
 WORKDIR /workspace/hotfix
 RUN wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc-dev_1.3.4%2Bds-1.3_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-5_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-5_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-3build3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.40-1ubuntu3_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-48.48_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.11.0-12.13_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4%2Bds-1.3_amd64.deb
 
@@ -863,7 +856,7 @@ COPY --from=ffmpeg-arch /usr/lib/libstdc++.so* /usr/lib/x86_64-linux-gnu/
 
 # symlink python tensorrt
 RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer.so.10
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so.10.6.0 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.10.6.0
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so.10.7.0 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.10.7.0
 RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.10
 RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.10
 
