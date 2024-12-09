@@ -178,7 +178,7 @@ Small example for rife interpolation with TensorRT without scene change detectio
 ```python
 import sys
 import vapoursynth as vs
-from src.rife_trt import rife_trt
+from vsrife import rife
 
 sys.path.append("/workspace/tensorrt/")
 core = vs.core
@@ -195,14 +195,7 @@ def inference_clip(video_path):
     )  # RGBS means fp32, RGBH means fp16
 
     # interpolation
-    clip = rife_trt(
-        clip,
-        multi=2,
-        scale=1.0,
-        device_id=0,
-        num_streams=2,
-        engine_path="/workspace/tensorrt/rife414_ensembleTrue_op18_fp16_clamp_sim.engine",  # read readme on how to build engine
-    )
+    clip = rife(clip, trt=True, model="4.22", sc=False)
 
     clip = core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
     return clip
@@ -302,13 +295,8 @@ clip = core.ort.Model(clip, "/workspace/tensorrt/2x_ModernSpanimationV2_clamp_op
 
 - Rife: [vs-rife](https://github.com/styler00dollar/vs-rife)
 ```python
-# recommended for accuracy
 from vsrife import rife
-clip = rife(clip, trt=True, num_streams=2, model="4.22", sc=False)
-
-# recommended for maximum speed, but differs from original model and may have visible artefacts, more info below
-from src.rife_trt import rife_trt
-clip = rife_trt(clip, multi=2, scale=1.0, device_id=0, num_streams=2, engine_path="/workspace/tensorrt/rife46.engine")
+clip = rife(clip, trt=True, model="4.22", sc=False)
 ```
 
 - Sharpening: [awarpsharp2](https://github.com/dubhater/vapoursynth-awarpsharp2) [cas](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS)
@@ -358,7 +346,7 @@ DPIR (color) needs 4 channels.
 trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
 ```
 
-**Warning:** Rife with TensorRT is broken without workarounds in every implementation (mlrt, torch_tensorrt, onnxruntime trt,...), even with fp32, and results in wobbly lines and artefacts during panning scenes. The amount of artefacts seem to depend on the rife version and it probably never worked properly once since I saw them with TensorRT 9 and 10. [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife) fixed it by running the warp (which mainly is just the grid sample operator) with torch while having the other parts of the network run with TensorRT and that ensures a correct image. Unless Nvidia fixes it, it will stay broken with `core.trt`. If small artefacts are not a dealbreaker, you can run engines built with `trtexec` and with `core.trt` like usual for maximum vapoursynth performance, but I would strongly recommend to use `vsrife` instead. `vsrife` is currently the only existing implementation that is able to correctly run rife with TensorRT, but is slower than using mlrt. A small example on how to use `vsrife` would be `clip = rife(clip, trt=True)`.
+**Warning:** Rife with TensorRT is broken without workarounds in every implementation (mlrt, torch_tensorrt, onnxruntime trt,...), even with fp32, and results in wobbly lines and artefacts during panning scenes. Unless Nvidia fixes it, it will stay broken with every onnx. [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife) fixed it by adding torch decompositions in vsrife to prevent TensorRT from using grid sample. HolyWu also added encode cache to avoid repeating `self.encode`. Testing showed that vsrife is not a lot slower than mlrt, so I don't recommend using rife onnx.
 
 Rife v1 needs 8 channels.
 ```
@@ -391,9 +379,7 @@ Put that engine path into `inference_config.py`.
 Calculate similarity between frames with [HomeOfVapourSynthEvolution/VapourSynth-VMAF](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF) and skip similar frames in interpolation tasks. The properties in the clip will then be used to skip similar frames.
 
 ```python
-from src.rife_trt import rife_trt
-
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
+from vsrife import rife
 
 
 # calculate metrics
@@ -414,14 +400,7 @@ def inference_clip(video_path):
     clip_orig = core.std.Interleave([clip] * interp_scale)
 
     # interpolation
-    clip = rife_trt(
-        clip,
-        multi=interp_scale,
-        scale=1.0,
-        device_id=0,
-        num_streams=2,
-        engine_path="/workspace/tensorrt/rife414_ensembleTrue_op18_fp16_clamp_sim.engine",
-    )
+    clip = rife(clip, trt=True, model="4.22", sc=False)
 
     # skip frames based on calculated metrics
     # in this case if ssim > 0.999, then copy frame
@@ -509,7 +488,7 @@ Decided to only do scene change inference with ORT with TensorRT backend to keep
 Example usage:
 ```python
 from src.scene_detect import scene_detect
-from src.rife_trt import rife_trt
+from vsrife import rife
 
 core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
@@ -521,14 +500,7 @@ clip_sc = scene_detect(
     model=3,
 )
 
-clip = rife_trt(
-    clip,
-    multi=2,
-    scale=1.0,
-    device_id=0,
-    num_streams=2,
-    engine_path="/workspace/tensorrt/rife414_ensembleTrue_op18_fp16_clamp_sim.engine",
-)
+clip = rife(clip, trt=True, model="4.22", sc=False)
 
 clip_orig = core.std.Interleave([clip_orig] * 2)  # 2 means interpolation factor here
 clip = core.akarin.Select([clip, clip_orig], clip_sc, "x._SceneChangeNext 1 0 ?")

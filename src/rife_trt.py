@@ -26,6 +26,7 @@ def get_model_variables(model_path):
         return input_precision, num_channels_in
 
 
+# not recommended because of how TensorRT handles grid sample and shows artefacts even with fp32, use vsrife instead
 def rife_trt(
     clip: vs.VideoNode,
     multi: int = 2,

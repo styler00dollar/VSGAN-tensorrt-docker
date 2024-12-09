@@ -30,7 +30,7 @@ for f in files:
 
     # only needed for dedup
     # os.system(f"vspipe /workspace/tensorrt/parse.py --arg source='{f}' -p .")
-    
+
     # x265
     # os.system(
     #   f"vspipe -c y4m inference_batch.py --arg source='{f}' - | ffmpeg -y -i '{f}' -thread_queue_size 100 -i pipe: -map 1 -map 0 -map -0:v -max_interleave_delta 0 -scodec copy -vcodec libx265 -crf 10 -preset slow '{mux_path}'"

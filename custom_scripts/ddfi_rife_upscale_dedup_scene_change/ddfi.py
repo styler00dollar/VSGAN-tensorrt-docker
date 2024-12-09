@@ -4,10 +4,10 @@ sys.path.append("/workspace/tensorrt/")
 
 import vapoursynth as vs
 import os
-from src.rife_trt import rife_trt
 import pandas as pd
 import math
 import functools
+from vsrife import rife
 
 core = vs.core
 
@@ -112,14 +112,7 @@ clip = core.std.DeleteFrames(clip, dels)
 clip = vs.core.resize.Bicubic(clip, format=vs.RGBH, matrix_in_s="709")
 clip_orig = vs.core.std.Interleave([clip] * 8)
 
-clip = rife_trt(
-    clip,
-    multi=8,
-    scale=1.0,
-    device_id=0,
-    num_streams=2,
-    engine_path="/workspace/tensorrt/rife418_v2_ensembleFalse_op20_fp16_clamp_onnxslim.engine",
-)
+clip = rife(clip, trt=True, model="4.22", sc=False, factor_num=8)
 clip = core.akarin.Select([clip, clip_orig], clip, "x._SceneChangeNext 1 0 ?")
 clip = core.akarin.Select([clip, clip_orig], clip, "x.float_ssim 0.999 >")
 

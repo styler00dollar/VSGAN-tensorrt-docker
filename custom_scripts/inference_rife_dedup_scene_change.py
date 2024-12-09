@@ -3,7 +3,7 @@ import sys
 sys.path.append("/workspace/tensorrt/")
 import vapoursynth as vs
 from src.scene_detect import scene_detect
-from src.rife_trt import rife_trt
+from vsrife import rife
 
 core = vs.core
 core.num_threads = 8
@@ -44,14 +44,7 @@ def inference_clip(video_path="", clip=None):
     clip_metric = vs.core.std.Interleave([clip_metric] * interp_scale)
 
     # interpolation
-    clip = rife_trt(
-        clip,
-        multi=interp_scale,
-        scale=1.0,
-        device_id=0,
-        num_streams=2,
-        engine_path="/workspace/tensorrt/rife414_ensembleTrue_op18_fp16_clamp_sim.engine",
-    )
+    clip = rife(clip, trt=True, model="4.22", sc=False)
 
     # replacing frames
     clip = core.akarin.Select([clip, clip_orig], clip_metric, "x.float_ssim 0.999 >")
