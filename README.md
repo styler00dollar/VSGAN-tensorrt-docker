@@ -556,169 +556,23 @@ or use my `vfr_to_cfr.py` to process a folder.
 
 ## Benchmarks
 
-Warnings:
-- Keep in mind that these benchmarks can get outdated very fast due to rapid code development and configurations.
-- The default is ffmpeg.
-- ModifyFrame is depricated. Trying to use FrameEval everywhere and is used by default.
-- TensorRT docker version and ONNX opset seem to influence speed but that wasn't known for quite some time. I have a hard time pinpointing which TensorRT and ONNX opset was used. Take benchmark as a rough indicator.
-- Colab may change hardware like CPU at any point.
-- Sometimes it takes a very long time to reach the final speed. It can happen that not enough time was waited.
-- 3090¹ (+11900k) benches most likely were affected by power lowered power limit.
-- 3090² (+5950x) system provided by Piotr Rencławowicz for benchmarking purposes.
-- `int8` does not automatically mean usable model. It can differ from normal inference quite a lot without adjusting the model.
-- `thread_queue_size` means `-thread_queue_size 2488320`.
-- "*" indicates benchmarks which were done with `vspipe file.py -p .` instead of piping into ffmpeg and rendering to avoid cpu bottleneck.
+- Used `vspipe -c y4m inference.py - | ffmpeg -i pipe: -f null /dev/null -y` and a 5000 frame h264 default settings ffmpeg encoded video for all benchmarks.
+- All benchmarks done on Linux.
 
-Compact (2x) | 480p | 720p | 1080p
-------  | ---  | ---- | ------
-rx470 vs+ncnn (np+no tile+tta off) | 2.7 | 1.6 | 0.6
-1070ti vs+ncnn (np+no tile+tta off) | 4.2 | 2 | 0.9
-1070ti (ONNX-TRT+FrameEval) | 12 | 6.1 | 2.8
-1070ti (C++ TRT+FrameEval+num_streams=6) | 14 | 6.7 | 3
-3060ti (ONNX-TRT+FrameEval) | ? | 7.1 | 3.2
-3060ti (C++ TRT+FrameEval+num_streams=5) | ? | 15.97 | 7.83
-3060ti VSGAN 2x | ? | 3.6 | 1.77
-3060ti ncnn (Windows binary) 2x | ? | 4.2 | 1.2
-3060ti Joey 2x | ? | 0.87 | 0.36
-3070 (ONNX-TRT+FrameEval) | 20 | 7.55 | 3.36
-3090¹ (ONNX-TRT+FrameEval) | ? | ? | 6.7
-3090² (vs+TensorRT8.4+C++ TRT+vs_threads=20+num_streams=20+opset15) | 105 | 47 | 21
-2x3090² (vs+TensorRT8.4+C++ TRT+num_streams=22+opset15) | 133 | 55 | 23
-V100 (Colab) (vs+CUDA) | 8.4 | 3.8 | 1.6
-V100 (Colab) (vs+TensorRT8+ONNX-TRT+FrameEval) | 8.3 | 3.8 | 1.7
-V100 (Colab High RAM) (vs+CUDA+FrameEval) | 29 | 13 | 6
-V100 (Colab High RAM) (vs+TensorRT7+ONNX-TRT+FrameEval) | 21 | 12 | 5.5
-V100 (Colab High RAM) (vs+TensorRT8.2GA+ONNX-TRT+FrameEval) | 21 | 12 | 5.5
-V100 (Colab High RAM) (vs+TensorRT8.4+C++ TRT+num-streams=15) | ? | ? | 6.6
-A100 (Colab) (vs+CUDA+FrameEval) | 40 | 19 | 8.5
-A100 (Colab) (vs+TensorRT8.2GA+ONNX-TRT+FrameEval) | 44 | 21 | 9.5
-A100 (Colab) (vs+TensorRT8.2GA+C++ TRT+ffmpeg+FrameEval+num_streams=50) | 52.72 | 24.37 | 11.84
-A100 (Colab) (vs+TensorRT8.2GA) (C++ TRT+x264 (--opencl)+FrameEval+num_streams=50) | 57.16 | 26.25 | 12.42
-A100 (Colab) (vs+onnx+FrameEval) | 26 | 12 | 4.9
-A100 (Colab) (vs+quantized onnx+FrameEval) | 26 | 12 | 5.7
-A100 (Colab) (jpg+CUDA) | 28.2 (9 Threads) | 28.2 (7 Threads) | 9.96 (4 Threads)
-4090 (TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? / 92.3* | ? / 41.5*
-6700xt (vs_threads=4+mlrt ncnn) | ? / 7.7* | ? / 3.25* | ? / 1.45*
-
-Compact (4x) | 480p | 720p | 1080p
-------  | ---  | ---- | ------
-1070ti TensorRT8 docker (ONNX-TensorRT+FrameEval) | 11 | 5.6 | X
-3060ti TensorRT8 docker (ONNX-TensorRT+FrameEval) | ? | 6.1 | 2.7
-3060ti TensorRT8 docker 2x (C++ TRT+FrameEval+num_streams=5) | ? | 11 | 5.24
-3060ti VSGAN 4x | ? | 3 | 1.3
-3060ti ncnn (Windows binary) 4x | ? | 0.85 | 0.53
-3060ti Joey 4x | ? | 0.25 | 0.11
-A100 (Colab) (vs+CUDA+FrameEval) | 12 | 5.6 | 2.9
-A100 (Colab) (jpg+CUDA) | ? | ?| 3 (4 Threads)
-4090³ (TensorRT8.4GA+10 vs threads+fp16) | ? | ? / 56* (5 streams) | ? / 19.4* (2 streams)
-
-UltraCompact (2x) | 480p | 720p | 1080p
--------- | ---- | ---- | ----
-4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 113.7* | ? / 52.7*
-6700xt (vs_threads=4+mlrt ncnn) | ? / 14.5* | ? / 6.1* | ? / 2.76*
-
-cugan (2x) | 480p | 720p | 1080p
--------- | ---- | ---- | ----
-1070ti (vs+TensorRT8.4+ffmpeg+C++ TRT+num_streams=2+no tiling+opset13) | 6 | 2.7 | OOM
-V100 (Colab) (vs+CUDA+ffmpeg+FrameEval) | 7 | 3.1 | ?
-V100 (Colab High RAM) (vs+CUDA+ffmpeg+FrameEval) | 21 | 9.7 | 4
-V100 (Colab High RAM) (vs+TensorRT8.4+ffmpeg+C++ TRT+num_streams=3+no tiling+opset13) | 30 | 14 | 6
-A100 (Colab High RAM) (vs+TensorRT8.4+x264 (--opencl)+C++ TRT+vs threads=8+num_streams=8+no tiling+opset13) | 53.8 | 24.4 | 10.9
-3090² (vs+TensorRT8.4+ffmpeg+C++ TRT+vs_threads=8+num_streams=5+no tiling+opset13) | 79 | 35 | 15
-2x3090² (vs+TensorRT8.4+ffmpeg+C++ TRT+vs_threads=12+num_streams=5+no tiling+opset13) | 131 | 53 | 23
-4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 51* | ? / 22.7*
-6700xt (vs_threads=4+mlrt ncnn) | ? / 3.3* | ? / 1.3* | OOM (512px tiling ? / 0.39*)
-
-ESRGAN 4x (64mb) (23b+64nf) | 480p | 720p | 1080p
-------------  | ---  | ---- | ------
-1070ti TensorRT8 docker (Torch-TensorRT+ffmpeg+FrameEval) | 0.5 | 0.2 | >0.1
-3060ti TensorRT8 docker (Torch-TensorRT+ffmpeg+FrameEval) | ? | 0.7 | 0.29
-3060ti Cupscale (Pytorch) | ? | 0.13 | 0.044
-3060ti Cupscale (ncnn) | ? | 0.1 | 0.04
-3060ti Joey | ? | 0.095 | 0.043
-V100 (Colab) (Torch-TensorRT8.2GA+ffmpeg+FrameEval) | 1.8 | 0.8 | ?
-V100 (Colab High VRAM) (C++ TensorRT8.2GA+x264 (--opencl)+FrameEval+no tiling) | 2.46 | OOM (OpenCL) | OOM (OpenCL)
-V100 (Colab High VRAM) (C++ TensorRT8.2GA+x264+FrameEval+no tiling) | 2.49 | 1.14 | 0.47
-A100 (Colab) (Torch-TensorRT8.2GA+ffmpeg+FrameEval) | 5.6 | 2.6 | 1.1
-3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 3.4 | 1.5 | 0.7
-2x3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 7.0 | 3.2 | 1.5
-4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBS+op14) | ? | ? / 2.6* | ? / 1.2*
-
-Note: The offical RealESRGAN-6b model uses 6 blocks for the anime model and uses the ESRGAN architecture.
-
-RealESRGAN (4x) (6b+64nf) | 480p | 720p | 1080p
-------------  | ---  | ---- | ------
-3060ti (vs+TensorRT8+ffmpeg+C++ TRT+num_streams=2) | ? | 1.7 | 0.75
-V100 (Colab High RAM) (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=1+no tiling) | 6.82 | 3.15 | OOM (OpenCL)
-V100 (Colab High RAM) (vs+TensorRT8.2GA+x264+C++ TRT+num_streams=1+no tiling) | ? | ? | 1.39
-A100 (vs+TensorRT8.2GA+x264 (--opencl)+C++ TRT+num_streams=3+no tiling) | 14.65 | 6.74 | 2.76
-3090² (C++ TRT+vs_threads=20+num_threads=2+no tiling+opset14) | 11 | 4.8 | 2.3
-2x3090² (C++ TRT+vs_threads=10+num_threads=2+no tiling+opset14) | 22 | 9.5 | 4.2
-4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 8.8* | ? / 3.9*
-
-Rife v2 refers to a custom implementation made by [WolframRhodium](https://github.com/WolframRhodium). I would recommend to avoid `int8` for 1080p, the warping looks a bit broken. `int8` seems usable with 720p and looks closer to `bf16`/`fp16`. TRT10.0-10.2 is slower than 9.3 and thus not recommended. [TRT10.3 fixed `GridSample`](https://docs.nvidia.com/deeplearning/tensorrt/release-notes/index.html) and thus is recommended again. Windows seems slower than Linux by quite a margin. Not all show major improvement with above 3 streams. There mostly seems to be no difference between level 3 and 5.
-
-Rife4+vs (ensemble False) | 480p | 720p | 1080p
--------  | -------  | ------- | -------
-Rife 4.6  | -------  | ------- | -------
-4090 rife4.6 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 134.3*
-4090 rife4.6 (Arch KDE vs-rife+TRT10 (level 5)+num_streams=3+RGBH) | ? | ? / 827.1* | ? / 357.9*
-4090 rife4.6 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 294.5*
-4090 rife4.6 (Win11 VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? | ? / 372.7*
-4090 rife4.6 (Manjaro Gnome VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? / 1083.3* | ? / 469.9*
-4090 rife4.6 v2 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 442.4*
-4090 rife4.6 v2 (Win11 mlrt+TRT9.2 (level 3)+num_streams=8+RGBH) | ?  | ? | ? / 480.2*
-4090 rife4.6 v2 (Arch KDE VSGAN+TRT9.3 (level 5)+num_streams=3+RGBH+op16 (fp16 converted mlrt onnx)) | ?  | ? / 1228.4* | ? / 511*
-4090 rife4.6 v2 (Pop!_OS VSGAN+TRT10.3 (level 5)+num_streams=3+RGBH+op16 (fp16 converted mlrt onnx)) | ?  | ? / 1364* | ? / 554.2*
-Steam Deck rife4.6 (ncnn+RGBS) | ? | ? / 19.2* | ? / 8.8*
-Rife 4.15  | -------  | ------- | -------
-4090 rife4.15 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 115.2*
-4090 rife4.15 (Arch KDE vs-rife+TRT10 (level 5)+num_streams=3+RGBH) | ? | ? / 506.3* | ? / 204.2*
-4090 rife4.15 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 237.7*
-4090 rife4.15 (Win11 VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 205*
-4090 rife4.15 (Arch Gnome VSGAN (level 5)+TRT9.3+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 245.5*
-4090 rife4.15 v2 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 276.8*
-4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op20) | ? | ? / 930.9* | ? / 360.1*
-4090 rife4.15 v2 (Pop!_OS VSGAN+TRT10.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op20) | ? | ? / 954.8* | ? / 359.4*
-Rife 4.15 (int8)  | -------  | ------- | -------
-4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3 (level 5)+num_streams=3+(int8+fp16+bf16)+RGBH+op20) | ? | ? / 995.3* | ? / 424*
-4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3 (level 5)+num_streams=8+(int8+fp16+bf16)+RGBH+op20) | ? | ? / 1117.6* | ? / 444.5*
-
-Rife4+vs (ensemble True) | 480p | 720p | 1080p
--------  | -------  | ------- | -------
-Rife 4.6  | -------  | ------- | -------
-4090 rife4.6 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 89.5*
-4090 rife4.6 (Arch KDE vs-rife+TRT10 (level 5)+num_streams=3+RGBH) | ? | ? / 649.6* | ? / 237.7*
-4090 rife4.6 (Win11 mlrt+TRT9.3 (level 3)+num_streams=3) | ? | ? | ? / 226.7*
-4090 rife4.6 (Win11 VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? | ? / 228.7*
-4090 rife4.6 (Manjaro Gnome VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op18) | ? | ? / 671.4* | ? / 303.8*
-4090 rife4.6 v2 (Win11 mlrt+TRT9.3 (level 3)+num_streams=3) | ? | ? | ? / 251.8*
-4090 rife4.6 v2 (Arch KDE VSGAN (level 5)+TRT9.3+num_streams=3+RGBH+op16 (fp16 converted mlrt onnx)) | ?  | ? / 843.8* | ? / 346.2*
-Rife 4.15  | -------  | ------- | -------
-4090 rife4.15 (Win11 vs-ncnn+num_streams=3+RGBS) | ? | ? | ? / 67*
-4090 rife4.15 (Arch KDE vs-rife+TRT10 (level 5)+num_streams=3+RGBH) | ? | ? / 339.6* | ? / 142.2*
-4090 rife4.15 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 133.4*
-4090 rife4.15 (Win11 VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? | ? / 139.8*
-4090 rife4.15 (Manjaro Gnome VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op19) | ? | ? / 348.5* | ? / 149.6*
-4090 rife4.15 v2 (Win11 mlrt+TRT9.2 (level 3)+num_streams=3+RGBH) | ? | ? | ? / 147.3*
-4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3 (level 5)+num_streams=3+(fp16+bf16)+RGBH+op20) | ? | ? / 463.1* | ? / 181.3*
-Rife 4.15 (int8)  | -------  | ------- | -------
-4090 rife4.15 v2 (Arch KDE VSGAN+TRT9.3 (level 5)+num_streams=3+(int8+fp16+bf16)+RGBH+op20) | ? | ? / 557.5* | ? / 210.6*
-
-* Benchmarks made with [HolyWu version](https://github.com/HolyWu/vs-gmfss_union) with threading and partial TensorRT and without setting `tactic` to `JIT_CONVOLUTIONS` and `EDGE_MASK_CONVOLUTIONS` due to performance penalty. I added [a modified version](https://github.com/styler00dollar/vs-gmfss_union) as a plugin to VSGAN, but I need to add enhancements to my own repo later.
-
-GMFSS_union | 480p | 720p | 1080p
--------- | ---- | ---- | ----
-4090 (num_threads=8, num_streams=3, RGBH, TRT8.6, matmul_precision=medium) | ? | ? / 44.6* | ? / 15.5*
-
-GMFSS_fortuna_union | 480p | 720p | 1080p
--------- | ---- | ---- | ----
-4090 (num_threads=8, num_streams=2, RGBH, TRT8.6.1, matmul_precision=medium) | ? | ? / 50.4* | ? / 16.9*
-4090 (num_threads=8, num_streams=2, RGBH, TRT8.6.1, matmul_precision=medium, @torch.compile(mode="default", fullgraph=True)) | ? | ? / 50.6* | ? / 17*
-
-DPIR | 480p | 720p | 1080p
--------- | ---- | ---- | ----
-4090 (TRT9.1+num_threads=4+num_streams=2+(fp16+bf16)+RGBH+op18) | ? | ? / 54* | ? / 24.4*
+| model                 | scale | gpu  | arch          | fps 720 | fps 1080 | vram 720 | vram 1080   | backend                                                                  | batch | level | streams   | threads   | onnx      | onnxslim / onnxsim | onnx shape  | trtexec shape | precision | usage                                                                                                                                                                                                                                                                                                                                                                                         |
+| --------------------- | ----- | ---- | ------------- | ------- | -------- | -------- | ----------- | ------------------------------------------------------------------------ | ----- | ----- | --------- | --------- | --------- | ------------------ | ----------- | ------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AnimeJaNai V2         | 2x    | 4090 | Compact       | 87.54   | 39.44    | 1.7gb    | 2.7gb       | trt 10.7 (trtexec+mlrt)                                                  | 1     | 5     | 3         | 4         | fp16 op18 | -		               | dynamic     | dynamic       | RGBH      | trtexec --bf16 --fp16 --onnx=2x_AnimeJaNai_V2_Compact_36k_op18_fp16_clamp.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=2x_AnimeJaNai_V2_Compact_36k_op18_fp16_clamp.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --infStreams=3               |
+| AnimeJaNai V2         | 2x    | 4090 | Compact       | 136.47  | 61.26    | 6.4gb    | 13.2gb      | trt 10.7 (trtexec+mlrt)                                                  | 2     | 5     | 10        | 10        | fp16 op18 | -		               | dynamic     | dynamic       | RGBH      | trtexec --bf16 --fp16 --onnx=2x_AnimeJaNai_V2_Compact_36k_op18_fp16_clamp_batch2.onnx --minShapes=input:1x6x8x8 --optShapes=input:1x6x720x1280 --maxShapes=input:1x6x1080x1920 --saveEngine=2x_AnimeJaNai_V2_Compact_36k_op18_fp16_clamp_batch2.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --infStreams=3 |
+| ModernSpanimation V2  | 2x    | 4090 | Span          | 111.96  | 44.21    | 3.2gb    | 6.2gb       | trt 10.7 (trtexec+mlrt)                                                  | 1     | 5     | 3         | 4         | fp16 op20 | onnxslim           | dynamic     | dynamic       | RGBH      | trtexec --bf16 --fp16 --onnx=2x_ModernSpanimationV2_clamp_op20_fp16_onnxslim.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=2x_ModernSpanimationV2_clamp_op20_fp16_onnxslim.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --infStreams=3         |
+| sudo shuffle span     | 2x    | 4090 | span (custom) | 96.06   | 42.63    | 5.5gb    | 11.1gb      | trt 10.7 (trtexec+mlrt)                                                  | 1     | 5     | 3         | 4         | fp16 op20 | onnxslim           | static      | -             | RGBH      | trtexec --bf16 --fp16 --onnx=2x_sudo_shuffle_span_10.5m_1080p_clamp_op20_fp16_onnxslim.onnx --saveEngine=2x_sudo_shuffle_span_10.5m_1080p_clamp_op20_fp16_onnxslim.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --infStreams=3 --layerPrecisions=/dynamic/Conv:fp32 --precisionConstraints=obey             |
+| cugan                 | 2x    | 4090 | cugan         | 47.51   | 21.34    | 6.2gb    | 12.7gb      | trt 10.7 (trtexec+mlrt)                                                  | 1     | 5     | 3         | 4         | fp16 op20 | -                  | dynamic     | dynamic       | RGBH      | trtexec --bf16 --fp16 --onnx=cugan_pro-denoise3x-up2x_op18_fp16_clamp_colorfix.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=cugan_pro-denoise3x-up2x_op18_fp16_clamp_colorfix.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --infStreams=3     |
+| dpir                  | 1x    | 4090 | dpir (4ch)    | 51.46   | 22.92    | 2.7gb    | 4.8gb       | trt 10.7 (trtexec+mlrt)                                                  | 1     | 5     | 3         | 4         | fp32 onnx | -                  | dynamic     | dynamic       | RGBS      | trtexec --bf16 --fp16 --onnx=dpir_drunet_color.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=dpir_drunet_color.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --infStreams=3                                                                     |
+| vsrife 4.18           | 2x    | 4090 | rife (4.18)   | 305.19  | 136.87   | 1.9gb    | 2.8gb       | torch 20241231+cu126 (holywu vsrife)                                     | 1     | 5     | -         | 8         | -         | -                  | -           | -             | RGBH      | rife(clip, trt=False, sc=False)                                                                                                                                                                                                                                                                                                                                                               |
+| vsrife 4.18           | 2x    | 4090 | rife (4.18)   | 651.55  | 298.91   | 2.4gb    | 2.1gb       | trt 10.7, torch 20241231+cu126, torch_trt 20250102+cu126 (holywu vsrife) | 1     | 5     | -         | 8         | -         | -                  | -           | static        | RGBH      | rife(clip, trt=True, trt_static_shape=True, model="4.18", trt_optimization_level=5, sc=False)                                                                                                                                                                                                                                                                                                 |
+| rife 4.18v2           | 2x    | 4090 | rife (4.18)   | 393.04  | 193.56   | 1.6gb    | 2.3gb       | trt 10.7 (trtexec+mlrt)                                                  | 1     | 5     | 3         | 8         | fp16 onnx | onnxslim           | dynamic     | static        | RGBH      | trtexec --bf16 --fp16 --onnx=rife418_v2_ensembleFalse_op20_fp16_clamp_onnxslim.onnx --minShapes=input:1x7x1080x1920 --optShapes=input:1x7x1080x1920 --maxShapes=input:1x7x1080x1920 --saveEngine=rife418_v2_ensembleFalse_op20_fp16_clamp_onnxslim.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5             |
+| vsrife 4.22           | 2x    | 4090 | rife (4.22)   | 284.04  | 131.54   | 1.9gb    | 2.9gb       | torch 20241231+cu126 (holywu vsrife)                                     | 1     | 5     | -         | 8         | -         |                    | -           | -             | RGBH      | rife(clip, trt=False, sc=False)                                                                                                                                                                                                                                                                                                                                                               |
+| vsrife 4.22           | 2x    | 4090 | rife (4.22)   | 529.35  | 244.01   | 1.6gb    | 2.2gb       | trt 10.7, torch 20241231+cu126, torch_trt 20250102+cu126 (holywu vsrife) | 1     | 5     | -         | 8         | -         |                    | -           | static        | RGBH      | rife(clip, trt=True, trt_static_shape=True, model="4.18", trt_optimization_level=5, sc=False)                                                                                                                                                                                                                                                                                                 |
+| rife 4.22v2           | 2x    | 4090 | rife (4.22)   | 379.43  | 191.50   | 1.6gb    | 2.5gb       | trt 10.7 (trtexec+mlrt)                                                  | 1     | 5     | 3         | 8         | fp16 onnx | onnxslim           | dynamic     | static        | RGBH      | trtexec --bf16 --fp16 --onnx=rife422_v2_ensembleFalse_op20_fp16_clamp_onnxslim.onnx --minShapes=input:1x7x1080x1920 --optShapes=input:1x7x1080x1920 --maxShapes=input:1x7x1080x1920 --saveEngine=rife422_v2_ensembleFalse_op20_fp16_clamp_onnxslim.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5             |
 
 <div id='license'/>
 
