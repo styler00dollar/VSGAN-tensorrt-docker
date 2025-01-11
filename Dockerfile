@@ -227,7 +227,7 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
 # compiling own torch since the official whl is bloated
 # could be smaller in terms of dependencies and whl size, but for now, -500mb smaller docker size
 ############################
-FROM nvidia/cuda:12.5.1-devel-ubuntu24.04 AS torch-ubuntu
+FROM nvidia/cuda:12.6.3-devel-ubuntu24.04 AS torch-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -269,7 +269,7 @@ WORKDIR /
 ############################
 # cupy
 ############################
-FROM nvidia/cuda:12.5.1-devel-ubuntu24.04 AS cupy-ubuntu
+FROM nvidia/cuda:12.6.3-devel-ubuntu24.04 AS cupy-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -298,7 +298,7 @@ RUN git clone https://github.com/cupy/cupy --recursive && cd cupy && git submodu
 # mlrt ort
 ############################
 # https://github.com/AmusementClub/vs-mlrt/blob/master/.github/workflows/linux-ort.yml
-FROM nvidia/cuda:12.5.1-devel-ubuntu24.04 AS vsort-ubuntu
+FROM nvidia/cuda:12.6.3-devel-ubuntu24.04 AS vsort-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -379,7 +379,7 @@ RUN cd /workdir/vs-mlrt/vsort/build && cmake --build . --verbose -j$(nproc) --ta
 # bestsource / lsmash / ffms2
 # todo: check if CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" --extra-ldflags="-static" is required
 ############################
-FROM nvidia/cuda:12.5.1-devel-ubuntu24.04 AS bestsource-lsmash-ffms2-vs
+FROM nvidia/cuda:12.6.3-devel-ubuntu24.04 AS bestsource-lsmash-ffms2-vs
 
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR workspace
@@ -463,7 +463,7 @@ RUN git clone https://github.com/FFMS/ffms2 && cd ffms2 && ./autogen.sh && CFLAG
 ############################
 # TensorRT + ORT
 ############################
-FROM nvidia/cuda:12.5.1-devel-ubuntu24.04 AS tensorrt-ubuntu
+FROM nvidia/cuda:12.6.3-devel-ubuntu24.04 AS tensorrt-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -742,7 +742,8 @@ RUN pip install git+https://github.com/pifroggi/vs_colorfix git+https://github.c
 
 # holywu
 # todo: for now using official torch since torch_tensorrt is not compatible with my torch, but official whl has a bigger filesize, failed to compile torch_tensorrt
-RUN pip install --pre -U torch torch_tensorrt --index-url https://download.pytorch.org/whl/nightly/cu124 --extra-index-url https://pypi.nvidia.com --no-deps && \
+RUN python -m pip install --pre -U pytorch-triton==3.2.0+git0d4682f0 torch==2.6.0.dev20241231+cu126 torchvision==0.22.0.dev20250102+cu126 \
+    torch_tensorrt==2.6.0.dev20250102+cu126 tensorrt==10.7 --extra-index-url https://download.pytorch.org/whl/nightly/cu126 --force-reinstall --force && \
   pip install git+https://github.com/HolyWu/vs-rife --no-deps
 # required for torch import
 RUN wget https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-x86_64/libcusparse_lt-linux-x86_64-0.6.3.2-archive.tar.xz && \
@@ -780,7 +781,7 @@ RUN wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc
 ###################
 # final
 ############################
-FROM nvidia/cuda:12.5.1-runtime-ubuntu24.04 AS final
+FROM nvidia/cuda:12.6.3-runtime-ubuntu24.04 AS final
 # maybe official tensorrt image is better
 #FROM nvcr.io/nvidia/tensorrt:23.04-py3 as final
 ARG DEBIAN_FRONTEND=noninteractive
@@ -855,10 +856,10 @@ COPY --from=base /usr/lib/x86_64-linux-gnu/libxcb*.so* /usr/lib/x86_64-linux-gnu
 COPY --from=ffmpeg-arch /usr/lib/libstdc++.so* /usr/lib/x86_64-linux-gnu/
 
 # symlink python tensorrt
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer.so.10
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so.10.7.0 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.10.7.0
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.10
-RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.10
+#RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer.so.10
+#RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_builder_resource.so.10.7.0 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.10.7.0
+#RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.10
+#RUN ln -s /usr/lib/x86_64-linux-gnu/libnvonnxparser.so.10 /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.10
 
 # move trtexec so it can be globally accessed
 COPY --from=tensorrt-ubuntu /usr/local/tensorrt/bin/trtexec /usr/bin
@@ -866,7 +867,7 @@ COPY --from=tensorrt-ubuntu /usr/local/tensorrt/bin/trtexec /usr/bin
 # torch
 COPY --from=torch-ubuntu /usr/lib/x86_64-linux-gnu/libopenblas.so* /usr/lib/x86_64-linux-gnu/libgfortran.so* \
   /usr/lib/x86_64-linux-gnu/libquadmath.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=torch-ubuntu /usr/local/cuda-12.5/targets/x86_64-linux/lib/libcupti.so /usr/lib/x86_64-linux-gnu/
+COPY --from=torch-ubuntu /usr/local/cuda-12.6/targets/x86_64-linux/lib/libcupti.so /usr/lib/x86_64-linux-gnu/
 
 # ffmpeg hotfix
 COPY --from=base /workspace/hotfix/* /workspace
