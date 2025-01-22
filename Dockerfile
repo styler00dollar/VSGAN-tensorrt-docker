@@ -115,7 +115,7 @@ RUN wget -O libxvid.tar.gz "$XVID_URL" && \
   echo "$XVID_SHA256  libxvid.tar.gz" | sha256sum --status -c - && \
   tar xf libxvid.tar.gz && \
   cd xvidcore/build/generic && \
-  CFLAGS="$CLFAGS -fstrength-reduce -ffast-math" \
+  CFLAGS="$CFLAGS -fstrength-reduce -ffast-math" \
     ./configure && make -j$(nproc) && make install
 
 RUN rm -rf rav1e && \
