@@ -591,6 +591,12 @@ Experimental testing without verifying output:
 
 Thanks to [neosr-project/neosr](https://github.com/neosr-project/neosr) and [the-database/traiNNer-redux](https://github.com/the-database/traiNNer-redux) which include various architectures to test with.
 
+Other benchmarks that are not using the gpu:
+
+|                                                                    | cpu    | fps 720 | fps 1080 | fps 4k | threads | cache | usage                                                                             |
+| ------------------------------------------------------------------ | ------ | ------- | -------- | ------ | ------- | ----- | --------------------------------------------------------------------------------- |
+| [vs_temporalfix](https://github.com/pifroggi/vs_temporalfix)       | 7950x  | 18.59   | 7.59     | 3.69   | 32      | 40000 | vs_temporalfix(clip, strength=400, tr=6, exclude="[10 20]", debug=False)          |
+
 <div id='license'/>
 
 ## License
