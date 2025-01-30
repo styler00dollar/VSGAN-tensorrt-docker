@@ -491,9 +491,9 @@ RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-rei
 # TensorRT10
 # https://github.com/NVIDIA/TensorRT-LLM/blob/main/docker/common/install_tensorrt.sh
 # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=tensorrt
-RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/10.7.0/tars/TensorRT-10.7.0.23.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/10.8.0/tars/TensorRT-10.8.0.43.Linux.x86_64-gnu.cuda-12.8.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-10.7.0.23 /usr/local/tensorrt
+RUN mv /usr/local/TensorRT-10.8.0.43 /usr/local/tensorrt
 RUN pip3 install /usr/local/tensorrt/python/tensorrt-*-cp312-*.whl
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/tensorrt/targets/x86_64-linux-gnu/lib/
 
@@ -556,9 +556,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   apt-get purge --autoremove -y curl && \
   rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  cuda-12-5 \
-  cuda-cudart-12-5 \
-  cuda-compat-12-5 && \
+  cuda-12-6 \
+  cuda-cudart-12-6 \
+  cuda-compat-12-6 && \
   rm -rf /var/lib/apt/lists/*
 RUN echo "/usr/local/nvidia/lib" >>/etc/ld.so.conf.d/nvidia.conf && \
   echo "/usr/local/nvidia/lib64" >>/etc/ld.so.conf.d/nvidia.conf
@@ -633,10 +633,10 @@ RUN pip install --upgrade pip && pip install cython setuptools && git clone http
 RUN pip install numpy docutils pygments && git clone https://github.com/hahnec/color-matcher && cd color-matcher && python setup.py bdist_wheel
 
 # vs-mlrt
-RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/10.7.0/tars/TensorRT-10.7.0.23.Linux.x86_64-gnu.cuda-12.6.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/10.8.0/tars/TensorRT-10.8.0.43.Linux.x86_64-gnu.cuda-12.8.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-10.7.0.23/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
-RUN mv /usr/local/TensorRT-10.7.0.23/include/* /usr/include/x86_64-linux-gnu/
+RUN mv /usr/local/TensorRT-10.8.0.43/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
+RUN mv /usr/local/TensorRT-10.8.0.43/include/* /usr/include/x86_64-linux-gnu/
 RUN cd /usr/lib/x86_64-linux-gnu \
   && ldconfig
 ENV CPLUS_INCLUDE_PATH="/usr/include/x86_64-linux-gnu/"
@@ -676,7 +676,7 @@ RUN git clone https://github.com/vapoursynth/vs-miscfilters-obsolete && cd vs-mi
 # official akarin does not support new llvm
 # llvm-config found: NO found '18.1.3' but need ['>= 10.0', '< 16']
 RUN apt install llvm-18 llvm-18-dev libzstd-dev -y && git clone https://github.com/Jaded-Encoding-Thaumaturgy/akarin-vapoursynth-plugin && \
-  cd akarin-vapoursynth-plugin && meson build && ninja -C build && \
+  cd akarin-vapoursynth-plugin && git checkout 6d7c733b3014a42be75299427b5c35f56f02a47a && meson build && ninja -C build && \
   ninja -C build install
 
 # warpsharp
@@ -721,7 +721,7 @@ RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
 RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy meson ninja numpy einops kornia vsutil onnx
 
 # deleting .so files to symlink them later on to save space
-RUN pip install tensorrt==10.7.0 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
+RUN pip install tensorrt==10.8.0.43 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
   rm -rf /root/.cache/ /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.* \
     /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.*
 
@@ -743,12 +743,17 @@ RUN pip install git+https://github.com/pifroggi/vs_colorfix git+https://github.c
 # holywu
 # todo: for now using official torch since torch_tensorrt is not compatible with my torch, but official whl has a bigger filesize, failed to compile torch_tensorrt
 RUN python -m pip install --pre -U pytorch-triton==3.2.0+git0d4682f0 torch==2.6.0.dev20241231+cu126 torchvision==0.22.0.dev20250102+cu126 \
-    torch_tensorrt==2.6.0.dev20250102+cu126 tensorrt==10.7 --extra-index-url https://download.pytorch.org/whl/nightly/cu126 --force-reinstall --force && \
+    torch_tensorrt==2.6.0.dev20250102+cu126 tensorrt==10.7.0 --extra-index-url https://download.pytorch.org/whl/nightly/cu126 --force-reinstall --force && \
   pip install git+https://github.com/HolyWu/vs-rife --no-deps
 # required for torch import
 RUN wget https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-x86_64/libcusparse_lt-linux-x86_64-0.6.3.2-archive.tar.xz && \
   tar -xf libcusparse_lt-linux-x86_64-0.6.3.2-archive.tar.xz && cd libcusparse_lt-linux-x86_64-0.6.3.2-archive/lib && mv * /usr/local/lib && ldconfig
 RUN python -m vsrife
+
+# todo: fix
+# torch-tensorrt 2.6.0.dev20250102+cu126 depends on tensorrt-cu12<10.8.0 and >=10.6.0
+# tensorrt 10.8.0.43 depends on tensorrt_cu12==10.8.0.43
+RUN pip install tensorrt==10.8.0.43 --pre tensorrt --extra-index-url https://pypi.nvidia.com/
 
 # installing own versions
 COPY --from=cupy-ubuntu /cupy/dist/ /workspace
@@ -774,7 +779,7 @@ RUN wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.40-1ubuntu3_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.11.0-13.14_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.11.0-17.17_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4%2Bds-1.3_amd64.deb
 
