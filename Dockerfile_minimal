@@ -129,8 +129,8 @@ RUN git clone https://github.com/Haivision/srt/ && \
   cd srt && ./configure --enable-shared=0 --cmake-install-libdir=lib --cmake-install-includedir=include --cmake-install-bindir=bin && \
   make -j$(nproc) && make install
 
-RUN git clone https://github.com/gianni-rosato/svt-av1-psy/ && \
-  cd svt-av1-psy/Build && \
+RUN git clone https://gitlab.com/AOMediaCodec/SVT-AV1 && \
+  cd SVT-AV1/Build && \
   cmake .. -G"Unix Makefiles" -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && \
   make -j$(nproc) install
 
@@ -225,7 +225,7 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
 # bestsource / lsmash / ffms2
 # todo: check if CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" --extra-ldflags="-static" is required
 ############################
-FROM nvcr.io/nvidia/tensorrt:24.11-py3 as bestsource-lsmash-ffms2-vs
+FROM nvcr.io/nvidia/tensorrt:25.02-py3 as bestsource-lsmash-ffms2-vs
 
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR workspace
@@ -347,7 +347,7 @@ RUN wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.40-1ubuntu3_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.11.0-12.13_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.14.0-7.7_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4%2Bds-1.3_amd64.deb && dpkg --force-all -i *.deb  && rm -rf *deb
 COPY --from=ffmpeg-arch /usr/lib/libstdc++.so* /usr/lib/x86_64-linux-gnu/
