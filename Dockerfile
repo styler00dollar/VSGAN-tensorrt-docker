@@ -733,12 +733,17 @@ RUN pip install git+https://github.com/pifroggi/vs_colorfix git+https://github.c
 
 # holywu
 RUN python -m pip install --no-deps -U torch_tensorrt --index-url https://download.pytorch.org/whl/cu126 && \
-  pip install git+https://github.com/HolyWu/vs-rife --no-deps
+  pip install git+https://github.com/HolyWu/vs-rife.git@2a7f2c8d1f614642a996a52d90d74aa25cf1ba22 git+https://github.com/routineLife1/VS-DRBA@6e56f956c8fa0fc049d81549886050647eb747aa --no-deps
 RUN python -m pip install git+https://github.com/HolyWu/vs-realesrgan --no-deps
 # required for torch import
 RUN wget https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-x86_64/libcusparse_lt-linux-x86_64-0.6.3.2-archive.tar.xz && \
   tar -xf libcusparse_lt-linux-x86_64-0.6.3.2-archive.tar.xz && cd libcusparse_lt-linux-x86_64-0.6.3.2-archive/lib && mv * /usr/local/lib && ldconfig
 RUN python -m vsrife && python -m vsrealesrgan
+RUN mkdir -p /usr/local/lib/python3.12/site-packages/vsdrba/
+RUN ln -s /usr/local/lib/python3.12/site-packages/vsrife/models/ /usr/local/lib/python3.12/site-packages/vsdrba/
+
+# spandrel
+RUN pip install git+https://github.com/TNTwise/vs-spandrel --no-deps
 
 # todo: fix
 RUN pip install tensorrt==10.9.0.34 --pre tensorrt --extra-index-url https://pypi.nvidia.com/
@@ -766,7 +771,7 @@ RUN wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.40-1ubuntu3_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.14.0-7.7_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.14.0-11.11_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4%2Bds-1.3_amd64.deb
 
