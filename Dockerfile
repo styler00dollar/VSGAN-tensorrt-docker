@@ -742,9 +742,8 @@ RUN python -m vsrife && python -m vsrealesrgan
 RUN mkdir -p /usr/local/lib/python3.12/site-packages/vsdrba/
 RUN ln -s /usr/local/lib/python3.12/site-packages/vsrife/models/ /usr/local/lib/python3.12/site-packages/vsdrba/
 
-# spandrel
-RUN pip install git+https://github.com/TNTwise/vs-spandrel --no-deps
-
+# spandrel (requires cuda torchvision)
+RUN pip install git+https://github.com/TNTwise/vs-spandrel --no-deps && pip install torchvision --index-url https://download.pytorch.org/whl/cu126 --force-reinstall --no-deps
 # todo: fix
 RUN pip install tensorrt==10.9.0.34 --pre tensorrt --extra-index-url https://pypi.nvidia.com/
 
