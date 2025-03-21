@@ -17,7 +17,7 @@
 -------
 
 Currently working networks:
-- Rife with [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/), v2 with [WolframRhodium](https://github.com/WolframRhodium), drba with [routineLife1/VS-DRBA](https://github.com/routineLife1/VS-DRBA)
+- Rife with [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/), v2 with [WolframRhodium](https://github.com/WolframRhodium), drba with [routineLife1/VS-DRBA](https://github.com/routineLife1/VS-DRBA), ddfi with [Mr-Z-2697/ddfi-rife](https://github.com/Mr-Z-2697/ddfi-rife)
 - Model based shot boundary detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer), [wentaozhu/AutoShot](https://github.com/wentaozhu/AutoShot), [abhijay9/ShiftTolerant-LPIPS](https://github.com/abhijay9/ShiftTolerant-LPIPS) and [photosynthesis-team/piq](https://github.com/photosynthesis-team/piq)
 - [HolyWu/vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
 - [TNTwise/vs-spandrel](https://github.com/TNTwise/vs-spandrel)
@@ -36,7 +36,6 @@ Onnx files can be found [here](https://github.com/styler00dollar/VSGAN-tensorrt-
 
 Also used:
 - TensorRT C++ inference and python script usage with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
-- ddfi with [Mr-Z-2697/ddfi-rife](https://github.com/Mr-Z-2697/ddfi-rife) (auto dedup-duplication, not an arch)
 - custom ffmpeg with [styler00dollar/ffmpeg-static-arch-docker](https://github.com/styler00dollar/ffmpeg-static-arch-docker)
 - lsmash with [AkarinVS/L-SMASH-Works](https://github.com/AkarinVS/L-SMASH-Works)
 - bestsource with [vapoursynth/bestsource](https://github.com/vapoursynth/bestsource)
