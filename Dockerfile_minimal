@@ -21,7 +21,7 @@ RUN yay -S python-pip python312 --noconfirm --ask 4
 USER root
 
 RUN mkdir -p "/home/makepkg/python312"
-RUN wget https://github.com/python/cpython/archive/refs/tags/v3.12.5.tar.gz && tar xf v3.12.5.tar.gz && cd cpython-3.12.5 && \
+RUN wget https://github.com/python/cpython/archive/refs/tags/v3.12.7.tar.gz && tar xf v3.12.7.tar.gz && cd cpython-3.12.7 && \
   mkdir debug && cd debug && ../configure --enable-optimizations --disable-shared --prefix="/home/makepkg/python312" && make -j$(nproc) && make install && \
   /home/makepkg/python312/bin/python3.12 -m ensurepip --upgrade
 RUN cp /home/makepkg/python312/bin/python3.12 /usr/bin/python
@@ -50,8 +50,8 @@ RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.5.tar.
   ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
 ENV PATH /usr/local/bin:$PATH
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R70.tar.gz && \
-  tar -zxvf R70.tar.gz && cd vapoursynth-R70 && ./autogen.sh && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R72.tar.gz && \
+  tar -zxvf R72.tar.gz && cd vapoursynth-R72 && ./autogen.sh && \
   PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/local/lib/pkgconfig" ./configure --enable-static --disable-shared && \
   make && make install && cd .. && ldconfig
 
@@ -92,7 +92,7 @@ RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
   mkdir build_tmp && cd build_tmp && cmake -DBUILD_SHARED_LIBS=0 -DENABLE_TESTS=0 -DENABLE_NASM=on -DCMAKE_INSTALL_LIBDIR=lib .. && make -j$(nproc) install
 
 RUN git clone https://github.com/georgmartius/vid.stab/ && \
-  cd vid.stab && cmake -DBUILD_SHARED_LIBS=OFF . && make -j$(nproc) install
+  cd vid.stab && cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5 . && make -j$(nproc) install
 
 RUN git clone https://github.com/ultravideo/kvazaar/ && \
   cd kvazaar && ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
@@ -115,7 +115,7 @@ RUN wget -O libxvid.tar.gz "$XVID_URL" && \
   echo "$XVID_SHA256  libxvid.tar.gz" | sha256sum --status -c - && \
   tar xf libxvid.tar.gz && \
   cd xvidcore/build/generic && \
-  CFLAGS="$CFLAGS -fstrength-reduce -ffast-math" \
+  CFLAGS="$CFLAGS -fstrength-reduce -ffast-math -std=gnu17" \
     ./configure && make -j$(nproc) && make install
 
 RUN rm -rf rav1e && \
@@ -179,7 +179,7 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
     --enable-nonfree \
     --enable-openssl \
     --enable-iconv \
-    --enable-libxml2 \
+    --disable-libxml2 \
     --enable-libmp3lame \
     --enable-libfdk-aac \
     --enable-libvorbis \
@@ -219,13 +219,14 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
     --enable-pthreads \
     --enable-runtime-cpudetect \
     --enable-lto && \
+    #--enable-vulkan && \ # currently can't get it working
     make -j$(nproc)
 
 ############################
 # bestsource / lsmash / ffms2
 # todo: check if CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" --extra-ldflags="-static" is required
 ############################
-FROM nvcr.io/nvidia/tensorrt:25.02-py3 as bestsource-lsmash-ffms2-vs
+FROM nvidia/cuda:12.9.0-devel-ubuntu24.04 AS bestsource-lsmash-ffms2-vs
 
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR workspace
@@ -233,24 +234,27 @@ WORKDIR workspace
 RUN apt update -y
 RUN apt install autoconf libtool nasm ninja-build yasm python3.12 python3.12-venv python3.12-dev python3-pip wget git pkg-config python-is-python3 -y
 RUN apt --fix-broken install
-RUN pip install meson ninja cython
+RUN pip install meson ninja cython --break-system-packages
 
-# install g++13
+# install g++14
 RUN apt install build-essential manpages-dev software-properties-common -y
 RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y
-RUN apt update -y && apt install gcc-13 g++-13 -y
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 13
-RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 13
+RUN apt update -y && apt install gcc-14 g++-14 -y
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 14
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 14
 
 # zimg
 # setting pkg version manually since otherwise 'Version' field value '-1': version number is empty
 RUN apt-get install checkinstall -y
-RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.5.tar.gz && tar -zxvf release-3.0.5.tar.gz && cd zimg-release-3.0.5 && \
-  ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
+RUN git clone https://github.com/sekrit-twc/zimg --recursive && cd zimg && \
+  ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install
+RUN rm -rf /usr/local/share/doc/zimg/ChangeLog /usr/local/share/doc/zimg/COPYING /usr/local/share/doc/zimg/README.md /usr/local/share/doc/zimg/example/ /usr/local/include/zimg* /usr/local/lib/pkgconfig/zimg.pc
+RUN cd zimg && checkinstall -y -pkgversion=0.0 && \
+  apt install /workspace/zimg/zimg_0.0-1_amd64.deb -y
 
 # vapoursynth
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R70.tar.gz && \
-  tar -zxvf R70.tar.gz && mv vapoursynth-R70 vapoursynth && cd vapoursynth && \
+RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R72.tar.gz && \
+  tar -zxvf R72.tar.gz && mv vapoursynth-R72 vapoursynth && cd vapoursynth && \
   ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install && ldconfig
 
 # dav1d
@@ -258,7 +262,7 @@ RUN git clone https://code.videolan.org/videolan/dav1d/ && \
   cd dav1d && meson build --buildtype release -Ddefault_library=static && ninja -C build install
 
 # Vulkan-Headers
-Run apt install cmake -y
+RUN apt install cmake -y
 RUN git clone https://github.com/KhronosGroup/Vulkan-Headers.git && cd Vulkan-Headers/ && cmake -S . -DBUILD_SHARED_LIBS=OFF -B build/ && cmake --install build
 
 # nv-codec-headers
@@ -267,7 +271,7 @@ RUN git clone https://github.com/FFmpeg/nv-codec-headers && cd nv-codec-headers 
 # ffmpeg
 RUN apt remove ffmpeg -y
 RUN git clone https://git.ffmpeg.org/ffmpeg.git --depth 1 && cd ffmpeg && \
-  CFLAGS=-fPIC ./configure --enable-libdav1d --enable-cuda --enable-nonfree --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-swresample --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-static" --extra-cflags="-march=native" && \
+  CFLAGS=-fPIC ./configure --enable-libdav1d --enable-cuda --enable-nonfree --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-swresample --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-static" --extra-cflags="-march=native" && \
   make -j$(nproc) && make install -j$(nproc)
 
 # jansson
@@ -278,7 +282,7 @@ RUN git clone https://github.com/akheron/jansson && cd jansson && autoreconf -fi
 RUN git clone https://github.com/libarchive/bzip2 && cd bzip2 && \
   mkdir build && cd build && cmake .. -DBUILD_SHARED_LIBS=OFF && make -j$(nproc) && make install
 
-# bestsource
+# bestsource (custom bestsource to add back _AbsoluteTime)
 RUN apt-get install libxxhash-dev -y && git clone https://github.com/styler00dollar/bestsource --depth 1 --recurse-submodules --shallow-submodules && cd bestsource && \
   CFLAGS=-fPIC meson setup -Denable_plugin=true build && CFLAGS=-fPIC ninja -C build && ninja -C build install
 
@@ -290,7 +294,7 @@ RUN rm -rf FFmpeg
 
 RUN git clone https://github.com/HomeOfAviSynthPlusEvolution/FFmpeg
 RUN cd FFmpeg && \
-  LDFLAGS="-Wl,-Bsymbolic" CFLAGS=-fPIC ./configure --enable-libdav1d --enable-cuda --enable-nonfree --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-postproc --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-Wl,-Bsymbolic" --extra-cflags="-march=native" && \
+  LDFLAGS="-Wl,-Bsymbolic" CFLAGS=-fPIC ./configure --enable-libdav1d --enable-cuda --enable-nonfree --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-Wl,-Bsymbolic" --extra-cflags="-march=native" && \
   make -j$(nproc) && make install -j$(nproc)
 
 # lsmash
@@ -304,7 +308,7 @@ RUN apt install autoconf -y
 RUN git clone https://github.com/FFMS/ffms2 && cd ffms2 && ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" ./configure --enable-shared && make -j$(nproc) && make install
 
 ############################
-FROM nvcr.io/nvidia/tensorrt:24.11-py3
+FROM nvcr.io/nvidia/tensorrt:25.05-py3
 ARG DEBIAN_FRONTEND=noninteractive
 
 # cmake
@@ -317,22 +321,22 @@ RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMa
 RUN apt update -y && apt install git autoconf libtool libglib2.0-dev -y && \
     wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.5.tar.gz && tar -zxvf release-3.0.5.tar.gz && \
     cd zimg-release-3.0.5 && ./autogen.sh && ./configure && make -j16 && make install && cd .. && rm -rf zimg-release-3.0.5 release-3.0.5.tar.gz && \
-    pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R70.tar.gz && \
-    tar -zxvf R70.tar.gz && cd vapoursynth-R70 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
+    pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R72.tar.gz && \
+    tar -zxvf R72.tar.gz && cd vapoursynth-R72 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.12/site-packages/vapoursynth.so /usr/lib/python3.12/lib-dynload/vapoursynth.so && \
-    # not deleting vapoursynth-R70 since vs-mlrt needs it
-    rm -rf R70.tar.gz && pip install vapoursynth && \
+    # not deleting vapoursynth-R72 since vs-mlrt needs it
+    rm -rf R72.tar.gz && pip install vapoursynth && \
     apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip cache purge
 
 # vs-mlrt
 # upgrading g++
 RUN apt install build-essential manpages-dev software-properties-common -y && add-apt-repository ppa:ubuntu-toolchain-r/test -y && \
-    apt update -y && apt install gcc-12 g++-12 -y && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 12 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12 && \
+    apt update -y && apt install gcc-14 g++-14 -y && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 14 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 14 && \
     # compiling
     git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt/vstrt && mkdir build && \
-    cd build && /workspace/bin/cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R70/include -D USE_NVINFER_PLUGIN=OFF -D USE_NVINFER_PLUGIN_STATIC=OFF && make -j$(nproc) && make install && \
-    cd /workspace && rm -rf /workspace/vs-mlrt /workspace/vapoursynth-R70
+    cd build && /workspace/bin/cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R72/include -D USE_NVINFER_PLUGIN=OFF -D USE_NVINFER_PLUGIN_STATIC=OFF && make -j$(nproc) && make install && \
+    cd /workspace && rm -rf /workspace/vs-mlrt /workspace/vapoursynth-R72
 
 # ffmpeg
 COPY --from=ffmpeg-arch /home/makepkg/FFmpeg/ffmpeg /usr/local/bin/ffmpeg
@@ -347,7 +351,7 @@ RUN wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.40-1ubuntu3_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.40-1ubuntu3_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.14.0-7.7_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.14.0-15.15_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4%2Bds-1.3_amd64.deb && dpkg --force-all -i *.deb  && rm -rf *deb
 COPY --from=ffmpeg-arch /usr/lib/libstdc++.so* /usr/lib/x86_64-linux-gnu/
