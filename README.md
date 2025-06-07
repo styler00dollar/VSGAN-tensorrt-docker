@@ -70,15 +70,13 @@ There are now multiple containers to choose from, if you don't want the default,
 and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to running `docker-compose run --rm vsgan_tensorrt`.
 - `latest`: Default docker with everything. Trying to keep everything updated and fixed.
 - `latest_no_avx512` is for cpus without avx512 support, otherwise it just crashes if you try to run avx512 binaries on cpus without such support. Use this if your cpu does not support all instruction sets.
-- `minimal`: Bare minimum to run `ffmpeg`, `mlrt` and a few video readers.
+- `minimal`: Only has `ffmpeg`, `mlrt`, `ffms2`, `lsmash` and `bestsource`.
 
 | docker image                                          | compressed download | extracted container | short description |
 | ----------------------------------------------------- | ------------------- | ------------------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest                  | 12gb                | 22gb                | default latest with trt10.9
-| styler00dollar/vsgan_tensorrt:latest_no_avx512        | 12gb                | 21gb                | trt10.7 without avx512
-| styler00dollar/vsgan_tensorrt:trt9.3                  | 8gb                 | 15gb                | trt9.3 [use `bfdb96a` with this docker](https://github.com/styler00dollar/VSGAN-tensorrt-docker/commit/bfdb96a329682af19d093ecb990f67e823ea2e89)
-| styler00dollar/vsgan_tensorrt:trt9.3_no_avx512        | 8gb                 | 15gb                | trt9.3 without avx512 [use `bfdb96a` with this docker](https://github.com/styler00dollar/VSGAN-tensorrt-docker/commit/bfdb96a329682af19d093ecb990f67e823ea2e89)
-| styler00dollar/vsgan_tensorrt:minimal                 | 6gb                 | 10gb                | trt10.8 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
+| styler00dollar/vsgan_tensorrt:latest                  | 14gb                | 25gb                | trt 10.11
+| styler00dollar/vsgan_tensorrt:latest_no_avx512        | 12gb                | 21gb                | trt 10.7 without avx512
+| styler00dollar/vsgan_tensorrt:minimal                 | 6gb                 | 12gb                | trt 10.10 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
 
 Piping usage:
 ```
