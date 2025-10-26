@@ -3,9 +3,9 @@
 ############################
 FROM archlinux AS ffmpeg-arch
 RUN --mount=type=cache,sharing=locked,target=/var/cache/pacman \
-  pacman -Syu --noconfirm --needed base base-devel cuda git
-ENV NVIDIA_VISIBLE_DEVICES all
-ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+  pacman -Syu --noconfirm --needed base base-devel cuda git fribidi harfbuzz
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 ARG user=makepkg
 RUN useradd --system --create-home $user && \
   echo "$user ALL=(ALL:ALL) NOPASSWD:ALL" >/etc/sudoers.d/$user
@@ -15,24 +15,24 @@ RUN git clone https://aur.archlinux.org/yay-bin.git && \
   cd yay-bin && \
   makepkg -si --noconfirm
 
-RUN yay -Syu rust tcl nasm cmake jq libtool wget fribidi fontconfig libsoxr meson pod2man nvidia-utils base-devel --noconfirm --ask 4
+RUN yay -Syu nasm cmake libtool wget fontconfig meson nvidia-utils base-devel --noconfirm --ask 4
 RUN yay -S python-pip python312 --noconfirm --ask 4
 
 USER root
 
 RUN mkdir -p "/home/makepkg/python312"
-RUN wget https://github.com/python/cpython/archive/refs/tags/v3.12.7.tar.gz && tar xf v3.12.7.tar.gz && cd cpython-3.12.7 && \
+RUN wget https://github.com/python/cpython/archive/refs/tags/v3.12.12.tar.gz && tar xf v3.12.12.tar.gz && cd cpython-3.12.12 && \
   mkdir debug && cd debug && ../configure --enable-optimizations --disable-shared --prefix="/home/makepkg/python312" && make -j$(nproc) && make install && \
   /home/makepkg/python312/bin/python3.12 -m ensurepip --upgrade
 RUN cp /home/makepkg/python312/bin/python3.12 /usr/bin/python
-ENV PYTHONPATH /home/makepkg/python312/bin/
-ENV PATH "/home/makepkg/python312/bin/:$PATH"
+ENV PYTHONPATH=/home/makepkg/python312/bin/
+ENV PATH="/home/makepkg/python312/bin/:$PATH"
 
 RUN pip3 install "cython<3" meson
 
-ENV PATH "$PATH:/opt/cuda/bin/nvcc"
-ENV PATH "$PATH:/opt/cuda/bin"
-ENV LD_LIBRARY_PATH "/opt/cuda/lib64"
+ENV PATH="$PATH:/opt/cuda/bin/nvcc"
+ENV PATH="$PATH:/opt/cuda/bin"
+ENV LD_LIBRARY_PATH="/opt/cuda/lib64"
 
 # -O3 makes sure we compile with optimization. setting CFLAGS/CXXFLAGS seems to override
 # default automake cflags.
@@ -46,10 +46,10 @@ ARG LDFLAGS="-Wl,-z,relro,-z,now"
 # todo: use https://bitbucket.org/the-sekrit-twc/zimg/src/master/
 # master is broken https://github.com/sekrit-twc/zimg/issues/181
 # No rule to make target 'graphengine/graphengine/cpuinfo.cpp', needed by 'graphengine/graphengine/libzimg_internal_la-cpuinfo.lo'.  Stop.
-RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.5.tar.gz && tar -zxvf release-3.0.5.tar.gz && cd zimg-release-3.0.5 && \
+RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.6.tar.gz && tar -zxvf release-3.0.6.tar.gz && cd zimg-release-3.0.6 && \
   ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
-ENV PATH /usr/local/bin:$PATH
+ENV PATH=/usr/local/bin:$PATH
 RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R72.tar.gz && \
   tar -zxvf R72.tar.gz && cd vapoursynth-R72 && ./autogen.sh && \
   PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/local/lib/pkgconfig" ./configure --enable-static --disable-shared && \
@@ -65,8 +65,6 @@ RUN git clone https://github.com/xiph/ogg && cd ogg && ./autogen.sh && ./configu
 RUN git clone https://github.com/xiph/vorbis && cd vorbis && ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
 RUN git clone https://github.com/xiph/opus && cd opus && ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
-
-RUN git clone https://github.com/xiph/theora && cd theora && ./autogen.sh && ./configure --disable-examples --enable-static --disable-shared && make -j$(nproc) install
 
 RUN git clone https://github.com/webmproject/libvpx/ && \
   cd libvpx && ./configure --enable-static --enable-vp9-highbitdepth --disable-shared --disable-unit-tests --disable-examples && \
@@ -84,16 +82,6 @@ RUN git clone https://bitbucket.org/multicoreware/x265_git/ && cd x265_git/build
 RUN git clone https://github.com/webmproject/libwebp/ && \
   cd libwebp && ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
-RUN git clone https://github.com/xiph/speex/ && \
-  cd speex && ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
-
-RUN git clone --depth 1 https://aomedia.googlesource.com/aom && \
-  cd aom && \
-  mkdir build_tmp && cd build_tmp && cmake -DBUILD_SHARED_LIBS=0 -DENABLE_TESTS=0 -DENABLE_NASM=on -DCMAKE_INSTALL_LIBDIR=lib .. && make -j$(nproc) install
-
-RUN git clone https://github.com/georgmartius/vid.stab/ && \
-  cd vid.stab && cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5 . && make -j$(nproc) install
-
 RUN git clone https://github.com/ultravideo/kvazaar/ && \
   cd kvazaar && ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
@@ -106,37 +94,13 @@ RUN git clone https://github.com/uclouvain/openjpeg/ && \
 RUN git clone https://code.videolan.org/videolan/dav1d/ && \
   cd dav1d && meson build --buildtype release -Ddefault_library=static && ninja -C build install
 
-# add extra CFLAGS that are not enabled by -O3
-# http://websvn.xvid.org/cvs/viewvc.cgi/trunk/xvidcore/build/generic/configure.in?revision=2146&view=markup
-ARG XVID_VERSION=1.3.7
-ARG XVID_URL="https://downloads.xvid.com/downloads/xvidcore-$XVID_VERSION.tar.gz"
-ARG XVID_SHA256=abbdcbd39555691dd1c9b4d08f0a031376a3b211652c0d8b3b8aa9be1303ce2d
-RUN wget -O libxvid.tar.gz "$XVID_URL" && \
-  echo "$XVID_SHA256  libxvid.tar.gz" | sha256sum --status -c - && \
-  tar xf libxvid.tar.gz && \
-  cd xvidcore/build/generic && \
-  CFLAGS="$CFLAGS -fstrength-reduce -ffast-math -std=gnu17" \
-    ./configure && make -j$(nproc) && make install
-
-RUN rm -rf rav1e && \
-    git clone https://github.com/xiph/rav1e/ && \
-    cd rav1e && \
-    cargo install cargo-c && \
-    cargo cinstall --release --library-type=staticlib --crt-static && \
-    sed -i 's/-lgcc_s//' /usr/local/lib/pkgconfig/rav1e.pc
-
 RUN git clone https://github.com/Haivision/srt/ && \
   cd srt && ./configure --enable-shared=0 --cmake-install-libdir=lib --cmake-install-includedir=include --cmake-install-bindir=bin && \
   make -j$(nproc) && make install
 
-RUN git clone https://gitlab.com/AOMediaCodec/SVT-AV1 && \
-  cd SVT-AV1/Build && \
-  cmake .. -G"Unix Makefiles" -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && \
-  make -j$(nproc) install
-
-RUN git clone https://github.com/pkuvcl/davs2/ && \
-  cd davs2/build/linux && ./configure --disable-asm --enable-pic && \
-  make -j$(nproc) install
+RUN git clone https://github.com/nekotrix/SVT-AV1-Essential && \
+  cd SVT-AV1-Essential/Build/linux && \
+  ./build.sh --native --static --release --enable-lto --install
 
 RUN git clone https://github.com/Netflix/vmaf/ && \
   cd vmaf/libvmaf && meson build --buildtype release -Ddefault_library=static && ninja -vC build install
@@ -146,27 +110,16 @@ RUN git clone https://github.com/cisco/openh264 && \
 
 RUN git clone https://github.com/FFmpeg/nv-codec-headers && cd nv-codec-headers && make -j$(nproc) && make install
 
-RUN git clone https://github.com/mpeg5/xeve && cd xeve && mkdir build && cd build && cmake .. && make -j$(nproc) && make install
-RUN rm -rf /usr/local/lib/libxeve.so*
-
-# https://github.com/shadowsocks/shadowsocks-libev/issues/623
-RUN mkdir -p "/home/makepkg/ssl"
-RUN git clone https://github.com/openssl/openssl && cd openssl && LIBS="-ldl -lz" LDFLAGS="-Wl,-static -static -static-libgcc -s" \
-  ./config no-shared -static --prefix="/home/makepkg/ssl" --openssldir="/home/makepkg/ssl" && \
-  sed -i 's/^LDFLAGS = /LDFLAGS = -all-static -s/g' Makefile && make -j$(nproc) && make install_sw && make install
-
 # todo: can't figure out "ERROR: failed checking for nvcc", may be gcc version mismatch
 # https://stackoverflow.com/questions/6622454/cuda-incompatible-with-my-gcc-version
 # https://github.com/NVIDIA/cuda-samples/issues/46#issuecomment-2030697518
-# openssl static
-# https://stackoverflow.com/questions/18185618/how-to-use-static-linking-with-openssl-in-c-c
 
 RUN git clone https://github.com/FFmpeg/FFmpeg
 RUN cd FFmpeg && \
-CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declaration" PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/:/home/makepkg/ssl/lib64/pkgconfig/ ./configure \
+CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declaration" PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/ ./configure \
     --extra-cflags="-march=native -fopenmp -lcrypto -lz -ldl -static-libgcc -I/opt/cuda/include" \
     --extra-cxxflags="-march=native -fopenmp -lcrypto -lz -ldl -static-libgcc" \
-    --extra-ldflags="-L/usr/local/lib/xeve -fopenmp -lcrypto -lz -ldl -static-libgcc -L/opt/cuda/lib64" \
+    --extra-ldflags="-fopenmp -lcrypto -lz -ldl -static-libgcc -L/opt/cuda/lib64" \
     --extra-libs="-lstdc++ -lcrypto -lz -ldl -static-libgcc" \
     --pkg-config-flags=--static \
     --toolchain=hardened \
@@ -177,35 +130,35 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
     --enable-gpl \
     --enable-gray \
     --enable-nonfree \
-    --enable-openssl \
+    --disable-openssl \
     --enable-iconv \
     --disable-libxml2 \
     --enable-libmp3lame \
     --enable-libfdk-aac \
     --enable-libvorbis \
     --enable-libopus \
-    --enable-libtheora \
+    --disable-libtheora \
     --enable-libvpx \
     --enable-libx264 \
     --enable-libx265 \
     --enable-libwebp \
-    --enable-libspeex \
-    --enable-libaom \
-    --enable-libvidstab \
+    --disable-libspeex \
+    --disable-libaom \
+    --disable-libvidstab \
     --enable-libkvazaar \
     --enable-libfreetype \
     --enable-fontconfig \
     --enable-libfribidi \
     --enable-libass \
-    --enable-libsoxr \
+    --disable-libsoxr \
     --enable-libopenjpeg \
     --enable-libdav1d \
-    --enable-librav1e \
+    --disable-librav1e \
     --enable-libsrt \
     --enable-libsvtav1 \
-    --enable-libdavs2 \
+    --disable-libdavs2 \
     --enable-libvmaf \
-    --enable-libxeve \
+    --disable-libxeve \
     #--enable-cuda-nvcc \ # ERROR: failed checking for nvcc
     --enable-vapoursynth \
     #--enable-hardcoded-tables \
@@ -226,7 +179,7 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
 # bestsource / lsmash / ffms2
 # todo: check if CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" --extra-ldflags="-static" is required
 ############################
-FROM nvidia/cuda:12.9.0-devel-ubuntu24.04 AS bestsource-lsmash-ffms2-vs
+FROM nvidia/cuda:13.0.1-devel-ubuntu24.04 AS bestsource-lsmash-ffms2-vs
 
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR workspace
@@ -308,19 +261,19 @@ RUN apt install autoconf -y
 RUN git clone https://github.com/FFMS/ffms2 && cd ffms2 && ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" ./configure --enable-shared && make -j$(nproc) && make install
 
 ############################
-FROM nvcr.io/nvidia/tensorrt:25.05-py3
+FROM nvcr.io/nvidia/tensorrt:25.09-py3
 ARG DEBIAN_FRONTEND=noninteractive
 
 # cmake
-RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v3.29.3/cmake-3.29.3-linux-x86_64.sh && \
-    chmod +x cmake-3.29.3-linux-x86_64.sh && sh cmake-3.29.3-linux-x86_64.sh --skip-license && \
+RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.sh && \
+    chmod +x cmake-4.1.2-linux-x86_64.sh && sh cmake-4.1.2-linux-x86_64.sh --skip-license && \
     cp /workspace/bin/cmake /usr/bin/cmake && cp /workspace/bin/cmake /usr/lib/cmake && \
-    cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-3.29 /usr/local/share/ && \
-    rm -rf cmake-3.29.3-linux-x86_64.sh
+    cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-4.1 /usr/local/share/ && \
+    rm -rf cmake-4.1.2-linux-x86_64.sh
 
 RUN apt update -y && apt install git autoconf libtool libglib2.0-dev -y && \
-    wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.5.tar.gz && tar -zxvf release-3.0.5.tar.gz && \
-    cd zimg-release-3.0.5 && ./autogen.sh && ./configure && make -j16 && make install && cd .. && rm -rf zimg-release-3.0.5 release-3.0.5.tar.gz && \
+    wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.6.tar.gz && tar -zxvf release-3.0.6.tar.gz && \
+    cd zimg-release-3.0.6 && ./autogen.sh && ./configure && make -j16 && make install && cd .. && rm -rf zimg-release-3.0.6 release-3.0.6.tar.gz && \
     pip install Cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R72.tar.gz && \
     tar -zxvf R72.tar.gz && cd vapoursynth-R72 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
     ln -s /usr/local/lib/python3.12/site-packages/vapoursynth.so /usr/lib/python3.12/lib-dynload/vapoursynth.so && \
@@ -347,10 +300,10 @@ RUN wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libn/libnsl/libnsl-dev_1.3.0-3build3_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.40-1ubuntu3_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.40-1ubuntu3_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.40-1ubuntu3_amd64.deb \
-    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.40-1ubuntu3_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6_2.42-2ubuntu1_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc6-dev_2.42-2ubuntu1_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-bin_2.42-2ubuntu1_amd64.deb \
+    https://mirrors.edge.kernel.org/ubuntu/pool/main/g/glibc/libc-dev-bin_2.42-2ubuntu1_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux/linux-libc-dev_6.14.0-15.15_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb \
     https://mirrors.edge.kernel.org/ubuntu/pool/main/libt/libtirpc/libtirpc3t64_1.3.4%2Bds-1.3_amd64.deb && dpkg --force-all -i *.deb  && rm -rf *deb
