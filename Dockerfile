@@ -530,7 +530,10 @@ RUN pip install tensorrt==10.13.3.9 --pre tensorrt --extra-index-url https://pyp
     /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.*
 
 # todo: compile onnxruntime
-RUN pip install coloredlogs flatbuffers numpy packaging protobuf sympy onnxruntime
+RUN pip install numpy onnxruntime
+
+# vs-realesrgan
+RUN pip install requests
 
 # vs_temporalfix dependencies
 RUN apt install nasm libfftw3-dev -y && git clone https://github.com/dubhater/vapoursynth-mvtools && cd vapoursynth-mvtools && mkdir build && cd build && meson ../ && ninja && ninja install
