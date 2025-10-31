@@ -115,7 +115,7 @@ def scene_detect(
         True  # Using TensorRT timing cache to accelerate engine build time on a device with the same compute capability
     )
     options["trt_engine_cache_path"] = (
-        "/workspace/tensorrt"  # "/home/user/Schreibtisch/VSGAN-tensorrt-docker/"
+        "/workspace/tensorrt"
     )
     options["trt_fp16_enable"] = fp16
     options["trt_max_workspace_size"] = 7000000000  # ~7gb
@@ -124,10 +124,14 @@ def scene_detect(
     sessions = [
         ort.InferenceSession(
             onnx_path,
-            providers=[
-                ("TensorrtExecutionProvider", options),
-                # "CUDAExecutionProvider",
-            ],
+            
+            # docker only has "CPUExecutionProvider"
+            # "TensorrtExecutionProvider" and "CUDAExecutionProvider" need to be fixed
+
+            #providers=[
+            #    ("TensorrtExecutionProvider", options),
+            #     "CUDAExecutionProvider",
+            #],
         )
         for _ in range(num_sessions)
     ]
