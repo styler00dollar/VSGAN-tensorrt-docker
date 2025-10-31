@@ -75,8 +75,9 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 | docker image                                          | compressed download | extracted container | short description |
 | ----------------------------------------------------- | ------------------- | ------------------- | ----------------- |
 | styler00dollar/vsgan_tensorrt:latest                  | 10gb                | 17gb                | trt 10.13
-| styler00dollar/vsgan_tensorrt:latest_no_avx512        | 12gb                | 21gb                | trt 10.7 without avx512
+| styler00dollar/vsgan_tensorrt:latest_no_avx512        | 10gb                | 17gb                | trt 10.13 without avx512
 | styler00dollar/vsgan_tensorrt:minimal                 | 5gb                 | 10gb                | trt 10.13 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
+| styler00dollar/vsgan_tensorrt:minimal_no_avx512       | 5gb                 | 10gb                | trt 10.13 without avx512 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
 
 Piping usage:
 ```
@@ -601,5 +602,6 @@ Other benchmarks that are not using the gpu:
 ## License
 
 This code uses code from other repositories, but the code I wrote myself is under BSD3.
+
 
 
