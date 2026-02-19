@@ -71,12 +71,12 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 - `latest_no_avx512` is for cpus without avx512 support, otherwise it just crashes if you try to run avx512 binaries on cpus without such support. Use this if your cpu does not support all instruction sets.
 - `minimal`: Only has `ffmpeg`, `mlrt`, `ffms2`, `lsmash` and `bestsource`.
 
-| docker image                                          | compressed download | extracted container | short description |
-| ----------------------------------------------------- | ------------------- | ------------------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest                  | 10gb                | 17gb                | trt 10.13
-| styler00dollar/vsgan_tensorrt:latest_no_avx512        | 10gb                | 17gb                | trt 10.13 without avx512
-| styler00dollar/vsgan_tensorrt:minimal                 | 5gb                 | 10gb                | trt 10.13 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
-| styler00dollar/vsgan_tensorrt:minimal_no_avx512       | 5gb                 | 10gb                | trt 10.13 without avx512 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
+| docker image                                          | dockerhub | disk usage | short description |
+| ----------------------------------------------------- | --------- | ---------- | ----------------- |
+| styler00dollar/vsgan_tensorrt:latest                  | 10.2gb    | 28.4gb     | trt 10.13
+| styler00dollar/vsgan_tensorrt:latest_no_avx512        | 10.2gb    | 28.4gb     | trt 10.13 without avx512
+| styler00dollar/vsgan_tensorrt:minimal                 | 5.5gb     | 16.8gb     | trt 10.14 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
+| styler00dollar/vsgan_tensorrt:minimal_no_avx512       | 5.4gb     | ?gb        | trt 10.13 without avx512 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
 
 Piping usage:
 ```
@@ -607,3 +607,4 @@ Other benchmarks that are not using the gpu:
 ## License
 
 This code uses code from other repositories, but the code I wrote myself is under BSD3.
+
