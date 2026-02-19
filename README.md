@@ -20,6 +20,7 @@ Currently working networks:
 - Rife with [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/), v2 with [WolframRhodium](https://github.com/WolframRhodium), drba with [routineLife1/VS-DRBA](https://github.com/routineLife1/VS-DRBA), ddfi with [Mr-Z-2697/ddfi-rife](https://github.com/Mr-Z-2697/ddfi-rife)
 - Model based shot boundary detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer), [wentaozhu/AutoShot](https://github.com/wentaozhu/AutoShot), [abhijay9/ShiftTolerant-LPIPS](https://github.com/abhijay9/ShiftTolerant-LPIPS) and [photosynthesis-team/piq](https://github.com/photosynthesis-team/piq)
 - [HolyWu/vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
+- [HolyWu/vs-animesr](https://github.com/HolyWu/vs-animesr)
 - [TNTwise/vs-spandrel](https://github.com/TNTwise/vs-spandrel)
 - [Real-ESRGAN / SRVGGNetCompact](https://github.com/xinntao/Real-ESRGAN)
 - [SAFMN](https://github.com/sunny2109/SAFMN)
@@ -36,13 +37,11 @@ Onnx files can be found [here](https://github.com/styler00dollar/VSGAN-tensorrt-
 
 Also used:
 - TensorRT C++ inference and python script usage with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
-- custom ffmpeg with [styler00dollar/ffmpeg-static-arch-docker](https://github.com/styler00dollar/ffmpeg-static-arch-docker)
 - lsmash with [AkarinVS/L-SMASH-Works](https://github.com/AkarinVS/L-SMASH-Works)
 - bestsource with [vapoursynth/bestsource](https://github.com/vapoursynth/bestsource)
 - trt precision check and upscale frame skip with [mafiosnik777/enhancr](https://github.com/mafiosnik777/enhancr)
 - temporal fix with [pifroggi/vs_temporalfix](https://github.com/pifroggi/vs_temporalfix)
 - color fix with [pifroggi/vs_colorfix](https://github.com/pifroggi/vs_colorfix)
-- rife with [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife)
 
 <div id='usage'/>
 
@@ -296,6 +295,12 @@ clip = rife(clip, model="4.22", sc=False, trt=True, trt_static_shape=True, trt_o
 ```python
 from vsdrba import drba_rife
 clip = drba_rife(clip, model="4.22", sc=False, trt=True, trt_static_shape=True, trt_optimization_level=5, trt_cache_dir="/workspace/tensorrt")
+```
+
+- AnimeSR: [vs-animesr](https://github.com/HolyWu/vs-animesr)
+```python
+from vsanimesr import animesr
+clip = animesr(clip, trt=True, trt_min_shape=[128, 128], trt_opt_shape=[1280, 720], trt_max_shape=[1920, 1080], trt_optimization_level=5, trt_cache_dir="/workspace/tensorrt")
 ```
 
 - Compact/ESRGAN: [vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
@@ -602,6 +607,3 @@ Other benchmarks that are not using the gpu:
 ## License
 
 This code uses code from other repositories, but the code I wrote myself is under BSD3.
-
-
-
