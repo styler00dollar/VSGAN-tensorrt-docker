@@ -73,7 +73,7 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 
 | docker image                                          | dockerhub | disk usage | short description |
 | ----------------------------------------------------- | --------- | ---------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest                  | 10.2gb    | 28.4gb     | trt 10.13
+| styler00dollar/vsgan_tensorrt:latest                  | 15.2gb    | 40.2gb     | trt 10.15
 | styler00dollar/vsgan_tensorrt:latest_no_avx512        | 10.2gb    | 28.4gb     | trt 10.13 without avx512
 | styler00dollar/vsgan_tensorrt:minimal                 | 5.5gb     | 16.8gb     | trt 10.14 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
 | styler00dollar/vsgan_tensorrt:minimal_no_avx512       | 5.4gb     | ?gb        | trt 10.13 without avx512 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
