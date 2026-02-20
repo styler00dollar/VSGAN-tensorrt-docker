@@ -93,6 +93,7 @@ RUN git clone https://github.com/nekotrix/SVT-AV1-Essential && \
   cd SVT-AV1-Essential && \
   # patch required to fix https://gitlab.com/AOMediaCodec/SVT-AV1/-/issues/2318
   # todo: should be fixed in 4.0
+  # patch from https://github.com/nekotrix/SVT-AV1-Essential/discussions/9
   wget https://github.com/user-attachments/files/24454269/ffms2_v3_PSYfeat2.patch && \
   echo "c809080b740b60daa4ab6f0ed0b2372f4b5dd4aefea5aad4b97af9db66dddd5c ffms2_v3_PSYfeat2.patch" | sha256sum --check && \
   git apply ffms2_v3_PSYfeat2.patch && \
