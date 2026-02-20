@@ -221,7 +221,7 @@ More parameter documentation can be found in the plugin repositories.
 
 - Video Reader: [ffms2](https://github.com/FFMS/ffms2/blob/master/doc/ffms2-vapoursynth.md) [lsmash](https://github.com/HomeOfAviSynthPlusEvolution/L-SMASH-Works/blob/master/VapourSynth/README.md) [bestsource](https://github.com/vapoursynth/bestsource)
 ```python
-core.std.LoadPlugin(path="/usr/lib/x86_64-linux-gnu/libffms2.so")
+core.std.LoadPlugin(path="/usr/local/lib/libffms2.so")
 clip = core.ffms2.Source(source=video_path)
 clip = core.lsmas.LWLibavSource(source=video_path)
 clip = core.bs.VideoSource(source=video_path) # recommended
@@ -607,4 +607,5 @@ Other benchmarks that are not using the gpu:
 ## License
 
 This code uses code from other repositories, but the code I wrote myself is under BSD3.
+
 
