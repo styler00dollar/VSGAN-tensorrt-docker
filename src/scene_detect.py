@@ -124,14 +124,10 @@ def scene_detect(
     sessions = [
         ort.InferenceSession(
             onnx_path,
-            
-            # docker only has "CPUExecutionProvider"
-            # "TensorrtExecutionProvider" and "CUDAExecutionProvider" need to be fixed
-
-            #providers=[
-            #    ("TensorrtExecutionProvider", options),
-            #     "CUDAExecutionProvider",
-            #],
+            providers=[
+                ("TensorrtExecutionProvider", options),
+                # "CUDAExecutionProvider",
+            ],
         )
         for _ in range(num_sessions)
     ]
@@ -223,3 +219,4 @@ def scene_detect(
         )
 
         return core.std.ModifyFrame(clip, (clip, clip_down, clip_down[1:]), execute)
+
