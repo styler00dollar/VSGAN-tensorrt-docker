@@ -90,13 +90,7 @@ RUN git clone https://github.com/Haivision/srt/ && \
   make -j$(nproc) && make install
 
 RUN git clone https://github.com/nekotrix/SVT-AV1-Essential && \
-  cd SVT-AV1-Essential && \
-  # patch required to fix https://gitlab.com/AOMediaCodec/SVT-AV1/-/issues/2318
-  # todo: should be fixed in 4.0
-  # patch from https://github.com/nekotrix/SVT-AV1-Essential/discussions/9
-  wget https://github.com/user-attachments/files/24454269/ffms2_v3_PSYfeat2.patch && \
-  echo "c809080b740b60daa4ab6f0ed0b2372f4b5dd4aefea5aad4b97af9db66dddd5c ffms2_v3_PSYfeat2.patch" | sha256sum --check && \
-  git apply ffms2_v3_PSYfeat2.patch && \
+  cd SVT-AV1-Essential && git switch Essential-v4.0.1 && \
   cd Build/linux && \
   ./build.sh --native --static --release --enable-lto --enable-pgo --install
 
@@ -167,7 +161,8 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
     --enable-runtime-cpudetect \
     --enable-lto && \
     #--enable-vulkan && \ # currently can't get it working
-    make -j$(nproc)
+    make -j$(nproc) && \
+    make install
 
 ############################
 # torch
@@ -492,7 +487,7 @@ RUN cd zimg && checkinstall -y -pkgversion=0.0 && \
 
 # vapoursynth
 RUN pip install --upgrade pip && pip install cython setuptools && git clone https://github.com/vapoursynth/vapoursynth && \
-  cd vapoursynth && ./autogen.sh && \
+  cd vapoursynth && git checkout tags/R73 && ./autogen.sh && \
   ./configure && make -j$(nproc) && make install && cd .. && ldconfig && \
   cd vapoursynth && python setup.py bdist_wheel
 
@@ -666,7 +661,6 @@ RUN rm -rf /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1 /usr/lib/x86_64-linux-gnu
 COPY --from=tensorrt-ubuntu /usr/local/tensorrt/lib/libnvinfer_plugin.so* /usr/local/tensorrt/lib/libnvinfer_vc_plugin.so* /usr/lib/x86_64-linux-gnu/
 COPY --from=tensorrt-ubuntu /usr/local/tensorrt/lib/libnvinfer.so* /usr/local/tensorrt/lib/libnvinfer_builder_resource* \
   /usr/local/tensorrt/lib/libnvonnxparser.so* /usr/local/tensorrt/lib/libnvparsers.so* /usr/local/tensorrt/lib/libnvinfer_plugin.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=tensorrt-ubuntu /usr/local/cudnn/ /usr/local/cudnn/
 
 # ffmpeg (todo: try to make it fully static)
 COPY --from=base /usr/lib/x86_64-linux-gnu/libxcb*.so* /usr/lib/x86_64-linux-gnu/libgomp*.so* /usr/lib/x86_64-linux-gnu/libfontconfig.so* \
