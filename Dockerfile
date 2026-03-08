@@ -547,11 +547,6 @@ RUN git clone https://github.com/dubhater/vapoursynth-awarpsharp2 && cd vapoursy
 RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS && cd VapourSynth-CAS && meson build && \
   ninja -C build && ninja -C build install 
 
-############################
-RUN git clone https://github.com/nekotrix/SVT-AV1-Essential && \
-  cd SVT-AV1-Essential/Build/linux && \
-  ./build.sh --native --static --release --enable-lto --install
-
 # pip
 RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy meson ninja numpy einops kornia vsutil onnx
 
@@ -636,7 +631,7 @@ COPY --from=base /usr/lib/x86_64-linux-gnu/libfftw3f.so* /usr/lib/x86_64-linux-g
 
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/liblsmash.so* /usr/local/lib/
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/vapoursynth/libvslsmashsource.so* /usr/local/lib/vapoursynth/
-COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/vapoursynth/bestsource.so* /usr/local/lib/vapoursynth/bestsource.so
+COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/vapoursynth/libbestsource.so* /usr/local/lib/vapoursynth/libbestsource.so
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/x86_64-linux-gnu/libbestsource.so* /usr/local/lib/x86_64-linux-gnu/libbestsource.so
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/libffms2.so*  /usr/local/lib/
 
@@ -648,8 +643,6 @@ COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr
   /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/libmvtools.so \
   /usr/local/lib/x86_64-linux-gnu/libfillborders.so /usr/local/lib/x86_64-linux-gnu/libmotionmask.so /usr/local/lib/x86_64-linux-gnu/libtemporalmedian.so /usr/local/lib/x86_64-linux-gnu/
 
-# svt
-COPY --from=base /usr/local/bin/SvtAv1EncApp /usr/local/bin/
 # ffmpeg
 COPY --from=ffmpeg /workspace/FFmpeg/ffmpeg /usr/local/bin/ffmpeg
 
