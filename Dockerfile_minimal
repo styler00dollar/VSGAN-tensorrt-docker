@@ -288,7 +288,7 @@ RUN apt install libxcb1 libxcb-shm0 libxcb-shape0 libxcb-xfixes0 fontconfig libf
 # copy video readers
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/liblsmash.so* /usr/local/lib/
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/vapoursynth/libvslsmashsource.so* /usr/local/lib/vapoursynth/
-COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/vapoursynth/bestsource.so* /usr/local/lib/vapoursynth/bestsource.so
+COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/vapoursynth/libbestsource.so* /usr/local/lib/vapoursynth/libbestsource.so
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/x86_64-linux-gnu/libbestsource.so* /usr/local/lib/x86_64-linux-gnu/libbestsource.so
 COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/libffms2.so* /usr/local/lib/
 
