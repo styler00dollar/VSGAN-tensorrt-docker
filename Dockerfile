@@ -1,7 +1,7 @@
 ############################
 # FFMPEG
 ############################
-FROM nvidia/cuda:13.0.1-devel-ubuntu24.04 AS ffmpeg
+FROM nvidia/cuda:13.1.2-devel-ubuntu24.04 AS ffmpeg
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR workspace
 
@@ -169,7 +169,7 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
 # compiling own torch since the official whl is bloated
 # could be smaller in terms of dependencies and whl size, but for now, -500mb smaller docker size
 ############################
-FROM nvidia/cuda:13.0.1-devel-ubuntu24.04 AS torch-ubuntu
+FROM nvidia/cuda:13.1.2-devel-ubuntu24.04 AS torch-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -213,7 +213,7 @@ WORKDIR /
 # cupy
 ############################
 # https://github.com/cupy/cupy/issues/8633
-#FROM nvidia/cuda:13.0.1-cudnn-devel-ubuntu24.04 AS cupy-ubuntu
+#FROM nvidia/cuda:13.1.2-cudnn-devel-ubuntu24.04 AS cupy-ubuntu
 
 #ARG DEBIAN_FRONTEND=noninteractive
 
@@ -243,7 +243,7 @@ WORKDIR /
 # bestsource / lsmash / ffms2
 # todo: check if CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" --extra-ldflags="-static" is required
 ############################
-FROM nvidia/cuda:13.0.1-devel-ubuntu24.04 AS bestsource-lsmash-ffms2-vs
+FROM nvidia/cuda:13.1.2-devel-ubuntu24.04 AS bestsource-lsmash-ffms2-vs
 
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /workspace
@@ -329,7 +329,7 @@ RUN git clone https://github.com/FFMS/ffms2 && cd ffms2 && ./autogen.sh && CFLAG
 ############################
 # TensorRT
 ############################
-FROM nvidia/cuda:13.0.1-devel-ubuntu24.04 AS tensorrt-ubuntu
+FROM nvidia/cuda:13.1.2-devel-ubuntu24.04 AS tensorrt-ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -357,9 +357,9 @@ RUN wget "https://bootstrap.pypa.io/get-pip.py" && python get-pip.py --force-rei
 # TensorRT10
 # https://github.com/NVIDIA/TensorRT-LLM/blob/main/docker/common/install_tensorrt.sh
 # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=tensorrt
-RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/10.15.1/tars/TensorRT-10.15.1.29.Linux.x86_64-gnu.cuda-13.1.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/10.16.0/tars/TensorRT-10.16.0.72.Linux.x86_64-gnu.cuda-13.2.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-10.15.1.29 /usr/local/tensorrt
+RUN mv /usr/local/TensorRT-10.16.0.72 /usr/local/tensorrt
 RUN pip3 install /usr/local/tensorrt/python/tensorrt-*-cp312-*.whl
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/tensorrt/targets/x86_64-linux-gnu/lib/
 
@@ -374,7 +374,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cudnn
 # onnxruntime requires working tensorrt installation
 # https://github.com/microsoft/onnxruntime/blob/main/dockerfiles/Dockerfile.tensorrt
 ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
-ARG ONNXRUNTIME_BRANCH=rel-1.24.2 
+ARG ONNXRUNTIME_BRANCH=rel-1.25.1
 ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;53;60;61;62;70;72;75;80;89;9.0;10.0;10.1;10.3;12.0;12.1
 
 RUN apt-get update &&\
@@ -493,10 +493,10 @@ RUN pip install --upgrade pip && pip install cython setuptools && git clone http
 
 ############################
 # vs-mlrt
-RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/10.15.1/tars/TensorRT-10.15.1.29.Linux.x86_64-gnu.cuda-13.1.tar.gz" -O /tmp/TensorRT.tar
+RUN wget "https://developer.download.nvidia.com/compute/machine-learning/tensorrt/10.16.0/tars/TensorRT-10.16.0.72.Linux.x86_64-gnu.cuda-13.2.tar.gz" -O /tmp/TensorRT.tar
 RUN tar -xf /tmp/TensorRT.tar -C /usr/local/
-RUN mv /usr/local/TensorRT-10.15.1.29/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
-RUN mv /usr/local/TensorRT-10.15.1.29/include/* /usr/include/x86_64-linux-gnu/
+RUN mv /usr/local/TensorRT-10.16.0.72/targets/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu
+RUN mv /usr/local/TensorRT-10.16.0.72/include/* /usr/include/x86_64-linux-gnu/
 RUN cd /usr/lib/x86_64-linux-gnu \
   && ldconfig
 ENV CPLUS_INCLUDE_PATH="/usr/include/x86_64-linux-gnu/"
@@ -551,7 +551,7 @@ RUN git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS && c
 RUN MAKEFLAGS="-j$(nproc)" pip install timm wget cmake scipy meson ninja numpy einops kornia vsutil onnx
 
 # deleting .so files to symlink them later on to save space
-RUN pip install tensorrt==10.15.1.29 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
+RUN pip install tensorrt==10.16.1.11 --pre tensorrt --extra-index-url https://pypi.nvidia.com/ && pip install polygraphy --extra-index-url https://pypi.nvidia.com/ && \
   rm -rf /root/.cache/ /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_builder_resource.so.* \
     /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvinfer_plugin.so.* /usr/local/lib/python3.12/site-packages/tensorrt_libs/libnvonnxparser.so.*
 
@@ -582,7 +582,7 @@ RUN ln -s /usr/local/lib/python3.12/site-packages/vsrife/models/ /usr/local/lib/
 # spandrel (requires cuda torchvision)
 RUN pip install git+https://github.com/TNTwise/vs-spandrel --no-deps && pip install torchvision --index-url https://download.pytorch.org/whl/cu130 --force-reinstall --no-deps
 # todo: fix
-RUN pip install tensorrt==10.15.1.29 --pre tensorrt --extra-index-url https://pypi.nvidia.com/
+RUN pip install tensorrt==10.16.1.11 --pre tensorrt --extra-index-url https://pypi.nvidia.com/
 
 # installing own versions
 #COPY --from=cupy-ubuntu /cupy/dist/ /workspace
@@ -599,7 +599,7 @@ RUN pip install pandas
 ############################
 # final
 ############################
-FROM nvidia/cuda:13.0.1-runtime-ubuntu24.04 AS final
+FROM nvidia/cuda:13.1.2-runtime-ubuntu24.04 AS final
 # maybe official tensorrt image is better
 #FROM nvcr.io/nvidia/tensorrt:23.04-py3 as final
 ARG DEBIAN_FRONTEND=noninteractive
@@ -623,7 +623,7 @@ COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth /usr/local/lib/x86_
 COPY --from=base /usr/local/lib/libvapoursynth-script.so* /usr/local/lib/libvapoursynth.so /usr/local/lib/
 
 # vapoursynth
-COPY --from=base /usr/local/bin/vspipe  /usr/local/bin/vspipe
+COPY --from=base /workspace/vapoursynth/.libs/vspipe /usr/local/bin/vspipe
 
 # vs plugins
 COPY --from=base /usr/local/lib/libvstrt.so /usr/local/lib/libfmtconv.so /usr/local/lib/
@@ -640,8 +640,8 @@ COPY --from=base /usr/local/lib/vapoursynth/libvmaf.so /usr/local/lib/vapoursynt
   /usr/local/lib/vapoursynth/libretinex.so /usr/local/lib/vapoursynth/libtcanny.so /usr/local/lib/vapoursynth/
 
 COPY --from=base /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so \
-  /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /usr/local/lib/x86_64-linux-gnu/libmvtools.so \
-  /usr/local/lib/x86_64-linux-gnu/libfillborders.so /usr/local/lib/x86_64-linux-gnu/libmotionmask.so /usr/local/lib/x86_64-linux-gnu/libtemporalmedian.so /usr/local/lib/x86_64-linux-gnu/
+  /usr/local/lib/x86_64-linux-gnu/libvmaf.so /usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so /workspace/vapoursynth-mvtools/build/mvtools.so \
+  /workspace/vapoursynth-fillborders/build/fillborders.so /usr/local/lib/x86_64-linux-gnu/libmotionmask.so /usr/local/lib/x86_64-linux-gnu/libtemporalmedian.so /usr/local/lib/x86_64-linux-gnu/
 
 # ffmpeg
 COPY --from=ffmpeg /workspace/FFmpeg/ffmpeg /usr/local/bin/ffmpeg
@@ -670,7 +670,7 @@ COPY --from=tensorrt-ubuntu /usr/local/tensorrt/bin/trtexec /usr/bin
 # torch
 COPY --from=torch-ubuntu /usr/lib/x86_64-linux-gnu/libopenblas.so* /usr/lib/x86_64-linux-gnu/libgfortran.so* \
   /usr/lib/x86_64-linux-gnu/libquadmath.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=torch-ubuntu /usr/local/cuda-13.0/targets/x86_64-linux/lib/libcupti.so /usr/lib/x86_64-linux-gnu/
+COPY --from=torch-ubuntu /usr/local/cuda-13.1/targets/x86_64-linux/lib/libcupti.so /usr/lib/x86_64-linux-gnu/
 
 # fixing torch_tensorrt import error
 RUN sed -i 's/if sys.platform.startswith("linux")/if False/g' /usr/local/lib/python3.12/site-packages/torch_tensorrt/_utils.py
