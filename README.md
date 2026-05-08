@@ -32,6 +32,7 @@ Currently working networks:
 - [ModernSpanimation](https://github.com/TNTwise/Models/releases/tag/2x_ModernSpanimationV1)
 - [AniScale](https://github.com/Sirosky/Upscale-Hub)
 - [Anime1080Fixer by zarxrax](https://mega.nz/file/EAs2XZwA#-YrO3QSP8Waz2l5JVtrSew2Dk4gbT0xE0uA5hc5CYRo)
+- [Adore](https://github.com/renarchi/Re-SISR/releases/tag/Adore)
 
 Onnx files can be found [here](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/tag/models).
 
