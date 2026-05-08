@@ -328,14 +328,17 @@ import vs_colorfix
 clip = vs_colorfix.average(clip, ref, radius=10, planes=[0, 1, 2], fast=False)
 ```
 
-- Temporal fix: [temporalfix](https://github.com/pifroggi/vs_temporalfix) (very slow)
+- Temporal fix: [temporalfix](https://github.com/pifroggi/vs_temporalfix)
 ```python
-core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libmvtools.so")
-core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libfillborders.so")
+core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/mvtools.so")
+core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/fillborders.so")
 core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libmotionmask.so")
 core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libtemporalmedian.so")
-from vs_temporalfix import vs_temporalfix
-clip = vs_temporalfix(clip, strength=400, tr=6, exclude="[10 20]", debug=False)
+import vs_temporalfix
+# gpu (fast)
+clip = vs_temporalfix.model(clip, strength=2, tiles=1, backend="tensorrt", num_streams=3, engine_folder="/workspace/tensorrt/", exclude=None)
+# cpu (slow)
+clip = vs_temporalfix.classic(clip, strength=500, tr=6, denoise=False, exclude=None, debug=False)
 ```
 
 - Line darken: [linedarken](https://github.com/Selur/VapoursynthScriptsInHybrid/blob/550cc72221848732fa36a5dfb9ad5f98a308dd6e/havsfunc.py#L5217)
