@@ -72,12 +72,12 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 - `latest_no_avx512` is for cpus without avx512 support, otherwise it just crashes if you try to run avx512 binaries on cpus without such support. Use this if your cpu does not support all instruction sets.
 - `minimal`: Only has `ffmpeg`, `mlrt`, `ffms2`, `lsmash` and `bestsource`.
 
-| docker image                                          | dockerhub | disk usage | short description |
-| ----------------------------------------------------- | --------- | ---------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest                  | 13.0gb    | 34.1gb     | trt 10.16
-| styler00dollar/vsgan_tensorrt:latest_no_avx512        | 10.2gb    | 28.4gb     | trt 10.13 without avx512
-| styler00dollar/vsgan_tensorrt:minimal                 | 6.1gb     | 18.6gb     | trt 10.16 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
-| styler00dollar/vsgan_tensorrt:minimal_no_avx512       | 5.4gb     | ?gb        | trt 10.13 without avx512 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
+| docker image                                          | dockerhub | short description |
+| ----------------------------------------------------- | --------- | ----------------- |
+| styler00dollar/vsgan_tensorrt:latest                  | 13.1gb    | trt 10.16
+| styler00dollar/vsgan_tensorrt:latest_no_avx512        | 13.1gb    | trt 10.16 without avx512
+| styler00dollar/vsgan_tensorrt:minimal                 | 6.1gb     | trt 10.16 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
+| styler00dollar/vsgan_tensorrt:minimal_no_avx512       | 6.1gb     | trt 10.16 without avx512 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
 
 Piping usage:
 ```
