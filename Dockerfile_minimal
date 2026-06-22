@@ -251,7 +251,7 @@ RUN apt install autoconf -y
 RUN git clone https://github.com/FFMS/ffms2 && cd ffms2 && ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" ./configure --enable-shared && make -j$(nproc) && make install
 
 ############################
-FROM nvcr.io/nvidia/tensorrt:26.04-py3
+FROM nvcr.io/nvidia/tensorrt:26.05-py3
 ARG DEBIAN_FRONTEND=noninteractive
 
 # cmake
