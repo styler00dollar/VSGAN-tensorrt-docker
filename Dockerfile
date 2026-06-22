@@ -57,11 +57,11 @@ RUN git clone https://code.videolan.org/videolan/x264.git && \
   cd x264 && ./configure --enable-pic --enable-static && make -j$(nproc) install
 
 # cmake
-RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v4.2.3/cmake-4.2.3-linux-x86_64.sh && \
-    chmod +x cmake-4.2.3-linux-x86_64.sh && sh cmake-4.2.3-linux-x86_64.sh --skip-license && \
+RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v4.3.3/cmake-4.3.3-linux-x86_64.sh && \
+    chmod +x cmake-4.3.3-linux-x86_64.sh && sh cmake-4.3.3-linux-x86_64.sh --skip-license && \
     cp /workspace/bin/cmake /usr/bin/cmake && cp /workspace/bin/cmake /usr/lib/cmake && \
-    cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-4.2 /usr/local/share/ && \
-    rm -rf cmake-4.2.3-linux-x86_64.sh
+    cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-4.3 /usr/local/share/ && \
+    rm -rf cmake-4.3.3-linux-x86_64.sh
 # -w-macro-params-legacy to not log lots of asm warnings
 # https://bitbucket.org/multicoreware/x265_git/issues/559/warnings-when-assembling-with-nasm-215
 RUN git clone https://bitbucket.org/multicoreware/x265_git/ && cd x265_git/build/linux && \
@@ -196,11 +196,11 @@ RUN git clone -b release/2.10 --recursive https://github.com/pytorch/pytorch
 WORKDIR /workspace
 
 # cmake
-RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v4.2.3/cmake-4.2.3-linux-x86_64.sh && \
-    chmod +x cmake-4.2.3-linux-x86_64.sh && sh cmake-4.2.3-linux-x86_64.sh --skip-license && \
+RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v4.3.3/cmake-4.3.3-linux-x86_64.sh && \
+    chmod +x cmake-4.3.3-linux-x86_64.sh && sh cmake-4.3.3-linux-x86_64.sh --skip-license && \
     cp /workspace/bin/cmake /usr/bin/cmake && cp /workspace/bin/cmake /usr/lib/cmake && \
-    cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-4.2 /usr/local/share/ && \
-    rm -rf cmake-4.2.3-linux-x86_64.sh
+    cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-4.3 /usr/local/share/ && \
+    rm -rf cmake-4.3.3-linux-x86_64.sh
 
 WORKDIR /
 
@@ -374,7 +374,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cudnn
 # onnxruntime requires working tensorrt installation
 # https://github.com/microsoft/onnxruntime/blob/main/dockerfiles/Dockerfile.tensorrt
 ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
-ARG ONNXRUNTIME_BRANCH=rel-1.25.1
+ARG ONNXRUNTIME_BRANCH=rel-1.27.0
 ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;53;60;61;62;70;72;75;80;89;9.0;10.0;10.1;10.3;12.0;12.1
 
 RUN apt-get update &&\
@@ -387,16 +387,15 @@ ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
 RUN apt install git -y
 
 # cmake
-RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v4.2.3/cmake-4.2.3-linux-x86_64.sh && \
-    chmod +x cmake-4.2.3-linux-x86_64.sh && sh cmake-4.2.3-linux-x86_64.sh --skip-license && \
+RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v4.3.3/cmake-4.3.3-linux-x86_64.sh && \
+    chmod +x cmake-4.3.3-linux-x86_64.sh && sh cmake-4.3.3-linux-x86_64.sh --skip-license && \
     cp /code/bin/cmake /usr/bin/cmake && cp /code/bin/ctest /usr/bin/ctest && cp /code/bin/cmake /usr/lib/cmake && \
-    cp /code/bin/cmake /usr/local/bin/cmake && cp -r /code/share/cmake-4.2 /usr/local/share/ && \
-    rm -rf cmake-4.2.3-linux-x86_64.sh
+    cp /code/bin/cmake /usr/local/bin/cmake && cp -r /code/share/cmake-4.3 /usr/local/share/ && \
+    rm -rf cmake-4.3.3-linux-x86_64.sh
 
 # Prepare onnxruntime repository & build onnxruntime with TensorRT
 # https://github.com/microsoft/onnxruntime/issues/24861
-# --single-branch --branch ${ONNXRUNTIME_BRANCH}
-RUN git clone --recursive ${ONNXRUNTIME_REPO} onnxruntime &&\
+RUN git clone --single-branch --branch ${ONNXRUNTIME_BRANCH} --recursive ${ONNXRUNTIME_REPO} onnxruntime &&\
     /bin/sh onnxruntime/dockerfiles/scripts/install_common_deps.sh 
 RUN /usr/local/bin/pip3 install psutil numpy wheel setuptools packaging
 RUN cd onnxruntime && \
@@ -469,11 +468,11 @@ RUN rm -rf Python-3.12.12 && tar -xf Python-3.12.12.tar.xz && cd Python-3.12.12 
   make -j$(nproc)
 
 # cmake
-RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v4.2.3/cmake-4.2.3-linux-x86_64.sh && \
-    chmod +x cmake-4.2.3-linux-x86_64.sh && sh cmake-4.2.3-linux-x86_64.sh --skip-license && \
+RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v4.3.3/cmake-4.3.3-linux-x86_64.sh && \
+    chmod +x cmake-4.3.3-linux-x86_64.sh && sh cmake-4.3.3-linux-x86_64.sh --skip-license && \
     cp /workspace/bin/cmake /usr/bin/cmake && cp /workspace/bin/cmake /usr/lib/cmake && \
-    cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-4.2 /usr/local/share/ && \
-    rm -rf cmake-4.2.3-linux-x86_64.sh
+    cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-4.3 /usr/local/share/ && \
+    rm -rf cmake-4.3.3-linux-x86_64.sh
     
 # zimg
 # setting pkg version manually since otherwise 'Version' field value '-1': version number is empty
@@ -521,10 +520,10 @@ RUN git clone https://github.com/Irrational-Encoding-Wizardry/Vapoursynth-VFRToC
 RUN git clone https://github.com/EleonoreMizo/fmtconv && cd fmtconv/build/unix/ && ./autogen.sh && ./configure && make -j$(nproc) && make install
 
 # VMAF
-RUN apt install nasm xxd -y && wget https://github.com/Netflix/vmaf/archive/refs/tags/v3.0.0.tar.gz && \
-  tar -xzf v3.0.0.tar.gz && cd vmaf-3.0.0/libvmaf/ && \
+RUN apt install nasm xxd -y && wget https://github.com/Netflix/vmaf/archive/refs/tags/v3.2.0.tar.gz && \
+  tar -xzf v3.2.0.tar.gz && cd vmaf-3.2.0/libvmaf/ && \
   meson build --buildtype release -Denable_cuda=false -Denable_avx512=true && ninja -C build && \
-  ninja -C build install && cd /workspace && rm -rf v3.0.0.tar.gz vmaf-3.0.0 && \
+  ninja -C build install && cd /workspace && rm -rf v3.0.0.tar.gz vmaf-3.2.0 && \
   git clone https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF && cd VapourSynth-VMAF && meson build && \
   ninja -C build && ninja -C build install
 
@@ -572,7 +571,7 @@ RUN pip install git+https://github.com/pifroggi/vs_colorfix git+https://github.c
 
 # holywu
 RUN python -m pip install --no-deps -U torch_tensorrt --index-url https://download.pytorch.org/whl/cu130 && \
-  pip install git+https://github.com/HolyWu/vs-rife.git@784a6d0b87bcd1d2e20586f41d7c652c6632b438 git+https://github.com/routineLife1/VS-DRBA@6e56f956c8fa0fc049d81549886050647eb747aa --no-deps
+  pip install git+https://github.com/HolyWu/vs-rife.git@3488617283db7c428a83ba4a19382285da698b6a git+https://github.com/routineLife1/VS-DRBA@6e56f956c8fa0fc049d81549886050647eb747aa --no-deps
 RUN python -m pip install git+https://github.com/HolyWu/vs-realesrgan --no-deps
 RUN python -m pip install git+https://github.com/HolyWu/vs-animesr --no-deps
 RUN python -m vsrife && python -m vsrealesrgan
