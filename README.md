@@ -280,12 +280,6 @@ clip = core.trt.Model(
 )
 ```
 
-- ORT inference: [vs-mlrt](https://github.com/AmusementClub/vs-mlrt/tree/master/vsort)
-```python
-core.std.LoadPlugin(path="/usr/local/lib/libvsort.so")
-clip = core.ort.Model(clip, "/workspace/tensorrt/2x_ModernSpanimationV2_clamp_op20_fp16_onnxslim.onnx", provider="CUDA", fp16=True, num_streams=2)
-```
-
 - Rife: [vs-rife](https://github.com/styler00dollar/vs-rife)
 ```python
 from vsrife import rife
