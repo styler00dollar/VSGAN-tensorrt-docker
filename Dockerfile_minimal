@@ -1,9 +1,9 @@
 ############################
 # FFMPEG
 ############################
-FROM nvidia/cuda:13.4.3-cudnn-devel-ubuntu24.04 AS ffmpeg
+FROM nvidia/cuda:13.4.3-cudnn-devel-ubuntu26.04 AS ffmpeg
 ARG DEBIAN_FRONTEND=noninteractive
-WORKDIR workspace
+WORKDIR /workspace
 
 RUN apt update -y
 RUN apt install autoconf libtool nasm ninja-build yasm wget git pkg-config -y
@@ -50,47 +50,30 @@ RUN git clone https://bitbucket.org/multicoreware/x265_git/ && cd x265_git/build
 RUN git clone https://github.com/webmproject/libwebp/ && \
   cd libwebp && ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
-RUN git clone https://github.com/ultravideo/kvazaar/ && \
-  cd kvazaar && ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
-
 RUN apt install libfreetype-dev libfribidi-dev libharfbuzz-dev libfontconfig-dev -y
 RUN git clone https://github.com/libass/libass/ && \
   cd libass && ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) && make install
-
-RUN git clone https://github.com/uclouvain/openjpeg/ && \
-  cd openjpeg && cmake -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF && make -j$(nproc) install
 
 RUN apt install python3-pip -y
 RUN pip install meson ninja cython --break-system-packages
 RUN git clone https://code.videolan.org/videolan/dav1d/ && \
   cd dav1d && meson build --buildtype release -Ddefault_library=static && ninja -C build install
 
-RUN apt install tclsh libssl-dev -y
-RUN git clone https://github.com/Haivision/srt/ && \
-  cd srt && ./configure --enable-shared=0 --cmake-install-libdir=lib --cmake-install-includedir=include --cmake-install-bindir=bin && \
-  make -j$(nproc) && make install
-
 RUN git clone https://github.com/nekotrix/SVT-AV1-Essential && \
   cd SVT-AV1-Essential && git switch Essential-v4.3.0 && \
   cd Build/linux && \
   ./build.sh --native --static --release --enable-lto --enable-pgo --install
 
-RUN git clone https://github.com/Netflix/vmaf/ && \
-  cd vmaf/libvmaf && meson build --buildtype release -Ddefault_library=static && ninja -vC build install
-
-RUN git clone https://github.com/cisco/openh264 && \
-  cd openh264 && meson build --buildtype release -Ddefault_library=static && ninja -C build install
-
 RUN git clone https://github.com/FFmpeg/nv-codec-headers && cd nv-codec-headers && make -j$(nproc) && make install
 
 RUN git clone https://github.com/FFmpeg/FFmpeg
-RUN cd FFmpeg && \
-CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declaration" PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/ ./configure \
-    --extra-cflags="-march=native -fopenmp -lcrypto -lz -ldl -static-libgcc -I/opt/cuda/include" \
-    --extra-cxxflags="-march=native -fopenmp -lcrypto -lz -ldl -static-libgcc" \
-    --extra-ldflags="-fopenmp -lcrypto -lz -ldl -static-libgcc -L/opt/cuda/lib64" \
-    --extra-libs="-lstdc++ -lcrypto -lz -ldl -static-libgcc" \
-    --pkg-config-flags=--static \
+
+RUN cd FFmpeg && ./configure \
+    --extra-cflags="-march=native" \
+    --extra-cxxflags="-march=native" \
+    --extra-ldflags="-static-libgcc" \
+    --extra-libs="-static-libgcc" \
+    --pkg-config-flags="--static" \
     --toolchain=hardened \
     --disable-debug \
     --disable-shared \
@@ -114,23 +97,17 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
     --disable-libspeex \
     --disable-libaom \
     --disable-libvidstab \
-    --enable-libkvazaar \
     --enable-libfreetype \
     --enable-fontconfig \
     --enable-libfribidi \
     --enable-libass \
     --disable-libsoxr \
-    --enable-libopenjpeg \
     --enable-libdav1d \
     --disable-librav1e \
-    --enable-libsrt \
     --enable-libsvtav1 \
     --disable-libdavs2 \
-    --enable-libvmaf \
     --disable-libxeve \
     --enable-cuda-nvcc \
-    #--enable-hardcoded-tables \
-    --enable-libopenh264 \
     --enable-optimizations \
     --enable-cuda-llvm \
     --enable-nvdec \
@@ -143,17 +120,45 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
     make -j$(nproc)
 
 ############################
-FROM nvcr.io/nvidia/tensorrt:26.10-py3
+# trtexec
+############################
+
+FROM nvidia/cuda:13.4.3-cudnn-devel-ubuntu26.04 AS trtexec
+ARG DEBIAN_FRONTEND=noninteractive
+WORKDIR /workspace
+
+RUN apt update -y && apt install wget zstd -y
+RUN wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/11.4.0/tars/TensorRT-Enterprise-11.4.0.106-Linux-x86_64-cuda-13.4-Release-external.tar.zst
+RUN mkdir TensorRT && tar --use-compress-program=unzstd -xvf TensorRT-Enterprise-11.4.0.106-Linux-x86_64-cuda-13.4-Release-external.tar.zst -C TensorRT
+
+############################
+
+FROM nvidia/cuda:13.4.3-runtime-ubuntu26.04
+
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN pip install git+https://github.com/vapoursynth/vapoursynth.git
-RUN pip install vapoursynth-mlrt-trt
-RUN pip install vapoursynth-bestsource vapoursynth-ffms2
+RUN apt update -y && apt install python3.14 python3.14-dev python3-pip python-is-python3 git clang -y
+RUN pip install git+https://github.com/vapoursynth/vapoursynth.git vapoursynth-mlrt-trt vapoursynth-bestsource vapoursynth-ffms2 --break-system-packages
+
+RUN apt update -y && apt install fontconfig libharfbuzz0b libfribidi0 -y
 
 # ffmpeg
 COPY --from=ffmpeg /workspace/FFmpeg/ffmpeg /usr/local/bin/ffmpeg
 
-RUN apt update -y && apt install fontconfig libharfbuzz0b libfribidi0 -y
+# trtexec
+COPY --from=trtexec /workspace/TensorRT/TensorRT-11.4.0.106/bin/trtexec /usr/local/bin/trtexec
+RUN ln -s /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer.so.11 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_plugin.so.11 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvonnxparser.so.11 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_ptx.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm75.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm80.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm86.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm89.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm90.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm100.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm120.so.11.4.0 \
+  /usr/local/lib
 
 ENV CUDA_MODULE_LOADING=LAZY
 WORKDIR /workspace/tensorrt
