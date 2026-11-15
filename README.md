@@ -222,9 +222,7 @@ More parameter documentation can be found in the plugin repositories.
 
 - Video Reader: [ffms2](https://github.com/FFMS/ffms2/blob/master/doc/ffms2-vapoursynth.md) [lsmash](https://github.com/HomeOfAviSynthPlusEvolution/L-SMASH-Works/blob/master/VapourSynth/README.md) [bestsource](https://github.com/vapoursynth/bestsource)
 ```python
-core.std.LoadPlugin(path="/usr/local/lib/libffms2.so")
 clip = core.ffms2.Source(source=video_path)
-clip = core.lsmas.LWLibavSource(source=video_path)
 clip = core.bs.VideoSource(source=video_path) # recommended
 ```
 
@@ -242,22 +240,14 @@ clip = clip.std.Expr("x 0 max 1 min")
 clip = core.std.Limiter(clip, max=1, planes=[0,1,2])
 ```
 
-- Metrics: [vmaf](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF)
-```python
-clip = core.vmaf.Metric(clip, offs1, feature=2)
-```
-
 - Scene Detect
 ```python
-clip = core.misc.SCDetect(clip=clip, threshold=0.100)
-
 from src.scene_detect import scene_detect
-clip = scene_detect(clip, fp16=True, thresh=0.85, model=12)
+clip = scene_detect(clip, fp16=True, thresh=0.85, model=4)
 ```
 
 - TensorRT inference: [vstrt](https://github.com/AmusementClub/vs-mlrt/tree/master/vstrt)
 ```python
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 clip = core.trt.Model(
     clip,
     engine_path="/workspace/tensorrt/cugan.engine",
@@ -269,13 +259,11 @@ clip = core.trt.Model(
 
 - dpir inference: [vstrt](https://github.com/AmusementClub/vs-mlrt/tree/master/vstrt)
 ```python
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 strength = 10.0
 noise_level = clip.std.BlankClip(format=vs.GRAYS, color=strength / 100)
 clip = core.trt.Model(
     [clip, noise_level],
     engine_path="dpir.engine",
-    tilesize=[1280, 720],
     num_streams=2,
 )
 ```
@@ -283,19 +271,7 @@ clip = core.trt.Model(
 - Rife: [vs-rife](https://github.com/styler00dollar/vs-rife)
 ```python
 from vsrife import rife
-clip = rife(clip, model="4.22", sc=False, trt=True, trt_static_shape=True, trt_optimization_level=5, trt_cache_dir="/workspace/tensorrt")
-```
-
-- Rife: [vs-drba](https://github.com/routineLife1/VS-DRBA)
-```python
-from vsdrba import drba_rife
-clip = drba_rife(clip, model="4.22", sc=False, trt=True, trt_static_shape=True, trt_optimization_level=5, trt_cache_dir="/workspace/tensorrt")
-```
-
-- AnimeSR: [vs-animesr](https://github.com/HolyWu/vs-animesr)
-```python
-from vsanimesr import animesr
-clip = animesr(clip, trt=True, trt_min_shape=[128, 128], trt_opt_shape=[1280, 720], trt_max_shape=[1920, 1080], trt_optimization_level=5, trt_cache_dir="/workspace/tensorrt")
+clip = rife(clip, model="4.26.heavy", sc=False, trt=True, trt_static_shape=True, trt_optimization_level=5, trt_cache_dir="/workspace/tensorrt")
 ```
 
 - Compact/ESRGAN: [vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
@@ -304,16 +280,11 @@ from vsrealesrgan import realesrgan
 clip = realesrgan(clip, num_streams=3, batch_size=2, trt=True, trt_static_shape=True, trt_optimization_level=5, trt_cache_dir="/workspace/tensorrt") 
 ```
 
-- [vs-spandrel](https://github.com/TNTwise/vs-spandrel)
+- Sharpening: [awarp](https://github.com/HolyWu/VapourSynth-AWarp) [cas](https://github.com/HolyWu/VapourSynth-CAS)
 ```python
-from vsspandrel import vsspandrel
-clip = vsspandrel(clip, model_path="/workspace/tensorrt/model.pth", trt=True, trt_optimization_level=5, trt_cache_dir="/workspace/tensorrt") 
-```
+mask = core.edgemasks.Sobel(clip)
+clip = core.awarp.AWarp(clip, mask, depth_h=8, depth_v=8, planes=[0,1,2])
 
-- Sharpening: [awarpsharp2](https://github.com/dubhater/vapoursynth-awarpsharp2) [cas](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-CAS)
-```python
-core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libawarpsharp2.so")
-clip = core.warp.AWarpSharp2(clip, thresh=128, blur=2, type=0, depth=[16, 8, 8], chroma=0, opt=True, planes=[0,1,2], cplace="mpeg1")
 clip = core.cas.CAS(clip, sharpness=0.5)
 ```
 
@@ -325,15 +296,8 @@ clip = vs_colorfix.average(clip, ref, radius=10, planes=[0, 1, 2], fast=False)
 
 - Temporal fix: [temporalfix](https://github.com/pifroggi/vs_temporalfix)
 ```python
-core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/mvtools.so")
-core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/fillborders.so")
-core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libmotionmask.so")
-core.std.LoadPlugin(path="/usr/local/lib/x86_64-linux-gnu/libtemporalmedian.so")
 import vs_temporalfix
-# gpu (fast)
 clip = vs_temporalfix.model(clip, strength=2, tiles=1, backend="tensorrt", num_streams=3, engine_folder="/workspace/tensorrt/", exclude=None)
-# cpu (slow)
-clip = vs_temporalfix.classic(clip, strength=500, tr=6, denoise=False, exclude=None, debug=False)
 ```
 
 - Line darken: [linedarken](https://github.com/Selur/VapoursynthScriptsInHybrid/blob/550cc72221848732fa36a5dfb9ad5f98a308dd6e/havsfunc.py#L5217)
