@@ -355,33 +355,17 @@ You need to convert onnx models into engines. You need to do that on the same sy
   
 Good default choice:
 ```
-trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
+trtexec --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
 ```
 If you have the vram to fit the model multiple times, add `--infStreams`.
 ```
-trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --infStreams=4
-```
-DPIR (color) needs 4 channels.
-```
-trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x4x8x8 --optShapes=input:1x4x720x1280 --maxShapes=input:1x4x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
+trtexec --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --infStreams=4
 ```
 
 **Warning:** Rife with TensorRT is broken without workarounds in every implementation (mlrt, torch_tensorrt, onnxruntime trt,...), even with fp32, and results in wobbly lines and artefacts during panning scenes. [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife) fixed it [here](https://github.com/HolyWu/vs-rife/commit/0168d7e2ba5e362f234205e4118f15c5503b64f0) or [here](https://github.com/HolyWu/vs-rife/commit/4d6ff753b98cbbbb1a302c19f71315df7ac4da47). Testing showed that vsrife is not a lot slower than mlrt, so I don't recommend using rife onnx.
 
-Rife v1 needs 8 channels.
-```
-trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x8x64x64 --optShapes=input:1x8x720x1280 --maxShapes=input:1x8x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
-```
-Rife v2 needs 7 channels. Set the same shape everywhere to avoid build errors.
-```
-trtexec --bf16 --fp16 --onnx=model.onnx --minShapes=input:1x7x1080x1920 --optShapes=input:1x7x1080x1920 --maxShapes=input:1x7x1080x1920 --saveEngine=model.engine --tacticSources=+CUDNN,-CUBLAS,-CUBLAS_LT --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5
-```
-Put that engine path into `inference_config.py`.
-
 **Warnings**:
-- Only add `--bf16` if your GPU supports it, otherwise remove it. If model looks broken, remove `--fp16`.
 - Cugan with 3x scale requires same MIN/OPT/MAX shapes.
-- rvpV2 needs 6 channels, but does not support variable shapes.
 - If you use the FP16 onnx you need to use `RGBH` colorspace, if you use FP32 onnx you need to use `RGBS` colorspace in `inference_config.py` .
 - Engines are system specific, don't use across multiple systems.
 - Don't use reuse engines for different GPUs.
