@@ -423,61 +423,7 @@ clip_sc = core.misc.SCDetect(
 ```
 Afterwards you can call `clip = core.akarin.Select([clip, clip_orig], clip_sc, "x._SceneChangeNext 1 0 ?")` to apply it.
 
-Or use models like this. Adjust thresh to a value between 0 and 1, higher means to ignore with less confidence.
-
-```python
-clip_sc = scene_detect(
-    clip,
-    fp16=True,
-    thresh=0.5,
-    model=3,
-)
-```
-
-**Warning: Keep in mind that different models may require a different thresh to be good.**
-
-The rife models mean, that flow gets used as an additional input into the classification model. That should increase stability without major speed decrease. Models that are not linked will be converted later.
-
-Available onnx files:
-- efficientnetv2_b0 (256px) ([fp16](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientnetv2b0_17957_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx) [fp32](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientnetv2b0_17957_256_CHW_6ch_clamp_softmax_op17_sim.onnx))
-- efficientnetv2_b0+rife46 (256px) ([fp16](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientnetv2b0+rife46_flow_1362_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx) [fp32](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientnetv2b0+rife46_flow_1362_256_CHW_6ch_clamp_softmax_op17_sim.onnx))
-- efficientformerv2_s0 (224px) ([fp16](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientformerv2_s0_12263_224_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx) [fp32](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientformerv2_s0_12263_224_CHW_6ch_clamp_softmax_op17_sim.onnx))
-- efficientformerv2_s0+rife46 (224px) ([fp16](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientformerv2_s0+rife46_flow_84119_224_CHW_6ch_clamp_softmax_op17_fp16.onnx) [fp32](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_efficientformerv2_s0+rife46_flow_84119_224_CHW_6ch_clamp_softmax_op17.onnx))
-- swinv2_small (256px) ([fp16](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_swinv2_small_window16_10412_256_CHW_6ch_clamp_softmax_op17_fp16.onnx) [fp32](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_swinv2_small_window16_10412_256_CHW_6ch_clamp_softmax_op17.onnx))
-- swinv2_small+rife46 (256px) ([fp16](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_swinv2_small_window16+rife46_flow_1814_256_84119_224_CHW_6ch_clamp_softmax_op17_fp16.onnx) [fp32](https://github.com/styler00dollar/VSGAN-tensorrt-docker/releases/download/models/sc_swinv2_small_window16+rife46_flow_1814_256_84119_224_CHW_6ch_clamp_softmax_op17.onnx))
-
-Other models I trained but are not available due to various reasons:
-- hornet_tiny_7x7
-- renset50
-- STAM
-- volo_d1
-- tf_efficientnetv2_xl_in21k
-- resnext50_32x4d
-- nfnet_f0
-- swsl_resnet18
-- poolformer_m36
-- densenet121
-- TimeSformer
-- maxvit_small
-- maxvit_small+rife46
-- regnetz_005
-- repvgg_b0
-- resnetrs50
-- resnetv2_50
-- rexnet_100
-
-Interesting observations:
-- Applying means/stds seemingly worsened results, despite people doing that as standard practise.
-- Applying image augmentation worsened results.
-- Training with higher batchsize made detections a little more stable, but maybe that was placebo and a result of more finetuning.
-
-Comparison to traditional methods:
-- [wwxd](https://github.com/dubhater/vapoursynth-wwxd) and [scxvid](https://github.com/dubhater/vapoursynth-scxvid) suffer from overdetection (at least in drawn animation).
-- The json that [master-of-zen/Av1an](https://github.com/master-of-zen/Av1an) produces with `--sc-only --sc-method standard --scenes test.json` returns too little scene changes. Changing the method does not really influence a lot. Not reliable enough for vfi.
-- I can't be bothered to [Breakthrough/PySceneDetect](https://github.com/Breakthrough/PySceneDetect) get working with vapousynth with FrameEval and by default it only works with video or image sequence as input. I may try in the future, but I don't understand why I cant just input two images.
-- `misc.SCDetect` seemed like the best traditional vapoursynth method that does currently exist, but I thought I could try to improve. It struggles harder with similar colors and tends to skip more changes compared to methods.
-
-Decided to only do scene change inference with ORT with TensorRT backend to keep code small and optimized.
+Or use models. Adjust thresh to a value between 0 and 1, higher means to ignore with less confidence.
 
 Example usage:
 ```python
@@ -490,15 +436,17 @@ core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 clip_sc = scene_detect(
     clip,
     fp16=True,
-    thresh=0.5,
-    model=3,
+    thresh=0.85,
+    model=4,
 )
 
-clip = rife(clip, trt=True, model="4.22", sc=False)
+clip = rife(clip, trt=True, model="4.26.heavy", sc=False)
 
 clip_orig = core.std.Interleave([clip_orig] * 2)  # 2 means interpolation factor here
 clip = core.akarin.Select([clip, clip_orig], clip_sc, "x._SceneChangeNext 1 0 ?")
 ```
+
+**Warning: Keep in mind that different models require a different thresh to be good.**
 
 <div id='multi-gpu'/>
 
