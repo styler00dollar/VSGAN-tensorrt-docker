@@ -106,7 +106,8 @@ def _create_session_pool(
     sessions = [
         ort.InferenceSession(
             onnx_path,
-            providers=[("TensorrtExecutionProvider", dict(options))],
+            #providers=[("TensorrtExecutionProvider", dict(options))],
+            providers=["CUDAExecutionProvider"]
         )
         for _ in range(num_sessions)
     ]
