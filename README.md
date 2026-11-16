@@ -355,7 +355,7 @@ Keep in mind that different models require a different thresh.
 
 <div id='multi-gpu'/>
 
-### multi-gpu
+## multi-gpu
 
 Thanks to tepete who figured it out, there is also a way to do inference on multipe GPUs.
 
