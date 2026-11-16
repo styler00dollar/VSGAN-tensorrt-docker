@@ -5,7 +5,6 @@
    * [Usage example](#usage-example)
    * [Individual examples](#individual-examples)
    * [vs-mlrt (C++ TRT)](#vs-mlrt)
-   * [Deduplicated inference](#deduplicated)
    * [Shot Boundary Detection](#shot-boundry)
    * [multi-gpu](#multi-gpu)
    * [VFR (variable refresh rate)](#vfr)
@@ -16,11 +15,9 @@
 -------
 
 Currently working networks:
-- Rife with [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/), v2 with [WolframRhodium](https://github.com/WolframRhodium), drba with [routineLife1/VS-DRBA](https://github.com/routineLife1/VS-DRBA)
-- Model based shot boundary detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer), [wentaozhu/AutoShot](https://github.com/wentaozhu/AutoShot), [abhijay9/ShiftTolerant-LPIPS](https://github.com/abhijay9/ShiftTolerant-LPIPS) and [photosynthesis-team/piq](https://github.com/photosynthesis-team/piq)
+- Rife with [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/), v2 with [WolframRhodium](https://github.com/WolframRhodium)
+- Model based shot boundary detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models) and [wentaozhu/AutoShot](https://github.com/wentaozhu/AutoShot)
 - [HolyWu/vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
-- [HolyWu/vs-animesr](https://github.com/HolyWu/vs-animesr)
-- [TNTwise/vs-spandrel](https://github.com/TNTwise/vs-spandrel)
 - [Real-ESRGAN / SRVGGNetCompact](https://github.com/xinntao/Real-ESRGAN)
 - [SAFMN](https://github.com/sunny2109/SAFMN)
 - [DPIR](https://github.com/cszn/DPIR)
@@ -37,7 +34,6 @@ Onnx files can be found [here](https://github.com/styler00dollar/VSGAN-tensorrt-
 
 Also used:
 - TensorRT C++ inference and python script usage with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
-- lsmash with [AkarinVS/L-SMASH-Works](https://github.com/AkarinVS/L-SMASH-Works)
 - bestsource with [vapoursynth/bestsource](https://github.com/vapoursynth/bestsource)
 - trt precision check and upscale frame skip with [mafiosnik777/enhancr](https://github.com/mafiosnik777/enhancr)
 - temporal fix with [pifroggi/vs_temporalfix](https://github.com/pifroggi/vs_temporalfix)
@@ -326,61 +322,16 @@ trtexec --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x12
 - If you get segfault, reduce `builderOptimizationLevel`. Change can change it down to 1 to speed up the engine building, but may result in worse speeds.
 - If you set min, opt and max to the same resolution, it might result in a faster engine.
 
-<div id='deduplicated'/>
-
-## Deduplicated inference
-Calculate similarity between frames with [HomeOfVapourSynthEvolution/VapourSynth-VMAF](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF) and skip similar frames in interpolation tasks. The properties in the clip will then be used to skip similar frames.
-
-```python
-from vsrife import rife
-
-
-# calculate metrics
-def metrics_func(clip):
-    offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]
-    offs1 = core.std.CopyFrameProps(offs1, clip)
-    return core.vmaf.Metric(clip, offs1, 2)
-
-def inference_clip(video_path):
-    interp_scale = 2
-    clip = core.bs.VideoSource(source=video_path)
-
-    # ssim
-    clip_metric = vs.core.resize.Bicubic(
-        clip, width=224, height=224, format=vs.YUV420P8, matrix_s="709"  # resize before ssim for speedup
-    )
-    clip_metric = metrics_func(clip_metric)
-    clip_orig = core.std.Interleave([clip] * interp_scale)
-
-    # interpolation
-    clip = rife(clip, trt=True, model="4.22", sc=False)
-
-    # skip frames based on calculated metrics
-    # in this case if ssim > 0.999, then copy frame
-    clip = core.akarin.Select([clip, clip_orig], clip_metric, "x.float_ssim 0.999 >")
-
-    return clip
-```
-
-There are multiple different metrics that can be used, but be aware that you may need to adjust the threshold metric value in `vfi_inference.py`, since they work differently. SSIM has a maximum of 1 and PSNR has a maximum of infinity. I would recommend leaving the defaults unless you know what you do.
-```python
-# 0 = PSNR, 1 = PSNR-HVS, 2 = SSIM, 3 = MS-SSIM, 4 = CIEDE2000
-return core.vmaf.Metric(clip, offs1, 2)
-```
 
 <div id='shot-boundry'/>
 
 ## Shot Boundary Detection
 
-Detection is implemented in various different ways. To use traditional scene change you can do:
+`vsrife` can have scene detection if you set `sc`.
 
 ```python
-clip_sc = core.misc.SCDetect(
-  clip=clip,
-  threshold=0.100
-)
+clip = rife(clip, trt=True, model="4.22", sc=True)
 ```
-Afterwards you can call `clip = core.akarin.Select([clip, clip_orig], clip_sc, "x._SceneChangeNext 1 0 ?")` to apply it.
 
 Or use models. Adjust thresh to a value between 0 and 1, higher means to ignore with less confidence.
 
@@ -403,7 +354,7 @@ clip_orig = core.std.Interleave([clip_orig] * 2)  # 2 means interpolation factor
 clip = core.akarin.Select([clip, clip_orig], clip_sc, "x._SceneChangeNext 1 0 ?")
 ```
 
-**Warning: Keep in mind that different models require a different thresh to be good.**
+Keep in mind that different models require a different thresh.
 
 <div id='multi-gpu'/>
 
