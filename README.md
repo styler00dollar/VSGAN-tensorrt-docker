@@ -210,7 +210,7 @@ python main.py
 
 More parameter documentation can be found in the plugin repositories.
 
-- Video Reader: [ffms2](https://github.com/FFMS/ffms2/blob/master/doc/ffms2-vapoursynth.md) [lsmash](https://github.com/HomeOfAviSynthPlusEvolution/L-SMASH-Works/blob/master/VapourSynth/README.md) [bestsource](https://github.com/vapoursynth/bestsource)
+- Video Reader: [ffms2](https://github.com/FFMS/ffms2/blob/master/doc/ffms2-vapoursynth.md) [bestsource](https://github.com/vapoursynth/bestsource)
 ```python
 clip = core.ffms2.Source(source=video_path)
 clip = core.bs.VideoSource(source=video_path) # recommended
