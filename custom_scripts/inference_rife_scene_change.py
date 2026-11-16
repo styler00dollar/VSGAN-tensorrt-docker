@@ -30,5 +30,5 @@ def inference_clip(video_path="", clip=None):
 
     clip = core.akarin.Select([clip, clip_orig], clip_sc, "x._SceneChangeNext 1 0 ?")
 
-    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P10, matrix_s="709")
     return clip

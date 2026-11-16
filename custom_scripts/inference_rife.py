@@ -16,5 +16,5 @@ def inference_clip(video_path="", clip=None):
 
     clip = rife(clip, model="4.26.heavy", sc=True, trt=True, trt_static_shape=True, trt_optimization_level=5, trt_cache_dir="/workspace/tensorrt")
 
-    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P10, matrix_s="709")
     return clip

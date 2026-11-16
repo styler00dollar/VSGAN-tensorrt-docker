@@ -153,7 +153,7 @@ def inference_clip(video_path="", clip=None):
         engine_path="/workspace/tensorrt/2x_AnimeJaNai_V2_Compact_36k_op18_fp16_clamp.engine",  # read readme on how to build engine
         num_streams=2,
     )
-    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")  # you can also use YUV420P10 for example
+    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P10, matrix_s="709")  # you can also use YUV420P10 for example
 
     return clip
 ```
@@ -180,7 +180,7 @@ def inference_clip(video_path):
     # interpolation
     clip = rife(clip, trt=True, model="4.26.heavy", sc=True)
 
-    clip = core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+    clip = core.resize.Bicubic(clip, format=vs.YUV420P10, matrix_s="709")
     return clip
 ```
 

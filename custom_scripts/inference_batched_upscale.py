@@ -45,5 +45,5 @@ def inference_clip(video_path="", clip=None):
 
     clip = core.std.Interleave([out0, out1])
 
-    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P10, matrix_s="709")
     return clip

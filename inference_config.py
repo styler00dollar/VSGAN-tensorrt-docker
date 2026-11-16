@@ -25,5 +25,5 @@ def inference_clip(video_path="", clip=None):
         num_streams=4,
     )
 
-    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P10, matrix_s="709")
     return clip
