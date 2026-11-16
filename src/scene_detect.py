@@ -1,222 +1,214 @@
-import numpy as np
-import vapoursynth as vs
-import onnxruntime as ort
-from threading import Lock
-from .download import check_and_download
+from __future__ import annotations
+
 import os
+from dataclasses import dataclass
+from queue import Queue
+
+import numpy as np
+import onnxruntime as ort
+import vapoursynth as vs
+
+from .download import check_and_download
 
 core = vs.core
 ort.set_default_logger_severity(3)
 
+MODEL_DIR = "/workspace/tensorrt/models"
+TRT_CACHE_DIR = "/workspace/tensorrt"
 
-def scene_detect(
-    clip: vs.VideoNode,
-    thresh: float = 0.93,
-    model: int = 0,
-    fp16: bool = True,
-    num_sessions: int = 2,
-    ssim_clip=None,
-    ssim_thresh: float = 0.98,
-) -> vs.VideoNode:
-    #######################################
-    # own models, everything experimental #
-    #######################################
-    # requires ~0.8-0.9 thresh
-    if model == 0:
-        onnx_path = (
-            "sc_efficientformerv2_s0_12263_224_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx"
-        )
-        resolution = [224, 224]
-        onnx_type = "2img"
-    elif model == 1:
-        onnx_path = "sc_efficientformerv2_s0+rife46_flow_84119_224_CHW_6ch_clamp_softmax_op17_fp16.onnx"
-        resolution = [224, 224]
-        onnx_type = "2img"
-    elif model == 2:
-        onnx_path = (
-            "sc_efficientnetv2b0_17957_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx"
-        )
-        resolution = [256, 256]
-        onnx_type = "2img"
-    elif model == 3:
-        onnx_path = "sc_efficientnetv2b0+rife46_flow_1362_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx"
-        resolution = [256, 256]
-        onnx_type = "2img"
-    elif model == 4:
-        onnx_path = (
-            "sc_swinv2_small_window16_10412_256_CHW_6ch_clamp_softmax_op17_fp16.onnx"
-        )
-        resolution = [256, 256]
-        onnx_type = "2img"
-    elif model == 5:
-        onnx_path = "sc_swinv2_small_window16+rife46_flow_1814_256_84119_224_CHW_6ch_clamp_softmax_op17_fp16.onnx"
-        resolution = [256, 256]
-        onnx_type = "2img"
-    elif model == 6:
-        onnx_path = "sc_tf_efficientnetv2_b0.in1k_48x27_b100_30k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
-        resolution = [48, 27]
-        onnx_type = "2img"
-    elif model == 7:
-        onnx_path = "sc_davit_small.msft_in1k_256px_b100_30k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
-        resolution = [256, 256]
-        onnx_type = "2img"
-    elif model == 8:
-        onnx_path = "sc_davit_small.msft_in1k_256px_b100_40k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
-        resolution = [256, 256]
-        onnx_type = "2img"
-    elif model == 9:
-        onnx_path = "sc_maxxvitv2_nano_rw_256.sw_in1k_256px_b100_20k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
-        resolution = [256, 256]
-        onnx_type = "2img"
-    elif model == 10:
-        onnx_path = "sc_maxxvitv2_nano_rw_256.sw_in1k_256px_b100_30k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
-        resolution = [256, 256]
-        onnx_type = "2img"
-    elif model == 11:
-        onnx_path = "sc_maxxvitv2_rmlp_base_rw_224.sw_in12k_b80_224px_20k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx"
-        resolution = [224, 224]
-        onnx_type = "2img"
-    elif model == 12:
-        onnx_path = "sc_mobilevitv2_050.cvnets_in1k+efficientvit_b2.r288_in1k_rife422_sobel_256px_5k_CHW_6ch_clamp_softmax_op20_fp16_onnxslim.onnx"
-        resolution = [256, 256]
-        onnx_type = "2img"
-    ################
-    # other models #
-    ################
-    # requires ~0.2 thresh
-    elif model == 13:
-        onnx_path = "sc_autoshot_clamp_op17_5img.onnx"
-        resolution = [48, 27]
-        onnx_type = "5img"
-    # requires ~0.45 thresh
-    elif model == 14:
-        onnx_path = "sc_shift_lpips_alex_256px_CHW_6ch_clamp_op20_fp16_onnxslim.onnx"
-        resolution = [256, 256]
-        onnx_type = "2img"
-    # requires ~0.45 thresh
-    elif model == 15:
-        onnx_path = "sc_shift_lpips_vgg_256px_CHW_6ch_clamp_op20_fp16_onnxslim.onnx"
-        resolution = [256, 256]
-        onnx_type = "2img"
-    # requires ~0.25 thresh
-    elif model == 16:
-        onnx_path = "sc_dists_256px_CHW_6ch_clamp_op20_fp16_onnxslim.onnx"
-        resolution = [256, 256]
-        onnx_type = "2img"
 
-    onnx_path = os.path.join("/workspace/tensorrt/models/", onnx_path)
-    check_and_download(onnx_path)
+@dataclass(frozen=True)
+class ModelSpec:
+    filename: str
+    width: int
+    height: int
+    # Frames fed to the model, relative to the frame being classified.
+    # e.g. (0, 1) = current + next; (-2, -1, 0, 1, 2) = a 5-frame window.
+    frame_offsets: tuple[int, ...] = (0, 1)
+    # 0 -> frames concatenated along the channel axis (6 CHW for 2 frames)
+    # 1 -> frames interleaved as a frame axis ((3, N, H, W) for N frames)
+    stack_axis: int = 0
+    frame_format: int = vs.RGBH
+    # How frames past the clip edges are filled: "blank" or "repeat".
+    edge_fill: str = "blank"
+    # Which ONNX output tensor to read.
+    output_index: int = 0
+    # Index into that tensor. (0, 0) for a single scalar / (1, 1) output;
+    # (0, 2) selects the middle frame of a (1, 5) score vector.
+    score_index: tuple[int, ...] = (0, 0)
 
-    # https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html
-    options = {}
-    options["device_id"] = 0
-    options["trt_engine_cache_enable"] = True
-    options["trt_timing_cache_enable"] = (
-        True  # Using TensorRT timing cache to accelerate engine build time on a device with the same compute capability
-    )
-    options["trt_engine_cache_path"] = (
-        "/workspace/tensorrt"
-    )
-    options["trt_fp16_enable"] = fp16
-    options["trt_max_workspace_size"] = 7000000000  # ~7gb
-    options["trt_builder_optimization_level"] = 5
 
+MODELS: dict[int, ModelSpec] = {
+    0: ModelSpec(
+        "sc_efficientnetv2b0_17957_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx",
+        256, 256, edge_fill="repeat",
+    ),  # ~0.85 thresh
+    1: ModelSpec(
+        "sc_efficientnetv2b0+rife46_flow_1362_256_CHW_6ch_clamp_softmax_op17_fp16_sim.onnx",
+        256, 256, edge_fill="repeat",
+    ),  # ~0.85 thresh
+    2: ModelSpec(
+        "sc_swinv2_small_window16_10412_256_CHW_6ch_clamp_softmax_op17_fp16.onnx",
+        256, 256, edge_fill="repeat",
+    ),  # ~0.85 thresh
+    3: ModelSpec(
+        "sc_swinv2_small_window16+rife46_flow_1814_256_84119_224_CHW_6ch_clamp_softmax_op17_fp16.onnx",
+        256, 256, edge_fill="repeat",
+    ),  # ~0.85 thresh
+    4: ModelSpec(
+        "sc_maxxvitv2_rmlp_base_rw_224.sw_in12k_b80_224px_20k_coloraug0.4_6ch_clamp_softmax_fp16_op17_onnxslim.onnx",
+        224, 224, edge_fill="repeat",
+    ),  # ~0.85 thresh
+    5: ModelSpec(
+        "sc_autoshot_clamp_op17_5img.onnx",
+        48, 27,
+        frame_offsets=(-2, -1, 0, 1, 2),
+        stack_axis=1,
+        frame_format=vs.RGBS,
+        score_index=(0, 2),  # middle frame of the 5-frame window
+    ),  # ~0.2 thresh
+}
+
+
+class SessionPool:
+    def __init__(self, sessions: list[ort.InferenceSession]) -> None:
+        self._queue: Queue[ort.InferenceSession] = Queue()
+        for session in sessions:
+            self._queue.put(session)
+
+    def run(self, inputs: np.ndarray) -> list[np.ndarray]:
+        session = self._queue.get()
+        try:
+            return session.run(None, {"input": inputs})
+        finally:
+            self._queue.put(session)
+
+
+def _tensorrt_options(fp16: bool) -> dict:
+    return {
+        "device_id": 0,
+        "trt_engine_cache_enable": True,
+        "trt_timing_cache_enable": True,
+        "trt_engine_cache_path": TRT_CACHE_DIR,
+        "trt_fp16_enable": fp16,
+        "trt_max_workspace_size": 7_000_000_000,
+        "trt_builder_optimization_level": 5,
+    }
+
+
+def _create_session_pool(
+    onnx_path: str, fp16: bool, num_sessions: int
+) -> SessionPool:
+    if num_sessions < 1:
+        raise ValueError("num_sessions must be at least 1")
+
+    options = _tensorrt_options(fp16)
     sessions = [
         ort.InferenceSession(
             onnx_path,
-            providers=[
-                ("TensorrtExecutionProvider", options),
-                # "CUDAExecutionProvider",
-            ],
+            #providers=[("TensorrtExecutionProvider", dict(options))],
+            providers=["CUDAExecutionProvider"]
         )
         for _ in range(num_sessions)
     ]
-    [Lock() for _ in range(num_sessions)]
+    return SessionPool(sessions)
 
-    index = -1
-    index_lock = Lock()
 
-    def frame_to_tensor(frame: vs.VideoFrame):
-        return np.stack(
-            [np.asarray(frame[plane]) for plane in range(frame.format.num_planes)]
-        )
+def _frame_to_tensor(frame: vs.VideoFrame) -> np.ndarray:
+    return np.stack(
+        [np.asarray(frame[plane]) for plane in range(frame.format.num_planes)]
+    )
 
-    def execute(n, f):
-        nonlocal index
-        with index_lock:
-            index = (index + 1) % num_sessions
-            local_index = index
 
-        nonlocal ssim_clip
-        nonlocal ssim_thresh
-        if ssim_clip:
-            ssim_clip = f[3].props.get("float_ssim")
-            if ssim_clip and ssim_clip > ssim_thresh:
-                return f[0].copy()
+def _build_input(frames: list[vs.VideoFrame], spec: ModelSpec) -> np.ndarray:
+    window = [
+        _frame_to_tensor(frames[1 + i])
+        for i in range(len(spec.frame_offsets))
+    ]
 
-        fout = f[0].copy()
+    if spec.stack_axis == 0:
+        # Concatenate frames along the channel axis: (3*N, H, W)
+        return np.concatenate(window, axis=0)
 
-        I0 = frame_to_tensor(f[1])
-        I1 = frame_to_tensor(f[2])
+    if spec.stack_axis == 1:
+        # Keep a frame axis: (3, N, H, W)
+        return np.stack(window, axis=1)
 
-        if onnx_type == "2img":
-            in_sess = np.concatenate([I0, I1], axis=0)
-        elif onnx_type == "5img":
-            I2 = frame_to_tensor(f[3])
-            I3 = frame_to_tensor(f[4])
-            I4 = frame_to_tensor(f[5])
-            in_sess = np.stack([I0, I1, I2, I3, I4], axis=1)
+    raise ValueError(f"Unsupported stack_axis: {spec.stack_axis}")
 
-        ort_session = sessions[local_index]
 
-        if model == 16:
-            result = ort_session.run(None, {"input": in_sess})[0]
-        else:
-            result = ort_session.run(None, {"input": in_sess})[0][0]
+def _pad(
+    clip: vs.VideoNode, length: int, fill: str, at_end: bool
+) -> vs.VideoNode:
+    if fill == "blank":
+        return core.std.BlankClip(clip, length=length)
+    if fill == "repeat":
+        source = clip[clip.num_frames - 1:] if at_end else clip[:1]
+        return core.std.Loop(source, times=length)
+    raise ValueError(f"Unsupported edge_fill: {fill}")
 
-        if model != 16:
-            if onnx_type == "2img":
-                result = result[0]
-            elif onnx_type == "5img":
-                result = result[2]
 
-        fout.props._sceneFloat = float(result)
+def _shift(
+    clip: vs.VideoNode, offset: int, fill: str = "blank"
+) -> vs.VideoNode:
+    """Shift a clip by offset frames, filling edges."""
+    if offset == 0:
+        return clip
 
-        if result > thresh:
-            fout.props._SceneChangeNext = 1
-        else:
-            fout.props._SceneChangeNext = 0
-        return fout
+    n = clip.num_frames
+    pad = min(abs(offset), n)
 
-    if onnx_type == "5img":
-        clip_down = clip.resize.Bicubic(
-            resolution[0], resolution[1], format=vs.RGBS, matrix_in_s="709"
-        )
+    if offset > 0:
+        remaining = clip[offset:] if offset < n else None
+        tail = _pad(clip, pad, fill, at_end=True)
+        return remaining + tail if remaining is not None else tail
 
-        shift_up2 = clip_down.std.DeleteFrames(frames=[0, 1]) + core.std.BlankClip(
-            clip_down, length=2
-        )
-        shift_up1 = clip_down.std.DeleteFrames(frames=[0]) + core.std.BlankClip(
-            clip_down, length=1
-        )
+    remaining = clip[: n + offset] if n + offset > 0 else None
+    head = _pad(clip, pad, fill, at_end=False)
+    return head + remaining if remaining is not None else head
 
-        shift_down1 = core.std.BlankClip(clip_down, length=1) + core.std.BlankClip(
-            clip_down, length=1
-        )
-        shift_down2 = core.std.BlankClip(clip_down, length=2) + core.std.BlankClip(
-            clip_down, length=2
-        )
 
-        return core.std.ModifyFrame(
-            clip,
-            (clip, shift_down2, shift_down1, clip_down, shift_up1, shift_up2),
-            execute,
-        )
+def _extract_score(outputs: list[np.ndarray], spec: ModelSpec) -> float:
+    return float(np.asarray(outputs[spec.output_index])[spec.score_index].item())
 
-    elif onnx_type == "2img":
-        clip_down = clip.resize.Bicubic(
-            resolution[0], resolution[1], format=vs.RGBH, matrix_in_s="709"
-        )
 
-        return core.std.ModifyFrame(clip, (clip, clip_down, clip_down[1:]), execute)
+def scene_detect(
+    clip: vs.VideoNode,
+    thresh: float = 0.85,
+    model: int = 4,
+    fp16: bool = True,
+    num_sessions: int = 2,
+) -> vs.VideoNode:
+    spec = MODELS.get(model)
+    if spec is None:
+        raise ValueError(f"Unknown scene-detect model: {model}")
 
+    onnx_path = os.path.join(MODEL_DIR, spec.filename)
+    check_and_download(onnx_path)
+
+    pool = _create_session_pool(onnx_path, fp16, num_sessions)
+
+    clip_down = clip.resize.Bicubic(
+        spec.width,
+        spec.height,
+        format=spec.frame_format,
+        matrix_in_s="709",
+    )
+
+    frames = (
+        clip,
+        *(_shift(clip_down, offset, spec.edge_fill)
+          for offset in spec.frame_offsets),
+    )
+
+    def execute(n: int, f: list[vs.VideoFrame]) -> vs.VideoFrame:
+        out = f[0].copy()
+
+        inputs = _build_input(f, spec)
+        score = _extract_score(pool.run(inputs), spec)
+
+        out.props._sceneFloat = score
+        out.props._SceneChangeNext = int(score > thresh)
+        return out
+
+    return core.std.ModifyFrame(clip, list(frames), execute)

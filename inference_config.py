@@ -5,8 +5,6 @@ import vapoursynth as vs
 
 core = vs.core
 core.num_threads = 4  # can influence ram usage
-# only needed if you are inside docker
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
 
 def inference_clip(video_path="", clip=None):
@@ -27,5 +25,5 @@ def inference_clip(video_path="", clip=None):
         num_streams=4,
     )
 
-    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P10, matrix_s="709")
     return clip

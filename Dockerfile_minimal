@@ -1,21 +1,12 @@
 ############################
 # FFMPEG
 ############################
-FROM nvidia/cuda:13.1.2-devel-ubuntu24.04 AS ffmpeg
+FROM nvidia/cuda:13.4.3-cudnn-devel-ubuntu26.04 AS ffmpeg
 ARG DEBIAN_FRONTEND=noninteractive
-WORKDIR workspace
+WORKDIR /workspace
 
 RUN apt update -y
-RUN apt install autoconf libtool nasm ninja-build yasm python3.12 python3.12-venv python3.12-dev python3-pip wget git pkg-config python-is-python3 -y
-RUN apt --fix-broken install
-RUN pip install meson ninja cython --break-system-packages
-
-# install g++14
-RUN apt install build-essential manpages-dev software-properties-common -y
-RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y
-RUN apt update -y && apt install gcc-14 g++-14 -y
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 14
-RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 14
+RUN apt install autoconf libtool nasm ninja-build yasm wget git pkg-config -y
 
 # -O3 makes sure we compile with optimization. setting CFLAGS/CXXFLAGS seems to override
 # default automake cflags.
@@ -25,18 +16,6 @@ RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 14
 ARG CFLAGS="-O3 -static-libgcc -fno-strict-overflow -fstack-protector-all -fPIE"
 ARG CXXFLAGS="-O3 -static-libgcc -fno-strict-overflow -fstack-protector-all -fPIE"
 ARG LDFLAGS="-Wl,-z,relro,-z,now"
-
-# todo: use https://bitbucket.org/the-sekrit-twc/zimg/src/master/
-# master is broken https://github.com/sekrit-twc/zimg/issues/181
-# No rule to make target 'graphengine/graphengine/cpuinfo.cpp', needed by 'graphengine/graphengine/libzimg_internal_la-cpuinfo.lo'.  Stop.
-RUN wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.6.tar.gz && tar -zxvf release-3.0.6.tar.gz && cd zimg-release-3.0.6 && \
-  ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
-
-ENV PATH=/usr/local/bin:$PATH
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R73.tar.gz && \
-  tar -zxvf R73.tar.gz && cd vapoursynth-R73 && ./autogen.sh && \
-  PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/local/lib/pkgconfig" ./configure --enable-static --disable-shared && \
-  make && make install && cd .. && ldconfig
 
 RUN git clone https://github.com/gypified/libmp3lame && cd libmp3lame && ./configure --enable-static --enable-nasm --disable-shared && make -j$(nproc) install
 
@@ -57,11 +36,11 @@ RUN git clone https://code.videolan.org/videolan/x264.git && \
   cd x264 && ./configure --enable-pic --enable-static && make -j$(nproc) install
 
 # cmake
-RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.sh && \
-    chmod +x cmake-4.1.2-linux-x86_64.sh && sh cmake-4.1.2-linux-x86_64.sh --skip-license && \
+RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v4.5.0/cmake-4.5.0-linux-x86_64.sh && \
+    chmod +x cmake-4.5.0-linux-x86_64.sh && sh cmake-4.5.0-linux-x86_64.sh --skip-license && \
     cp /workspace/bin/cmake /usr/bin/cmake && cp /workspace/bin/cmake /usr/lib/cmake && \
-    cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-4.1 /usr/local/share/ && \
-    rm -rf cmake-4.1.2-linux-x86_64.sh
+    cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-4.5 /usr/local/share/ && \
+    rm -rf cmake-4.5.0-linux-x86_64.sh
 # -w-macro-params-legacy to not log lots of asm warnings
 # https://bitbucket.org/multicoreware/x265_git/issues/559/warnings-when-assembling-with-nasm-215
 RUN git clone https://bitbucket.org/multicoreware/x265_git/ && cd x265_git/build/linux && \
@@ -71,45 +50,30 @@ RUN git clone https://bitbucket.org/multicoreware/x265_git/ && cd x265_git/build
 RUN git clone https://github.com/webmproject/libwebp/ && \
   cd libwebp && ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
 
-RUN git clone https://github.com/ultravideo/kvazaar/ && \
-  cd kvazaar && ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) install
-
 RUN apt install libfreetype-dev libfribidi-dev libharfbuzz-dev libfontconfig-dev -y
 RUN git clone https://github.com/libass/libass/ && \
   cd libass && ./autogen.sh && ./configure --enable-static --disable-shared && make -j$(nproc) && make install
 
-RUN git clone https://github.com/uclouvain/openjpeg/ && \
-  cd openjpeg && cmake -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF && make -j$(nproc) install
-
+RUN apt install python3-pip -y
+RUN pip install meson ninja cython --break-system-packages
 RUN git clone https://code.videolan.org/videolan/dav1d/ && \
   cd dav1d && meson build --buildtype release -Ddefault_library=static && ninja -C build install
 
-RUN apt install tclsh libssl-dev -y
-RUN git clone https://github.com/Haivision/srt/ && \
-  cd srt && ./configure --enable-shared=0 --cmake-install-libdir=lib --cmake-install-includedir=include --cmake-install-bindir=bin && \
-  make -j$(nproc) && make install
-
 RUN git clone https://github.com/nekotrix/SVT-AV1-Essential && \
-  cd SVT-AV1-Essential && git switch Essential-v4.0.1 && \
+  cd SVT-AV1-Essential && git switch Essential-v4.3.0 && \
   cd Build/linux && \
   ./build.sh --native --static --release --enable-lto --enable-pgo --install
-
-RUN git clone https://github.com/Netflix/vmaf/ && \
-  cd vmaf/libvmaf && meson build --buildtype release -Ddefault_library=static && ninja -vC build install
-
-RUN git clone https://github.com/cisco/openh264 && \
-  cd openh264 && meson build --buildtype release -Ddefault_library=static && ninja -C build install
 
 RUN git clone https://github.com/FFmpeg/nv-codec-headers && cd nv-codec-headers && make -j$(nproc) && make install
 
 RUN git clone https://github.com/FFmpeg/FFmpeg
-RUN cd FFmpeg && \
-CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declaration" PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/ ./configure \
-    --extra-cflags="-march=native -fopenmp -lcrypto -lz -ldl -static-libgcc -I/opt/cuda/include" \
-    --extra-cxxflags="-march=native -fopenmp -lcrypto -lz -ldl -static-libgcc" \
-    --extra-ldflags="-fopenmp -lcrypto -lz -ldl -static-libgcc -L/opt/cuda/lib64" \
-    --extra-libs="-lstdc++ -lcrypto -lz -ldl -static-libgcc" \
-    --pkg-config-flags=--static \
+
+RUN cd FFmpeg && ./configure \
+    --extra-cflags="-march=native" \
+    --extra-cxxflags="-march=native" \
+    --extra-ldflags="-static-libgcc" \
+    --extra-libs="-static-libgcc" \
+    --pkg-config-flags="--static" \
     --toolchain=hardened \
     --disable-debug \
     --disable-shared \
@@ -133,24 +97,17 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
     --disable-libspeex \
     --disable-libaom \
     --disable-libvidstab \
-    --enable-libkvazaar \
     --enable-libfreetype \
     --enable-fontconfig \
     --enable-libfribidi \
     --enable-libass \
     --disable-libsoxr \
-    --enable-libopenjpeg \
     --enable-libdav1d \
     --disable-librav1e \
-    --enable-libsrt \
     --enable-libsvtav1 \
     --disable-libdavs2 \
-    --enable-libvmaf \
     --disable-libxeve \
     --enable-cuda-nvcc \
-    --enable-vapoursynth \
-    #--enable-hardcoded-tables \
-    --enable-libopenh264 \
     --enable-optimizations \
     --enable-cuda-llvm \
     --enable-nvdec \
@@ -160,137 +117,48 @@ CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types -Wno-implicit-function-declara
     --enable-pthreads \
     --enable-runtime-cpudetect \
     --enable-lto && \
-    #--enable-vulkan && \ # currently can't get it working
     make -j$(nproc)
 
 ############################
-# bestsource / lsmash / ffms2
-# todo: check if CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" --extra-ldflags="-static" is required
+# trtexec
 ############################
-FROM nvidia/cuda:13.1.2-devel-ubuntu24.04 AS bestsource-lsmash-ffms2-vs
 
+FROM nvidia/cuda:13.4.3-cudnn-devel-ubuntu26.04 AS trtexec
 ARG DEBIAN_FRONTEND=noninteractive
-WORKDIR workspace
+WORKDIR /workspace
 
-RUN apt update -y
-RUN apt install autoconf libtool nasm ninja-build yasm python3.12 python3.12-venv python3.12-dev python3-pip wget git pkg-config python-is-python3 -y
-RUN apt --fix-broken install
-RUN pip install meson ninja cython --break-system-packages
-
-# install g++14
-RUN apt install build-essential manpages-dev software-properties-common -y
-RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y
-RUN apt update -y && apt install gcc-14 g++-14 -y
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 14
-RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 14
-
-# zimg
-# setting pkg version manually since otherwise 'Version' field value '-1': version number is empty
-RUN apt-get install checkinstall -y
-RUN git clone https://github.com/sekrit-twc/zimg --recursive && cd zimg && \
-  ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install
-RUN rm -rf /usr/local/share/doc/zimg/ChangeLog /usr/local/share/doc/zimg/COPYING /usr/local/share/doc/zimg/README.md /usr/local/share/doc/zimg/example/ /usr/local/include/zimg* /usr/local/lib/pkgconfig/zimg.pc
-RUN cd zimg && checkinstall -y -pkgversion=0.0 && \
-  apt install /workspace/zimg/zimg_0.0-1_amd64.deb -y
-
-# vapoursynth
-RUN wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R73.tar.gz && \
-  tar -zxvf R73.tar.gz && mv vapoursynth-R73 vapoursynth && cd vapoursynth && \
-  ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && make install && ldconfig
-
-# dav1d
-RUN git clone https://code.videolan.org/videolan/dav1d/ && \
-  cd dav1d && meson build --buildtype release -Ddefault_library=static && ninja -C build install
-
-# Vulkan-Headers
-RUN apt install cmake -y
-RUN git clone https://github.com/KhronosGroup/Vulkan-Headers.git && cd Vulkan-Headers/ && cmake -S . -DBUILD_SHARED_LIBS=OFF -B build/ && cmake --install build
-
-# nv-codec-headers
-RUN git clone https://github.com/FFmpeg/nv-codec-headers && cd nv-codec-headers && make -j$(nproc) && make install
-
-# ffmpeg
-RUN apt remove ffmpeg -y
-RUN git clone https://git.ffmpeg.org/ffmpeg.git --depth 1 && cd ffmpeg && \
-  CFLAGS=-fPIC ./configure --enable-libdav1d --enable-cuda --enable-nonfree --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-swresample --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-static" --extra-cflags="-march=native" && \
-  make -j$(nproc) && make install -j$(nproc)
-
-# jansson
-RUN git clone https://github.com/akheron/jansson && cd jansson && autoreconf -fi && CFLAGS=-fPIC ./configure --disable-shared --enable-static && \
-  make -j$(nproc) && make install
-
-# bzip2
-RUN git clone https://github.com/libarchive/bzip2 && cd bzip2 && \
-  mkdir build && cd build && cmake .. -DBUILD_SHARED_LIBS=OFF && make -j$(nproc) && make install
-
-# bestsource (custom bestsource to add back _AbsoluteTime)
-RUN apt-get install libxxhash-dev -y && git clone https://github.com/styler00dollar/bestsource --depth 1 --recurse-submodules --shallow-submodules && cd bestsource && \
-  CFLAGS=-fPIC meson setup -Denable_plugin=true build && CFLAGS=-fPIC ninja -C build && ninja -C build install
-
-# ffmpeg (HomeOfAviSynthPlusEvolution version with sws)
-# official ffmpeg does not compile
-# fatal error: libswresample/swresample.h: No such file or directory
-RUN apt remove ffmpeg -y
-RUN rm -rf FFmpeg
-
-RUN git clone https://github.com/HomeOfAviSynthPlusEvolution/FFmpeg
-RUN cd FFmpeg && \
-  LDFLAGS="-Wl,-Bsymbolic" CFLAGS=-fPIC ./configure --enable-libdav1d --enable-cuda --enable-nonfree --disable-shared --enable-static --enable-gpl --enable-version3 --disable-programs --disable-doc --disable-avdevice --disable-avfilter --disable-encoders --disable-muxers --disable-debug --enable-pic --extra-ldflags="-Wl,-Bsymbolic" --extra-cflags="-march=native" && \
-  make -j$(nproc) && make install -j$(nproc)
-
-# lsmash
-# todo: meson.build:80:0: ERROR: File ../common/qsv.c does not exist
-RUN git clone https://github.com/l-smash/l-smash && cd l-smash && CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" ./configure --enable-shared --extra-ldflags="-Wl,-Bsymbolic"  && \
-  make -j$(nproc) && make install
-RUN git clone https://github.com/HomeOfAviSynthPlusEvolution/L-SMASH-Works --recurse-submodules && cd L-SMASH-Works && \
-   cd VapourSynth/ && sed -i "/'..\/common\/qsv\.\(c\|h\)',/d" meson.build && \
-   CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" meson build && CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" ninja -C build && ninja -C build install 
-
-# ffms2
-RUN apt install autoconf -y
-RUN git clone https://github.com/FFMS/ffms2 && cd ffms2 && ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS="-Wl,-Bsymbolic" ./configure --enable-shared && make -j$(nproc) && make install
+RUN apt update -y && apt install wget zstd -y
+RUN wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/11.4.0/tars/TensorRT-Enterprise-11.4.0.106-Linux-x86_64-cuda-13.4-Release-external.tar.zst
+RUN mkdir TensorRT && tar --use-compress-program=unzstd -xvf TensorRT-Enterprise-11.4.0.106-Linux-x86_64-cuda-13.4-Release-external.tar.zst -C TensorRT
 
 ############################
-FROM nvcr.io/nvidia/tensorrt:26.05-py3
+
+FROM nvidia/cuda:13.4.3-runtime-ubuntu26.04
+
 ARG DEBIAN_FRONTEND=noninteractive
 
-# cmake
-RUN apt-get -y update && apt install wget && wget https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.sh && \
-    chmod +x cmake-4.1.2-linux-x86_64.sh && sh cmake-4.1.2-linux-x86_64.sh --skip-license && \
-    cp /workspace/bin/cmake /usr/bin/cmake && cp /workspace/bin/cmake /usr/lib/cmake && \
-    cp /workspace/bin/cmake /usr/local/bin/cmake && cp -r /workspace/share/cmake-4.1 /usr/local/share/ && \
-    rm -rf cmake-4.1.2-linux-x86_64.sh
+RUN apt update -y && apt install python3.14 python3.14-dev python3-pip python-is-python3 git clang -y
+RUN pip install git+https://github.com/vapoursynth/vapoursynth.git vapoursynth-mlrt-trt vapoursynth-bestsource vapoursynth-ffms2 --break-system-packages
 
-RUN apt update -y && apt install git autoconf libtool libglib2.0-dev -y && \
-    wget https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.6.tar.gz && tar -zxvf release-3.0.6.tar.gz && \
-    cd zimg-release-3.0.6 && ./autogen.sh && ./configure && make -j16 && make install && cd .. && rm -rf zimg-release-3.0.6 release-3.0.6.tar.gz && \
-    pip install cython && wget https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R73.tar.gz && \
-    tar -zxvf R73.tar.gz && cd vapoursynth-R73 && ./autogen.sh && ./configure && make && make install && cd .. && ldconfig && \
-    ln -s /usr/local/lib/python3.12/site-packages/vapoursynth.so /usr/lib/python3.12/lib-dynload/vapoursynth.so && \
-    # not deleting vapoursynth-R73 since vs-mlrt needs it
-    rm -rf R73.tar.gz && pip install vapoursynth && \
-    apt-get autoclean -y && apt-get autoremove -y && apt-get clean -y && pip cache purge
-
-# vs-mlrt
-# upgrading g++
-RUN apt install build-essential manpages-dev software-properties-common -y && add-apt-repository ppa:ubuntu-toolchain-r/test -y && \
-    apt update -y && apt install gcc-14 g++-14 -y && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 14 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 14 && \
-    # compiling
-    git clone https://github.com/AmusementClub/vs-mlrt /workspace/vs-mlrt && cd /workspace/vs-mlrt/vstrt && mkdir build && \
-    cd build && /workspace/bin/cmake .. -DVAPOURSYNTH_INCLUDE_DIRECTORY=/workspace/vapoursynth-R73/include -D USE_NVINFER_PLUGIN=OFF -D USE_NVINFER_PLUGIN_STATIC=OFF && make -j$(nproc) && make install && \
-    cd /workspace && rm -rf /workspace/vs-mlrt /workspace/vapoursynth-R73
+RUN apt update -y && apt install fontconfig libharfbuzz0b libfribidi0 -y
 
 # ffmpeg
 COPY --from=ffmpeg /workspace/FFmpeg/ffmpeg /usr/local/bin/ffmpeg
-RUN apt install libxcb1 libxcb-shm0 libxcb-shape0 libxcb-xfixes0 fontconfig libfribidi0 libharfbuzz0b libsoxr0 libdrm-dev -y
 
-# copy video readers
-COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/liblsmash.so* /usr/local/lib/
-COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/vapoursynth/libvslsmashsource.so* /usr/local/lib/vapoursynth/
-COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/vapoursynth/libbestsource.so* /usr/local/lib/vapoursynth/libbestsource.so
-COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/x86_64-linux-gnu/libbestsource.so* /usr/local/lib/x86_64-linux-gnu/libbestsource.so
-COPY --from=bestsource-lsmash-ffms2-vs /usr/local/lib/libffms2.so* /usr/local/lib/
+# trtexec
+COPY --from=trtexec /workspace/TensorRT/TensorRT-11.4.0.106/bin/trtexec /usr/local/bin/trtexec
+RUN ln -s /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer.so.11 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_plugin.so.11 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvonnxparser.so.11 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_ptx.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm75.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm80.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm86.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm89.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm90.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm100.so.11.4.0 \
+  /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm120.so.11.4.0 \
+  /usr/local/lib
 
 ENV CUDA_MODULE_LOADING=LAZY
 WORKDIR /workspace/tensorrt

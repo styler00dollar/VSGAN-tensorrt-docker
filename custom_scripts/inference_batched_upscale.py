@@ -6,7 +6,6 @@ import vapoursynth as vs
 
 core = vs.core
 core.num_threads = 10  # can influence ram usage
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
 """
 Experimental batch onnx test. Use core.trt normally like my other examples show for batch 1 onnx if
@@ -46,5 +45,5 @@ def inference_clip(video_path="", clip=None):
 
     clip = core.std.Interleave([out0, out1])
 
-    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
+    clip = vs.core.resize.Bicubic(clip, format=vs.YUV420P10, matrix_s="709")
     return clip
