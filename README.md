@@ -15,7 +15,7 @@
 -------
 
 Currently working networks:
-- Rife with [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/), v2 with [WolframRhodium](https://github.com/WolframRhodium)
+- Rife with [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/)
 - Model based shot boundary detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models) and [wentaozhu/AutoShot](https://github.com/wentaozhu/AutoShot)
 - [HolyWu/vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
 - [Real-ESRGAN / SRVGGNetCompact](https://github.com/xinntao/Real-ESRGAN)
@@ -35,7 +35,6 @@ Onnx files can be found [here](https://github.com/styler00dollar/VSGAN-tensorrt-
 Also used:
 - TensorRT C++ inference and python script usage with [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt)
 - bestsource with [vapoursynth/bestsource](https://github.com/vapoursynth/bestsource)
-- trt precision check and upscale frame skip with [mafiosnik777/enhancr](https://github.com/mafiosnik777/enhancr)
 - temporal fix with [pifroggi/vs_temporalfix](https://github.com/pifroggi/vs_temporalfix)
 - color fix with [pifroggi/vs_colorfix](https://github.com/pifroggi/vs_colorfix)
 
@@ -310,8 +309,6 @@ If you have the vram to fit the model multiple times, add `--infStreams`.
 ```
 trtexec --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x1280 --maxShapes=input:1x3x1080x1920 --saveEngine=model.engine --skipInference --useCudaGraph --noDataTransfers --builderOptimizationLevel=5 --infStreams=4
 ```
-
-**Warning:** Rife with TensorRT is broken without workarounds in every implementation (mlrt, torch_tensorrt, onnxruntime trt,...), even with fp32, and results in wobbly lines and artefacts during panning scenes. [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife) fixed it [here](https://github.com/HolyWu/vs-rife/commit/0168d7e2ba5e362f234205e4118f15c5503b64f0) or [here](https://github.com/HolyWu/vs-rife/commit/4d6ff753b98cbbbb1a302c19f71315df7ac4da47). Testing showed that vsrife is not a lot slower than mlrt, so I don't recommend using rife onnx.
 
 **Warnings**:
 - Cugan with 3x scale requires same MIN/OPT/MAX shapes.
