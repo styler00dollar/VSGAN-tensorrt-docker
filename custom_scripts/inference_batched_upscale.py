@@ -6,7 +6,6 @@ import vapoursynth as vs
 
 core = vs.core
 core.num_threads = 10  # can influence ram usage
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
 """
 Experimental batch onnx test. Use core.trt normally like my other examples show for batch 1 onnx if

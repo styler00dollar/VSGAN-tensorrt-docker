@@ -6,8 +6,6 @@ import vapoursynth as vs
 core = vs.core
 core.num_threads = 8
 
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
-
 
 def metrics_func(clip):
     offs1 = core.std.BlankClip(clip, length=1) + clip[:-1]

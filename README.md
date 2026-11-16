@@ -148,8 +148,6 @@ core = vs.core
 vs_api_below4 = vs.__api_version__.api_major < 4
 core.num_threads = 8
 
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
-
 
 def inference_clip(video_path="", clip=None):
     clip = core.bs.VideoSource(source=video_path)
@@ -175,8 +173,6 @@ from vsrife import rife
 sys.path.append("/workspace/tensorrt/")
 core = vs.core
 core.num_threads = 4
-
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
 
 def inference_clip(video_path):
@@ -392,8 +388,6 @@ Example usage:
 ```python
 from src.scene_detect import scene_detect
 from vsrife import rife
-
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
 
 clip_sc = scene_detect(

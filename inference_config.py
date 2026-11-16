@@ -5,8 +5,6 @@ import vapoursynth as vs
 
 core = vs.core
 core.num_threads = 4  # can influence ram usage
-# only needed if you are inside docker
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
 
 
 def inference_clip(video_path="", clip=None):

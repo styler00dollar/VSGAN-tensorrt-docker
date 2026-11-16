@@ -6,8 +6,6 @@ import vapoursynth as vs
 core = vs.core
 core.num_threads = 8
 
-core.std.LoadPlugin(path="/usr/local/lib/libvstrt.so")
-
 
 def inference_clip(video_path="", clip=None):
     clip = core.bs.VideoSource(source=video_path)
