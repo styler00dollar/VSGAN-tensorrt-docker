@@ -179,7 +179,7 @@ def inference_clip(video_path):
     )  # RGBS means fp32, RGBH means fp16
 
     # interpolation
-    clip = rife(clip, trt=True, model="4.22", sc=False)
+    clip = rife(clip, trt=True, model="4.26.heavy", sc=False)
 
     clip = core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
     return clip
@@ -330,7 +330,7 @@ trtexec --onnx=model.onnx --minShapes=input:1x3x8x8 --optShapes=input:1x3x720x12
 `vsrife` can have scene detection if you set `sc`.
 
 ```python
-clip = rife(clip, trt=True, model="4.22", sc=True)
+clip = rife(clip, trt=True, model="4.26.heavy", sc=True)
 ```
 
 Or use models. Adjust thresh to a value between 0 and 1, higher means to ignore with less confidence.

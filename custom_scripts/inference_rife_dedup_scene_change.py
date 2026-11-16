@@ -42,7 +42,7 @@ def inference_clip(video_path="", clip=None):
     clip_metric = vs.core.std.Interleave([clip_metric] * interp_scale)
 
     # interpolation
-    clip = rife(clip, trt=True, model="4.22", sc=False)
+    clip = rife(clip, trt=True, model="4.26.heavy", sc=False)
 
     # replacing frames
     clip = core.akarin.Select([clip, clip_orig], clip_metric, "x.float_ssim 0.999 >")
