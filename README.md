@@ -64,14 +64,14 @@ There are now multiple containers to choose from, if you don't want the default,
 and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to running `docker-compose run --rm vsgan_tensorrt`.
 - `latest`: Default docker with everything. Trying to keep everything updated and fixed.
 - `latest_no_avx512` is for cpus without avx512 support, otherwise it just crashes if you try to run avx512 binaries on cpus without such support. Use this if your cpu does not support all instruction sets.
-- `minimal`: Only has `ffmpeg`, `mlrt`, `ffms2`, `lsmash` and `bestsource`.
+- `minimal`: Only has `ffmpeg`, `mlrt`, `ffms2` and `bestsource`.
 
 | docker image                                          | dockerhub | short description |
 | ----------------------------------------------------- | --------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest                  | 13.1gb    | trt 10.16
-| styler00dollar/vsgan_tensorrt:latest_no_avx512        | 13.1gb    | trt 10.16 without avx512
-| styler00dollar/vsgan_tensorrt:minimal                 | 6.1gb     | trt 10.16 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
-| styler00dollar/vsgan_tensorrt:minimal_no_avx512       | 6.1gb     | trt 10.16 without avx512 + ffmpeg + mlrt + ffms2 + lsmash + bestsource
+| styler00dollar/vsgan_tensorrt:latest                  | 16.9gb    | trt 11.14
+| styler00dollar/vsgan_tensorrt:latest_no_avx512        | 16.9gb    | trt 11.14 without avx512
+| styler00dollar/vsgan_tensorrt:minimal                 | 9.4gb     | trt 11.14 + ffmpeg + mlrt + ffms2 + bestsource
+| styler00dollar/vsgan_tensorrt:minimal_no_avx512       | 9.4gb     | trt 11.14 without avx512 + ffmpeg + mlrt + ffms2 + bestsource
 
 Piping usage:
 ```
