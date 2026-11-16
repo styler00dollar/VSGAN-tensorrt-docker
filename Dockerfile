@@ -139,7 +139,8 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt update -y && apt install python3.14 python3.14-dev python3-pip python-is-python3 git clang -y
 RUN pip install git+https://github.com/vapoursynth/vapoursynth.git vapoursynth-mlrt-trt vapoursynth-bestsource vapoursynth-ffms2 \
-  onnxruntime-gpu vapoursynth-akarin vapoursynth-awarp vapoursynth-cas vsrife vsrealesrgan vs-colorfix vs-temporalfix vapoursynth-descale tensorrt --break-system-packages
+  onnxruntime-gpu vapoursynth-akarin vapoursynth-awarp vapoursynth-cas vsrife vsrealesrgan vs-colorfix vs-temporalfix vapoursynth-descale \
+  vapoursynth-edgemasks torch-tensorrt cuda-python tensorrt --break-system-packages
 RUN python -m vsrife && python -m vsrealesrgan
 
 RUN apt update -y && apt install fontconfig libharfbuzz0b libfribidi0 -y
@@ -161,8 +162,6 @@ RUN ln -s /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer.so.11
   /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm100.so.11.4.0 \
   /usr/local/lib/python3.14/dist-packages/tensorrt_libs/libnvinfer_builder_resource_sm120.so.11.4.0 \
   /usr/local/lib
-
-RUN pip install vapoursynth-edgemasks torch-tensorrt cuda-python --break-system-packages
 
 ENV CUDA_MODULE_LOADING=LAZY
 WORKDIR /workspace/tensorrt
