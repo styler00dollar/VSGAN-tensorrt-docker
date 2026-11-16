@@ -15,8 +15,8 @@
 -------
 
 Currently working networks:
-- Rife with [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/)
-- Model based shot boundary detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models) and [wentaozhu/AutoShot](https://github.com/wentaozhu/AutoShot)
+- [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/)
+- shot boundary detection / scene change detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models) and [wentaozhu/AutoShot](https://github.com/wentaozhu/AutoShot)
 - [HolyWu/vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
 - [Real-ESRGAN / SRVGGNetCompact](https://github.com/xinntao/Real-ESRGAN)
 - [SAFMN](https://github.com/sunny2109/SAFMN)
