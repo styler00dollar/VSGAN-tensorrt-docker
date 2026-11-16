@@ -178,7 +178,7 @@ def inference_clip(video_path):
     )  # RGBS means fp32, RGBH means fp16
 
     # interpolation
-    clip = rife(clip, trt=True, model="4.26.heavy", sc=False)
+    clip = rife(clip, trt=True, model="4.26.heavy", sc=True)
 
     clip = core.resize.Bicubic(clip, format=vs.YUV420P8, matrix_s="709")
     return clip
