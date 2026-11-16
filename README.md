@@ -8,7 +8,6 @@
    * [Deduplicated inference](#deduplicated)
    * [Shot Boundary Detection](#shot-boundry)
    * [multi-gpu](#multi-gpu)
-   * [ddfi](#ddfi)
    * [VFR (variable refresh rate)](#vfr)
    * [Benchmarks](#benchmarks)
    * [License](#license)
@@ -17,7 +16,7 @@
 -------
 
 Currently working networks:
-- Rife with [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/), v2 with [WolframRhodium](https://github.com/WolframRhodium), drba with [routineLife1/VS-DRBA](https://github.com/routineLife1/VS-DRBA), ddfi with [Mr-Z-2697/ddfi-rife](https://github.com/Mr-Z-2697/ddfi-rife)
+- Rife with [HolyWu/vs-rife](https://github.com/HolyWu/vs-rife/), v2 with [WolframRhodium](https://github.com/WolframRhodium), drba with [routineLife1/VS-DRBA](https://github.com/routineLife1/VS-DRBA)
 - Model based shot boundary detection with [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models), [snap-research/EfficientFormer (EfficientFormerV2)](https://github.com/snap-research/EfficientFormer), [wentaozhu/AutoShot](https://github.com/wentaozhu/AutoShot), [abhijay9/ShiftTolerant-LPIPS](https://github.com/abhijay9/ShiftTolerant-LPIPS) and [photosynthesis-team/piq](https://github.com/photosynthesis-team/piq)
 - [HolyWu/vs-realesrgan](https://github.com/HolyWu/vs-realesrgan)
 - [HolyWu/vs-animesr](https://github.com/HolyWu/vs-animesr)
@@ -424,18 +423,6 @@ stream1 = core.std.SelectEvery(core.trt.Model(clip, engine_path="models/engines/
 stream2 = core.std.SelectEvery(core.trt.Model(clip, engine_path="models/engines/model.engine", num_streams=2, device_id=2), cycle=3, offsets=2)
 clip = core.std.Interleave([stream0, stream1, stream2])
 ```
-
-<div id='ddfi'/>
-
-## ddfi
-
-To quickly explain what ddfi is, the repository [Mr-Z-2697/ddfi-rife](https://github.com/Mr-Z-2697/ddfi-rife) deduplicates frames and interpolates between frames. Normally, frames which are duplicated can create a stuttering visual effect and to mitigate that, a higher interpolation factor is used on scenes which have a duplicated frames to compensate.
-
-Visual examples from that repository:
-
-https://user-images.githubusercontent.com/74594146/142829178-ff08b96f-9ca7-45ab-82f0-4e95be045f2d.mp4
-
-Example usage is in `custom_scripts/ddfi_rife_dedup_scene_change/`. As a quick summary, you need to do two processing passes. One pass to calculate metrics and another to use interpolation combined with VFRToCFR. You need to use `deduped_vfi.py` similar to how you used `main.py`.
 
 <div id='vfr'/>
 
