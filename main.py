@@ -54,8 +54,6 @@ for file_path in files:
             "ffmpeg",
             "-i",
             f"{file_path}",
-            "-thread_queue_size",
-            "100",
             "-i",
             "pipe:",
             "-map",
