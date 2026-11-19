@@ -68,8 +68,8 @@ and set a different tag `image: styler00dollar/vsgan_tensorrt:x` prior to runnin
 
 | docker image                                          | dockerhub | short description |
 | ----------------------------------------------------- | --------- | ----------------- |
-| styler00dollar/vsgan_tensorrt:latest                  | 16.9gb    | trt 11.14
-| styler00dollar/vsgan_tensorrt:latest_no_avx512        | 16.9gb    | trt 11.14 without avx512
+| styler00dollar/vsgan_tensorrt:latest                  | 18.6gb    | trt 11.14
+| styler00dollar/vsgan_tensorrt:latest_no_avx512        | 18.6gb    | trt 11.14 without avx512
 | styler00dollar/vsgan_tensorrt:minimal                 | 9.4gb     | trt 11.14 + ffmpeg + mlrt + ffms2 + bestsource
 | styler00dollar/vsgan_tensorrt:minimal_no_avx512       | 9.4gb     | trt 11.14 without avx512 + ffmpeg + mlrt + ffms2 + bestsource
 
