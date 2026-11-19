@@ -138,9 +138,10 @@ FROM nvidia/cuda:13.4.3-runtime-ubuntu26.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt update -y && apt install python3.14 python3.14-dev python3-pip python-is-python3 git clang -y
+RUN pip install -U torch torchvision torch-tensorrt --extra-index-url https://download.pytorch.org/whl/cu134 --extra-index-url https://pypi.nvidia.com --break-system-packages
 RUN pip install git+https://github.com/vapoursynth/vapoursynth.git vapoursynth-mlrt-trt vapoursynth-bestsource vapoursynth-ffms2 \
-  onnxruntime-gpu vapoursynth-akarin vapoursynth-awarp vapoursynth-cas vsrife vsrealesrgan vs-colorfix vs-temporalfix vapoursynth-descale \
-  vapoursynth-edgemasks torch-tensorrt cuda-python tensorrt --break-system-packages
+  onnxruntime-gpu vapoursynth-akarin vapoursynth-awarp vapoursynth-cas git+https://github.com/HolyWu/vs-rife vsrealesrgan vs-colorfix vs-temporalfix vapoursynth-descale \
+  vapoursynth-edgemasks vapoursynth-autocrop cuda-python tensorrt --break-system-packages
 RUN python -m vsrife && python -m vsrealesrgan
 
 RUN apt update -y && apt install fontconfig libharfbuzz0b libfribidi0 -y
